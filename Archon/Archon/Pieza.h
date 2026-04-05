@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+//Pieza.h
 // Los tres tipos de movimiento
 enum TipoMovimiento { GROUND, FLYING, TELEPORT };
 
