@@ -1,0 +1,10 @@
+# Basura de Visual Studio que NO queremos en GitHub
+.vs/
+Debug/
+Release/
+x64/
+*.obj
+*.log
+*.tlog
+*.pdb
+*.user
