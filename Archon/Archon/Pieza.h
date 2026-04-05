@@ -32,4 +32,6 @@ public:
     }
 
     virtual ~Pieza() {} // Necesario para que C++ gestione bien la memoria
+
+    virtual void atacar() = 0;
 };
