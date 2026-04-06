@@ -128,6 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Pieza.h" />
+    <ClInclude Include="PiezaMelee.h" />
+    <ClInclude Include="PiezaRapida.h" />
+    <ClInclude Include="PiezaTanque.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PiezaMelee.cpp" />
+    <ClCompile Include="PiezaRapida.cpp" />
+    <ClCompile Include="PiezaTanque.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
