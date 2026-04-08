@@ -127,6 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Arena.h" />
+    <ClInclude Include="..\..\..\PiezaVoladora.h" />
     <ClInclude Include="Pieza.h" />
     <ClInclude Include="PiezaDistancia.h" />
     <ClInclude Include="PiezaMelee.h" />
@@ -135,6 +137,8 @@
     <ClInclude Include="Tablero.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Arena.cpp" />
+    <ClCompile Include="..\..\..\PiezaVoladora.cpp" />
     <ClCompile Include="PiezaDistancia.cpp" />
     <ClCompile Include="PiezaMelee.cpp" />
     <ClCompile Include="PiezaRapida.cpp" />
