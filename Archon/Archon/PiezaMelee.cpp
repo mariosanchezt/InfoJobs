@@ -8,6 +8,6 @@ PiezaMelee::PiezaMelee(int fIni, int cIni, TipoMovimiento t)
 }
 
 //Atributo atacar de PiezaMelee
-void PiezaMelee::atacar() {
+void PiezaMelee::atacar(Pieza* enemigo) {
     std::cout << "Ataque cuerpo a cuerpo realizado" << std::endl;
 }

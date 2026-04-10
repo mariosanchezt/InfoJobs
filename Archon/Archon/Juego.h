@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 
-enum Turno { LUZ, OSCURIDAD };
-
 class Tablero;
 class Arena;
 class Pieza;
@@ -11,7 +9,7 @@ class Juego {
 private:
     Tablero* tablero;
     Arena* arena;
-    Turno turnoActual;
+    Bando turnoActual;
     int hechizosRestantesLuz;
     int hechizosRestantesOscuridad;
     bool hechizosUsadosLuz[7];
