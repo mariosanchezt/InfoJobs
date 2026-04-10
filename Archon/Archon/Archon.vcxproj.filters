@@ -33,10 +33,10 @@
     <ClInclude Include="Tablero.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Arena.h">
+    <ClInclude Include="Arena.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\PiezaVoladora.h">
+    <ClInclude Include="PiezaVoladora.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,10 +56,10 @@
     <ClCompile Include="Tablero.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Arena.cpp">
+    <ClCompile Include="Arena.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\PiezaVoladora.cpp">
+    <ClCompile Include="PiezaVoladora.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
