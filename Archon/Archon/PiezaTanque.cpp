@@ -1,20 +1,24 @@
 #include "PiezaTanque.h"
 #include <iostream>
 
-PiezaTanque::PiezaTanque(int fIni, int cIni, TipoMovimiento t)
-    : Pieza(180.0f, 25.0f, 0.6f, 1.2f, 1, fIni, cIni, t) {
-    // Constructor PiezaTanque
-        //vida = 180.0f
-        //fuerza = 25.0f
-        //velAtaque = 0.6f
-        //intervaloAtaque = 1.2f
-        //radioMovimiento = 1
-        //Fila inicial todavía sin especificar 
-        //Columna inicial todavía sin especificar 
-        //Tipo de movimiento todavía sin especificar 
+PiezaTanque::PiezaTanque(Bando b, int fIni, int cIni)
+    : Pieza(
+        (b == LUZ ? "Pomelo" : "All-Star"),    // nombre
+        b,                                      // bando
+        (b == LUZ ? 200.0f : 220.0f),          // vida
+        (b == LUZ ? 35.0f : 40.0f),            // fuerza
+        (b == LUZ ? 0.4f : 0.3f),              // velAtaque
+        (b == LUZ ? 2.0f : 2.5f),              // intervaloAtaque
+        2,                                      // radioMovimiento
+        fIni,                                   // fila inicial
+        cIni,                                   // columna inicial
+        GROUND                                  // tipo de movimiento
+    ) {
+    // Constructor de PiezaTanque:
+    // Si es del bando LUZ, se crea como Pomelo.
+    // Si es del bando OSCURIDAD, se crea como All-Star.
 }
 
-void PiezaTanque::atacar() {
-    std::cout << "Ataque cuerpo a cuerpo pesado realizado" << std::endl;
-    //Por ahora solo se anuncia por pantalla como va a realizarse su ataque 
+void PiezaTanque::atacar(Pieza* enemigo) {
+    std::cout << nombre << " realiza un ataque de tanque." << std::endl;
 }

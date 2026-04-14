@@ -3,6 +3,6 @@
 
 class PiezaTanque : public Pieza {
 public:
-    PiezaTanque(int fIni, int cIni, TipoMovimiento t); // Definicion del constructor
-    void atacar() override; // Definicion del metodo atacar
+    PiezaTanque(Bando b, int fIni, int cIni);// Definicion del constructor
+    void atacar(Pieza* enemigo) override;// Definicion del metodo atacar
 };
