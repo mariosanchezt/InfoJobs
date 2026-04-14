@@ -41,3 +41,6 @@ Pieza* Arena::iniciarCombate() {
         return pieza2;
     }
 }
+void Arena::dibujar() {
+    std::cout << "Dibujando arena de combate..." << std::endl;
+}

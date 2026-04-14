@@ -22,3 +22,6 @@ PiezaRapida::PiezaRapida(Bando b, int fIni, int cIni)
 void PiezaRapida::atacar(Pieza* enemigo) {
     std::cout << nombre << " realiza un ataque rapido." << std::endl;
 }
+void PiezaRapida::dibujar() {
+    std::cout << "Dibujando pieza rapida: " << nombre << std::endl;
+}

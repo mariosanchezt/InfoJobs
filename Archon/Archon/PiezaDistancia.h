@@ -8,5 +8,5 @@ public:
 	PiezaDistancia(float v, float f, float va, float intA, int rm, int fIni, int cIni, TipoMovimiento t, float alc);
 	
 	void atacar() override; 
-
+	void dibujar() override;// Definicion del metodo atacar
 };

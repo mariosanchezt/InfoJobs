@@ -20,4 +20,6 @@ public:
 
     //detecta el final del juego
     bool hayGanador();
+    //función para dibujar 
+    void dibujar();
 };

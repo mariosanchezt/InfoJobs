@@ -1,4 +1,5 @@
 #include "Tablero.h"
+#include <iostream>
 
 Tablero::Tablero() {
 	cicloOscilacion = 0; //eestado inicial para empezar
@@ -28,4 +29,7 @@ bool Tablero::esPuntoDePoder(int f, int c) {
 	}
 
 	return false;
+}
+void Tablero::dibujar() {
+	std::cout << "Dibujando tablero..." << std::endl;
 }

@@ -12,4 +12,8 @@ public:
 
     //lanza el combate y devuelve quien gana (nullptr si mueren las dos)
     Pieza* iniciarCombate();
+
+    //Funcion para dibujar la arena 
+    void dibujar();
+
 };

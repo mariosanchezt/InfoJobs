@@ -108,6 +108,9 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
 
     cambiarTurno();
 }
+void Juego::dibujar() {
+    std::cout << "Dibujando juego..." << std::endl;  
+}
 
 Juego::~Juego() {
     delete tablero;

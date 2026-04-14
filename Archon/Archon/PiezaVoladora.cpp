@@ -36,3 +36,6 @@ void PiezaVoladora::desactivarBolaDeFuego() {
     fuerza /= 1.5f; //vuelve a la normalidad
     std::cout << "Phoenix vuelve a su forma normal" << std::endl;
 }
+void PiezaVoladora::dibujar() {
+    std::cout << "Dibujando pieza voladora: " << nombre << std::endl;
+}

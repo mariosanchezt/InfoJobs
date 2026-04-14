@@ -11,3 +11,6 @@ PiezaDistancia::PiezaDistancia(float v, float f, float va, float intA, int rm, i
 void PiezaDistancia::atacar() {
 	std::cout << "Disparando proyectil a una distancia de: " << alcance << std::endl;
 }
+void PiezaDistancia::dibujar() {
+	std::cout << "Dibujando pieza a distancia: " << nombre << std::endl;
+}

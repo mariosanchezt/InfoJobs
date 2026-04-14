@@ -22,3 +22,6 @@ PiezaTanque::PiezaTanque(Bando b, int fIni, int cIni)
 void PiezaTanque::atacar(Pieza* enemigo) {
     std::cout << nombre << " realiza un ataque de tanque." << std::endl;
 }
+void PiezaTanque::dibujar() {
+    std::cout << "Dibujando pieza tanque: " << nombre << std::endl;
+}

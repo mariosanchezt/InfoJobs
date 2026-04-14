@@ -45,4 +45,5 @@ public:
     std::string getNombre() const { return nombre; }
 
     virtual void atacar(Pieza* enemigo) = 0;
+    virtual void dibujar() = 0;
 };

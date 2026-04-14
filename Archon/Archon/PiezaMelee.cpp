@@ -11,3 +11,6 @@ PiezaMelee::PiezaMelee(int fIni, int cIni, TipoMovimiento t)
 void PiezaMelee::atacar(Pieza* enemigo) {
     std::cout << "Ataque cuerpo a cuerpo realizado" << std::endl;
 }
+void PiezaMelee::dibujar() {
+    std::cout << "Dibujando pieza melee: " << nombre << std::endl;
+}

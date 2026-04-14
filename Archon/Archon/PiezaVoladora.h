@@ -9,4 +9,5 @@ public:
     void atacar() override;
     void activarBolaDeFuego();
     void desactivarBolaDeFuego();
+    void dibujar() override;// Definicion del metodo atacar
 };
