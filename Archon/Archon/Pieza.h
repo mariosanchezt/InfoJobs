@@ -2,7 +2,7 @@
 #include <string>
 // Los tres tipos de movimiento y los dos bandos
 enum TipoMovimiento { GROUND, FLYING, TELEPORT };
-enum Bando {LUZ, OSCURIDAD};
+enum Bando {PLANTAS, ZOMBIES};
 
 
 class Pieza {
