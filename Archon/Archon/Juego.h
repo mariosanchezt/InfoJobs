@@ -24,5 +24,6 @@ public:
     void moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino);
     void lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest = 0, int cDest = 0);
     void iniciarCombate(Pieza* p1, Pieza* p2);
+    bool verificarVictoria();
     void dibujar();
 };
