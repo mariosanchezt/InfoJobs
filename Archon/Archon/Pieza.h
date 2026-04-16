@@ -2,7 +2,9 @@
 #include <string>
 // Los tres tipos de movimiento y los dos bandos
 enum TipoMovimiento { GROUND, FLYING, TELEPORT };
-enum Bando {PLANTAS, ZOMBIES};
+
+//enum Bando {PLANTAS, ZOMBIES};
+enum Bando { LUZ, OSCURIDAD };
 
 
 class Pieza {
@@ -40,6 +42,7 @@ public:
     }
 
     virtual ~Pieza() {} // Necesario para que C++ gestione bien la memoria
+    //cuando usamos "new", esto es necesario
 
     Bando getBando() const { return bando; }
     std::string getNombre() const { return nombre; }
