@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="Arena.cpp" />
     <ClCompile Include="Juego.cpp" />
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="PiezaDistancia.cpp" />
     <ClCompile Include="PiezaMelee.cpp" />
     <ClCompile Include="PiezaRapida.cpp" />
