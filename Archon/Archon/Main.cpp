@@ -26,7 +26,7 @@ int main() {
     int filaVoladoraOsc = 2, colVoladoraOsc = 8;
     int filaRapidaOsc = 3, colRapidaOsc = 8;
 
-    
+
     // 2. CREACION DE PIEZAS
 
     // Bando LUZ - Plantas
@@ -60,7 +60,7 @@ int main() {
 
 
     // 4. ACCESO AL TABLERO
- 
+
     Tablero tablero;
     tablero.dibujar();
 
@@ -72,15 +72,16 @@ int main() {
 
     // 5. ACCESO A LA ARENA
 
-    Arena arena(&tanqueLuz, &tanqueOsc);
+    Arena arena;
+    arena.iniciarCombate(&tanqueLuz, &tanqueOsc);
     //Se ha llamado a pelear de forma teórica a las piezas de tipo tanque de ambos bandos 
     arena.dibujar();
-    
+
     // 6. ACCESO AL JUEGO
- 
-     Juego juego;
-     juego.inicializarPartida();
-     juego.dibujar();
+
+    Juego juego;
+    juego.inicializarPartida();
+    juego.dibujar();
 
     return 0;
 }

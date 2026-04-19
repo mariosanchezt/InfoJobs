@@ -158,7 +158,6 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
-
 }
 
 Juego::~Juego() {

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "Pieza.h" 
 
 class Tablero;
 class Arena;
