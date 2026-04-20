@@ -2,10 +2,18 @@
 #include <iostream>
 
 //deifnicion constructor
-PiezaDistancia::PiezaDistancia(std::string n, Bando b, float v, float f, float va, float intA, int rm, int fIni, int cIni, TipoMovimiento t, float alc)
-	: Pieza(n, b, v, f, va, intA, rm, fIni, cIni, t)//llamamos a constructor del padre
+PiezaDistancia::PiezaDistancia(Bando b, int fIni, int cIni) 
+    : Pieza(
+        (b==LUZ ? "Lanzaguisantes" : "Soldado Z"), //nombre
+        b,                                          //bando
+        (b==LUZ ? 100.0f : 100.0f),                 //vida
+        (b==LUZ ? 25.0f, 22.0f),                    //fuerza
+        0.8f, 0.8f, 4,                              //stats fijas
+        fIni,cIni,                                  //pos ini
+        GROUND                                      //tipo movimiento
+    )
 {
-	alcance = alc;
+    alcance = (b == LUZ ? 5.0f : 7.0f);
 
 }
 
