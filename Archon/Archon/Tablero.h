@@ -7,6 +7,7 @@ private:
 	Pieza* casillas[9][9];
 
     int cicloOscilacion; //casillas oscilan y cambian de color
+    int ciclo; // El estado actual de las casillas que cambian
 
 public:
     //constructor: prepara el tablero vacío

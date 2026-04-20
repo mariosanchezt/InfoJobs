@@ -8,7 +8,7 @@ public:
 	//creamos constructor q recibe datos Pieza y añadimos cualidad: ALCANCE
 	//PiezaDistancia(float v, float f, float va, float intA, int rm, int fIni, int cIni, TipoMovimiento t, float alc);
 
-	PiezaDistancia(Bando b, int fIni, int cIni);
+	PiezaDistancia(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t);
 
 	void atacar(Pieza* enemigo) override;
 	void dibujar() override;
