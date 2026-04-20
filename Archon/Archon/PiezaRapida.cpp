@@ -1,10 +1,10 @@
 #include "PiezaRapida.h"
 #include <iostream>
 
-PiezaRapida::PiezaRapida(Bando b, int fIni, int cIni)
+PiezaRapida::PiezaRapida(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t)
     : Pieza(
-        (b == LUZ ? "Girasol" : "Zombidito"),   // nombre
-        b,                                      // bando
+        n,                                     // nombre
+        b,                                     // bando
         (b == LUZ ? 80.0f : 60.0f),            // vida
         (b == LUZ ? 15.0f : 12.0f),            // fuerza
         (b == LUZ ? 0.5f : 0.3f),              // velAtaque

@@ -1,9 +1,9 @@
 #include "PiezaTanque.h"
 #include <iostream>
 
-PiezaTanque::PiezaTanque(Bando b, int fIni, int cIni)
+PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t)
     : Pieza(
-        (b == LUZ ? "Pomelo" : "All-Star"),    // nombre
+        n,    // nombre
         b,                                      // bando
         (b == LUZ ? 200.0f : 220.0f),          // vida
         (b == LUZ ? 35.0f : 40.0f),            // fuerza

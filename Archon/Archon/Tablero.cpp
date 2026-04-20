@@ -65,30 +65,30 @@ bool Tablero::esPuntoDePoder(int f, int c) {
 	return false;
 }
 
-void Tablero::inicializarPartida() {
-	//MELEE: carnivora / supercerebroz - 8x por bando en 2º columna
-	for (int i = 0; i < 9;i++) {
-		if (i = 4) continue; //hueco central fila libre
-		// Plantas (Columna 1)
-		colocarPieza(i, 1, new PiezaMelee(LUZ, i, 1));
-
-		// Zombies (Columna 7)
-		colocarPieza(i, 7, new PiezaMelee(OSCURIDAD, i, 7));
-	}
-	
-	// --- BANDO LUZ (Plantas - Columna 0) ---
-	colocarPieza(0, 0, new PiezaTanque(LUZ, 0, 0));    // Pomelo
-	colocarPieza(1, 0, new PiezaDistancia(LUZ, 1, 0)); // Lanzaguisantes
-	colocarPieza(2, 0, new PiezaVoladora(LUZ, 2, 0));  // Mazorca
-	colocarPieza(3, 0, new PiezaRapida(LUZ, 3, 0));    // Girasol
-	// El 4,0 suele ser el Líder (Dave el Loco / Wizard)
-
-	// --- BANDO OSCURIDAD (Zombies - Columna 8) ---
-	colocarPieza(0, 8, new PiezaTanque(OSCURIDAD, 0, 8));    // All-Star
-	colocarPieza(1, 8, new PiezaDistancia(OSCURIDAD, 1, 8)); // Soldado
-	colocarPieza(2, 8, new PiezaVoladora(OSCURIDAD, 2, 8));  // Ingeniero
-	colocarPieza(3, 8, new PiezaRapida(OSCURIDAD, 3, 8));    // Zombidito
-}
+//void Tablero::inicializarPartida() {
+//	//MELEE: carnivora / supercerebroz - 8x por bando en 2º columna
+//	for (int i = 0; i < 9;i++) {
+//		if (i = 4) continue; //hueco central fila libre
+//		// Plantas (Columna 1)
+//		colocarPieza(i, 1, new PiezaMelee(LUZ, i, 1));
+//
+//		// Zombies (Columna 7)
+//		colocarPieza(i, 7, new PiezaMelee(OSCURIDAD, i, 7));
+//	}
+//	
+//	// --- BANDO LUZ (Plantas - Columna 0) ---
+//	colocarPieza(0, 0, new PiezaTanque(LUZ, 0, 0));    // Pomelo
+//	colocarPieza(1, 0, new PiezaDistancia(LUZ, 1, 0)); // Lanzaguisantes
+//	colocarPieza(2, 0, new PiezaVoladora(LUZ, 2, 0));  // Mazorca
+//	colocarPieza(3, 0, new PiezaRapida(LUZ, 3, 0));    // Girasol
+//	// El 4,0 suele ser el Líder (Dave el Loco / Wizard)
+//
+//	// --- BANDO OSCURIDAD (Zombies - Columna 8) ---
+//	colocarPieza(0, 8, new PiezaTanque(OSCURIDAD, 0, 8));    // All-Star
+//	colocarPieza(1, 8, new PiezaDistancia(OSCURIDAD, 1, 8)); // Soldado
+//	colocarPieza(2, 8, new PiezaVoladora(OSCURIDAD, 2, 8));  // Ingeniero
+//	colocarPieza(3, 8, new PiezaRapida(OSCURIDAD, 3, 8));    // Zombidito
+//}
 
 
 void Tablero::dibujar() {

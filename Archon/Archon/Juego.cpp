@@ -18,12 +18,33 @@ Juego::Juego() {
 }
 
 void Juego::inicializarPartida() {
-    PiezaMelee* guerrero = new PiezaMelee(0, 0, GROUND);
-    tablero->colocarPieza(0, 0, guerrero);
+    // 1. PIEZAS MELEE (Carnívora / Supercerebroz)
+    for (int i = 0; i < 9; i++) {
+        if (i == 4) continue;
 
-    std::cout << "Partida inicializada. Turno de la Luz." << std::endl;
+        // Plantas (LUZ) - Columna 1
+        tablero->colocarPieza(i, 1, new PiezaMelee("Carnivora", LUZ, i, 1, GROUND));
+
+        // Zombies (OSCURIDAD) - Columna 7
+        tablero->colocarPieza(i, 7, new PiezaMelee("Supercerebroz", OSCURIDAD, i, 7, GROUND));
+    }
+
+    // 2. BANDO LUZ (Plantas - Columna 0)
+    tablero->colocarPieza(0, 0, new PiezaTanque("Pomelo", LUZ, 0, 0, GROUND));
+    tablero->colocarPieza(1, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 1, 0, GROUND));
+    tablero->colocarPieza(2, 0, new PiezaVoladora("Mazorca", LUZ, 2, 0, FLYING));
+    tablero->colocarPieza(3, 0, new PiezaRapida("Girasol", LUZ, 3, 0, GROUND));
+    // El 4,0 está reservado para el Líder (Dave el Loco)
+
+    // 3. BANDO OSCURIDAD (Zombies - Columna 8)
+    tablero->colocarPieza(0, 8, new PiezaTanque("All-Star", OSCURIDAD, 0, 8, GROUND));
+    tablero->colocarPieza(1, 8, new PiezaDistancia("Soldado", OSCURIDAD, 1, 8, GROUND));
+    tablero->colocarPieza(2, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 2, 8, FLYING));
+    tablero->colocarPieza(3, 8, new PiezaRapida("Zombidito", OSCURIDAD, 3, 8, GROUND));
+    // El 4,8 está reservado para el Líder (Dr. Zombi)
+
+    std::cout << "Tablero de Plants vs Zombies inicializado correctamente." << std::endl;
 }
-
 void Juego::cambiarTurno() {
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
     std::cout << "Cambio de turno. Ahora le toca a: "
@@ -108,8 +129,35 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
 
     cambiarTurno();
 }
+
+void Juego:: iniciarCombate(Pieza* atacante, Pieza* defensor) {
+    // 1. Llamamos a la Arena. Mario te devuelve el puntero de la pieza que gana.
+    Pieza* ganador = arena->iniciarCombate(atacante, defensor);
+
+    // 2. Si el ganador es el atacante, el defensor desaparece
+    if (ganador == atacante) {
+        std::cout << "¡" << atacante->getNombre() << " ha ganado el duelo!" << std::endl;
+
+        // Importante: primero la quitamos del tablero de Hugo para que la casilla quede libre (nullptr)
+        tablero->colocarPieza(defensor->filaInicial, defensor->colInicial, nullptr);
+
+        delete defensor; // Liberamos la RAM
+    }
+    // 3. Si el ganador es el defensor, el atacante muere en el intento
+    else if (ganador == defensor) {
+        std::cout << "El defensor (" << defensor->getNombre() << ") se ha mantenido firme." << std::endl;
+
+        tablero->colocarPieza(atacante->filaInicial, atacante->colInicial, nullptr);
+
+        delete atacante;
+    }
+}
+
 void Juego::dibujar() {
     std::cout << "Dibujando juego..." << std::endl;  
+}
+
+bool Juego::verificarVictoria() {
 }
 
 Juego::~Juego() {
