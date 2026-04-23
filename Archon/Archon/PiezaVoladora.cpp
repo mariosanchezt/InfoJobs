@@ -23,17 +23,22 @@ PiezaVoladora::PiezaVoladora(std::string n, Bando b, int fIni, int cIni, TipoMov
 void PiezaVoladora::atacar(Pieza* enemigo) {
     if (enemigo != nullptr) {
         if (modoBolaDeFuego) {
-            std::cout << nombre << " ataca en modo bola de fuego contra " << enemigo->getNombre() << std::endl;
+            std::cout << nombre << "arrolla en modo BOLA DE FUEGO" << std::endl;
         }
         else {
-            std::cout << nombre << " realiza un ataque aereo contra " << enemigo->getNombre() << std::endl;
+            std::cout << nombre << "lanza un ataque de fuego desde el aire" << std::endl;
         }
-
-        // Logica de dano: restamos tu fuerza a su vida
+        //Resta la vida real
         enemigo->vida -= this->fuerza;
+        if (enemigo->vida < 0)enemigo->vida = 0;//Evita que la vida pueda ser negativa
 
-        std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
-    }
+        if (enemigo->vida == 0) {
+            std::cout << enemigo->getNombre() << " ha sido calcinado." << std::endl;
+        }
+        else {
+            std::cout << enemigo->getNombre() << " se está quemando. Vida restante: " << enemigo->vida << std::endl;
+        }
+   }
 }
 
 void PiezaVoladora::activarBolaDeFuego() {

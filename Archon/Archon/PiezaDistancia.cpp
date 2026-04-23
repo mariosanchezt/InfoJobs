@@ -19,8 +19,15 @@ PiezaDistancia::PiezaDistancia(std::string n, Bando b, int fIni, int cIni, TipoM
 
 //definicion del ataque
 void PiezaDistancia::atacar(Pieza* enemigo) {
-	std::cout << "Disparando proyectil a una distancia de: " << alcance
-		<< "contra: " << enemigo->getNombre() << std::endl;
+	if (enemigo != nullptr) {
+		std::cout << nombre << "dispara un proyectil (Alcance:" << alcance << ") contra" << enemigo->getNombre() << "!" << std::endl;
+
+		//Resta la vida real
+		enemigo->vida -= this->fuerza;
+		if (enemigo->vida < 0)enemigo->vida = 0;//Evita que la vida sea negativa
+
+		std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
+	}
 }
 void PiezaDistancia::dibujar() {
 	std::cout << "Dibujando pieza a distancia: " << nombre << std::endl;

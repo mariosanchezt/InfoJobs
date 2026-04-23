@@ -20,7 +20,14 @@ PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimie
 }
 
 void PiezaTanque::atacar(Pieza* enemigo) {
-    std::cout << nombre << " realiza un ataque de tanque." << std::endl;
+    if (enemigo != nullptr) {
+        std::cout << nombre << "embiste con fuerza bruta!" << std::endl;
+        //Resta de la vida real:
+        enemigo->vida -= this->fuerza;
+
+        if (enemigo->vida < 0) enemigo->vida = 0; //Evita que salga vida negativa
+        std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
+    }
 }
 void PiezaTanque::dibujar() {
     std::cout << "Dibujando pieza tanque: " << nombre << std::endl;

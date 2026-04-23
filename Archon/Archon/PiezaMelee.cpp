@@ -14,7 +14,8 @@ void PiezaMelee::atacar(Pieza* enemigo) {
 
         // Lógica de daño real: restamos tu fuerza a su vida
         enemigo->vida -= this->fuerza;
-
+        
+        if (enemigo->vida < 0) enemigo->vida = 0;//Evita que la vida sea negativa
         std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
     }
 }
