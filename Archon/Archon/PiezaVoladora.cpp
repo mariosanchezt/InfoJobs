@@ -8,15 +8,12 @@ PiezaVoladora::PiezaVoladora(std::string n, Bando b, int fIni, int cIni, TipoMov
         (b == LUZ ? 110.0f : 120.0f),           // vida
         (b == LUZ ? 30.0f : 28.0f),             // fuerza
         (b == LUZ ? 0.7f : 0.6f),               // velAtaque
-        (b == LUZ ? 1.0f : 1.0f),               // intervaloAtaque (PENDIENTE confirmar del Excel)
+        (b == LUZ ? 1.0f : 1.2f),               // intervaloAtaque
         5,                                      // radioMovimiento
         fIni,                                   // fila inicial
         cIni,                                   // columna inicial
-        FLYING                                  // tipo de movimiento siempre FLYING
+        FLYING                                  // tipo de movimiento
     ) {
-    // Constructor de PiezaVoladora:
-    // Si es del bando LUZ, se crea como Mazorca (Kernel Corn).
-    // Si es del bando OSCURIDAD, se crea como Ingeniero (Dron).
     modoBolaDeFuego = false;
 }
 
