@@ -15,6 +15,10 @@ Juego::Juego() {
     turnoActual = LUZ;
     hechizosRestantesLuz = 7;
     hechizosRestantesOscuridad = 7;
+    for (int i = 0; i < 7; i++) {
+        hechizosUsadosLuz[i] = false;
+        hechizosUsadosOscuridad[i] = false;
+    }
 }
 
 void Juego::inicializarPartida() {
@@ -165,7 +169,7 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
-    
+    return false;
 }
 
 Juego::~Juego() {
