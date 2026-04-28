@@ -20,7 +20,14 @@ PiezaRapida::PiezaRapida(std::string n, Bando b, int fIni, int cIni, TipoMovimie
 }
 
 void PiezaRapida::atacar(Pieza* enemigo) {
-    std::cout << nombre << " realiza un ataque rapido." << std::endl;
+    if (enemigo != nullptr) {
+        std::cout << nombre << "ataca a la velocidad del rayo!" << std::endl;
+        //Resta de la vida real
+        enemigo->vida -= this->fuerza;
+
+        if (enemigo->vida < 0) enemigo->vida = 0;//Para que no salga vida negativa
+        std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
+    }
 }
 void PiezaRapida::dibujar() {
     std::cout << "Dibujando pieza rapida: " << nombre << std::endl;

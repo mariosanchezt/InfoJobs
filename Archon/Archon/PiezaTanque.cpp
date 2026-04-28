@@ -3,12 +3,12 @@
 
 PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t)
     : Pieza(
-        n,    // nombre
+        n,                                      // nombre
         b,                                      // bando
-        (b == LUZ ? 200.0f : 220.0f),          // vida
-        (b == LUZ ? 35.0f : 40.0f),            // fuerza
-        (b == LUZ ? 0.4f : 0.3f),              // velAtaque
-        (b == LUZ ? 2.0f : 2.5f),              // intervaloAtaque
+        (b == LUZ ? 200.0f : 220.0f),           // vida
+        (b == LUZ ? 35.0f : 40.0f),             // fuerza
+        (b == LUZ ? 0.4f : 0.3f),               // velAtaque
+        (b == LUZ ? 2.0f : 2.5f),               // intervaloAtaque
         2,                                      // radioMovimiento
         fIni,                                   // fila inicial
         cIni,                                   // columna inicial
@@ -20,8 +20,21 @@ PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimie
 }
 
 void PiezaTanque::atacar(Pieza* enemigo) {
-    std::cout << nombre << " realiza un ataque de tanque." << std::endl;
+    if (enemigo != nullptr) {
+        std::cout << nombre << " realiza un ataque pesado contra "
+            << enemigo->getNombre() << std::endl;
+
+        enemigo->vida -= this->fuerza;
+
+        if (enemigo->vida < 0) {
+            enemigo->vida = 0;
+        }
+
+        std::cout << "Vida restante de " << enemigo->getNombre()
+            << ": " << enemigo->vida << std::endl;
+    }
 }
+
 void PiezaTanque::dibujar() {
     std::cout << "Dibujando pieza tanque: " << nombre << std::endl;
 }

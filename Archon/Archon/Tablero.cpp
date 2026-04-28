@@ -1,5 +1,6 @@
 #include "Tablero.h"
 #include <iostream>
+#include <cstdlib>
 
 Tablero::Tablero() {
     ciclo = 1;             // Inicializamos el ciclo actual
@@ -26,12 +27,59 @@ void Tablero::colocarPieza(int fila, int col, Pieza* p) {
     }
 }
 
-void Tablero::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
-    Pieza* p = getPieza(fOrigen, cOrigen);
-    if (p != nullptr) {
-        colocarPieza(fDestino, cDestino, p);
-        casillas[fOrigen][cOrigen] = nullptr;
+bool Tablero::esMovimientoValido(int fOrigen, int cOrigen, int fDestino, int cDestino) {
+    // 1. Comprobar que el origen esté dentro del tablero
+    if (fOrigen < 0 || fOrigen >= 9 || cOrigen < 0 || cOrigen >= 9) {
+        std::cout << "Movimiento invalido: origen fuera del tablero." << std::endl;
+        return false;
     }
+
+    // 2. Comprobar que el destino esté dentro del tablero
+    if (fDestino < 0 || fDestino >= 9 || cDestino < 0 || cDestino >= 9) {
+        std::cout << "Movimiento invalido: destino fuera del tablero." << std::endl;
+        return false;
+    }
+
+    // 3. Comprobar que hay una pieza en el origen
+    Pieza* p = getPieza(fOrigen, cOrigen);
+
+    if (p == nullptr) {
+        std::cout << "Movimiento invalido: no hay pieza en la casilla de origen." << std::endl;
+        return false;
+    }
+
+    // 4. Calcular distancia entre origen y destino
+    int distanciaFilas = abs(fDestino - fOrigen);
+    int distanciaColumnas = abs(cDestino - cOrigen);
+
+    int distanciaTotal = distanciaFilas + distanciaColumnas;
+
+    // 5. Comprobar que no supera el radio de movimiento de la pieza
+    if (distanciaTotal > p->radioMovimiento) {
+        std::cout << "Movimiento invalido: supera el radio de movimiento de "
+            << p->getNombre() << "." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+void Tablero::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
+    if (!esMovimientoValido(fOrigen, cOrigen, fDestino, cDestino)) {
+        return;
+    }
+
+    Pieza* p = getPieza(fOrigen, cOrigen);
+
+    colocarPieza(fDestino, cDestino, p);
+    casillas[fOrigen][cOrigen] = nullptr;
+
+    // Actualizamos la posicion interna de la pieza
+    p->filaInicial = fDestino;
+    p->colInicial = cDestino;
+
+    std::cout << p->getNombre() << " se ha movido a la casilla ("
+        << fDestino << ", " << cDestino << ")." << std::endl;
 }
 
 bool Tablero::esPuntoDePoder(int f, int c) {

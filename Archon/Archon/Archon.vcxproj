@@ -135,6 +135,7 @@
     <ClInclude Include="PiezaRapida.h" />
     <ClInclude Include="PiezaTanque.h" />
     <ClInclude Include="PiezaVoladora.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="Tablero.h" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +147,7 @@
     <ClCompile Include="PiezaRapida.cpp" />
     <ClCompile Include="PiezaTanque.cpp" />
     <ClCompile Include="PiezaVoladora.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Tablero.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

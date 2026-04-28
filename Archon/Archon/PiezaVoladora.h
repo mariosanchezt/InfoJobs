@@ -3,11 +3,13 @@
 
 class PiezaVoladora : public Pieza {
 public:
-    bool modoBolaDeFuego; //para la habilidad especial
+    bool modoBolaDeFuego;
 
-    PiezaVoladora(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t);// Definicion del constructor
-    void atacar(Pieza* enemigo) override;// Definicion del metodo atacar
+    PiezaVoladora(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t);
+
+    void atacar(Pieza* enemigo) override;
+    void dibujar() override;
+
     void activarBolaDeFuego();
     void desactivarBolaDeFuego();
-    void dibujar() override;
 };

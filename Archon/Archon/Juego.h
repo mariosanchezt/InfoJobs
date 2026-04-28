@@ -27,4 +27,7 @@ public:
     void iniciarCombate(Pieza* p1, Pieza* p2);
     bool verificarVictoria();
     void dibujar();
+
+    // Getter pa q el Renderer pueda acceder al tablero
+    Tablero* getTablero() const { return tablero; }
 };

@@ -15,35 +15,46 @@ Juego::Juego() {
     turnoActual = LUZ;
     hechizosRestantesLuz = 7;
     hechizosRestantesOscuridad = 7;
+    for (int i = 0; i < 7; i++) {
+        hechizosUsadosLuz[i] = false;
+        hechizosUsadosOscuridad[i] = false;
+    }
 }
 
 void Juego::inicializarPartida() {
-    // 1. PIEZAS MELEE (Carnívora / Supercerebroz)
+    // MELEE: columna interior, como los peones del Archon original
     for (int i = 0; i < 9; i++) {
-        if (i == 4) continue;
-
-        // Plantas (LUZ) - Columna 1
         tablero->colocarPieza(i, 1, new PiezaMelee("Carnivora", LUZ, i, 1, GROUND));
-
-        // Zombies (OSCURIDAD) - Columna 7
         tablero->colocarPieza(i, 7, new PiezaMelee("Supercerebroz", OSCURIDAD, i, 7, GROUND));
     }
 
-    // 2. BANDO LUZ (Plantas - Columna 0)
+    // BANDO LUZ - PLANTAS, columna exterior
     tablero->colocarPieza(0, 0, new PiezaTanque("Pomelo", LUZ, 0, 0, GROUND));
     tablero->colocarPieza(1, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 1, 0, GROUND));
     tablero->colocarPieza(2, 0, new PiezaVoladora("Mazorca", LUZ, 2, 0, FLYING));
     tablero->colocarPieza(3, 0, new PiezaRapida("Girasol", LUZ, 3, 0, GROUND));
-    // El 4,0 está reservado para el Líder (Dave el Loco)
 
-    // 3. BANDO OSCURIDAD (Zombies - Columna 8)
+    // tablero->colocarPieza(4, 0, new PiezaLider("Dave el Loco", LUZ, 4, 0, TELEPORT));
+
+    tablero->colocarPieza(5, 0, new PiezaRapida("Girasol", LUZ, 5, 0, GROUND));
+    tablero->colocarPieza(6, 0, new PiezaVoladora("Mazorca", LUZ, 6, 0, FLYING));
+    tablero->colocarPieza(7, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 7, 0, GROUND));
+    tablero->colocarPieza(8, 0, new PiezaTanque("Pomelo", LUZ, 8, 0, GROUND));
+
+    // BANDO OSCURIDAD - ZOMBIES, columna exterior
     tablero->colocarPieza(0, 8, new PiezaTanque("All-Star", OSCURIDAD, 0, 8, GROUND));
     tablero->colocarPieza(1, 8, new PiezaDistancia("Soldado", OSCURIDAD, 1, 8, GROUND));
     tablero->colocarPieza(2, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 2, 8, FLYING));
     tablero->colocarPieza(3, 8, new PiezaRapida("Zombidito", OSCURIDAD, 3, 8, GROUND));
-    // El 4,8 está reservado para el Líder (Dr. Zombi)
 
-    std::cout << "Tablero de Plants vs Zombies inicializado correctamente." << std::endl;
+    // tablero->colocarPieza(4, 8, new PiezaLider("Dr. Zombi", OSCURIDAD, 4, 8, TELEPORT));
+
+    tablero->colocarPieza(5, 8, new PiezaRapida("Zombidito", OSCURIDAD, 5, 8, GROUND));
+    tablero->colocarPieza(6, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 6, 8, FLYING));
+    tablero->colocarPieza(7, 8, new PiezaDistancia("Soldado", OSCURIDAD, 7, 8, GROUND));
+    tablero->colocarPieza(8, 8, new PiezaTanque("All-Star", OSCURIDAD, 8, 8, GROUND));
+
+    std::cout << "Tablero del Juego Platas VS Zombies inicializado correctamente" << std::endl;
 }
 void Juego::cambiarTurno() {
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
@@ -158,6 +169,7 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
+    return false;
 }
 
 Juego::~Juego() {
