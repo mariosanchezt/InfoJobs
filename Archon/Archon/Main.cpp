@@ -24,17 +24,31 @@ int main() {
             }
 
             
-            /*
-            HUGO: aqui va la logica de clicks del raton
-             Tienes disponibles estos metodos del Renderer:
-             renderer.pixelACasilla(x, y, fila, col) -> bool
-             renderer.seleccionarCasilla(fila, col)
-             renderer.deseleccionar()
-             renderer.getFilaSeleccionada() / getColSeleccionada()
-             renderer.setEstado(ARENA) para cambiar a pantalla de combate
-             Y del Juego:
-             juego.moverPieza(fOrigen, cOrigen, fDestino, cDestino)
-             */ 
+            if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (click->button == sf::Mouse::Button::Left) {
+                    int fila, col;
+                    if (renderer.pixelACasilla(click->position.x, click->position.y, fila, col)) {
+                        int filaOrigen = renderer.getFilaSeleccionada();
+                        int colOrigen  = renderer.getColSeleccionada();
+
+                        if (filaOrigen == -1) {
+                            // Nada seleccionado: seleccionar solo si la pieza es del turno actual
+                            Pieza* p = juego.getTablero()->getPieza(fila, col);
+                            if (p != nullptr && p->getBando() == juego.getTurnoActual()) {
+                                renderer.seleccionarCasilla(fila, col);
+                            }
+                        } else if (fila == filaOrigen && col == colOrigen) {
+                            // Clic en la misma casilla: deseleccionar
+                            renderer.deseleccionar();
+                        } else {
+                            // Segunda casilla: mover, cambiar turno y deseleccionar
+                            juego.moverPieza(filaOrigen, colOrigen, fila, col);
+                            juego.cambiarTurno();
+                            renderer.deseleccionar();
+                        }
+                    }
+                }
+            }
             
         }
 

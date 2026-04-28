@@ -30,4 +30,5 @@ public:
 
     // Getter pa q el Renderer pueda acceder al tablero
     Tablero* getTablero() const { return tablero; }
+    Bando getTurnoActual() const { return turnoActual; }
 };
