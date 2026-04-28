@@ -29,4 +29,8 @@ public:
 
     //función para dibujar 
     void dibujar();
+
+    //para la oscilacion
+    void avanzarCiclo();
+    int getColorActual(int f, int c);
 };
