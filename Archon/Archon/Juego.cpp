@@ -83,7 +83,7 @@ void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
         //Casilla ocupada
         if (p->getBando() != ocupante->getBando()) {
             //Son de bandos opuestos->se pelean
-            iniciarCombate(p, ocupante);
+            iniciarCombate(p, ocupante, fOrigen, cOrigen, fDestino, cDestino);
         }
         else {
             std::cout << "No puedes atacar a tus aliados." << std::endl;
@@ -140,27 +140,26 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
 
     cambiarTurno();
 }
-
-void Juego:: iniciarCombate(Pieza* atacante, Pieza* defensor) {
-    // 1. Llamamos a la Arena. Mario te devuelve el puntero de la pieza que gana.
+void Juego::iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAtac, int fDef, int cDef) {
     Pieza* ganador = arena->iniciarCombate(atacante, defensor);
 
-    // 2. Si el ganador es el atacante, el defensor desaparece
     if (ganador == atacante) {
         std::cout << "¡" << atacante->getNombre() << " ha ganado el duelo!" << std::endl;
-
-        // Importante: primero la quitamos del tablero de Hugo para que la casilla quede libre (nullptr)
-        tablero->colocarPieza(defensor->filaInicial, defensor->colInicial, nullptr);
-
-        delete defensor; // Liberamos la RAM
+        tablero->colocarPieza(fDef, cDef, nullptr);
+        delete defensor;
+        tablero->moverPieza(fAtac, cAtac, fDef, cDef);
     }
-    // 3. Si el ganador es el defensor, el atacante muere en el intento
     else if (ganador == defensor) {
         std::cout << "El defensor (" << defensor->getNombre() << ") se ha mantenido firme." << std::endl;
-
-        tablero->colocarPieza(atacante->filaInicial, atacante->colInicial, nullptr);
-
+        tablero->colocarPieza(fAtac, cAtac, nullptr);
         delete atacante;
+    }
+    else {
+        std::cout << "¡Ambas piezas han muerto en combate!" << std::endl;
+        tablero->colocarPieza(fAtac, cAtac, nullptr);
+        tablero->colocarPieza(fDef, cDef, nullptr);
+        delete atacante;
+        delete defensor;
     }
 }
 
