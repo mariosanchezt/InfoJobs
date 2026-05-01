@@ -8,7 +8,7 @@ enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA };
 struct Boton {
     sf::RectangleShape forma;
     std::string texto;
-    bool habilitado;
+    bool habilitado = false;
 };
 
 class Menu {
