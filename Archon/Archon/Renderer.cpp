@@ -6,6 +6,7 @@ Renderer::Renderer(sf::RenderWindow& vent)
     : ventana(vent)
 {
     fuenteCargada = false;
+    texturasCargadas = false;
     estado = TABLERO;
 
     filaSeleccionada = -1;
@@ -14,8 +15,8 @@ Renderer::Renderer(sf::RenderWindow& vent)
     colorBlanco = sf::Color(240, 217, 181);
     colorNegro = sf::Color(90, 120, 80);
     colorGris = sf::Color(160, 160, 140);
-    colorSeleccion = sf::Color(255, 215, 0, 180); // amarillo semitransparente
-    colorMovimiento = sf::Color(80, 200, 80, 140); // verde semitransparente
+    colorSeleccion = sf::Color(255, 215, 0, 180);
+    colorMovimiento = sf::Color(80, 200, 80, 140);
 }
 
 bool Renderer::cargarFuente(const std::string& ruta) {
@@ -28,24 +29,60 @@ bool Renderer::cargarFuente(const std::string& ruta) {
     return true;
 }
 
-// Dibuja el estado del tablero (modo normal)
+// Mapea el nombre de la pieza al archivo PNG correspondiente
+std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const {
+    if (nombrePieza == "Carnivora")      return "Chomper.png";
+    if (nombrePieza == "Lanzaguisantes") return "Peashooter.png";
+    if (nombrePieza == "Girasol")        return "Sunflower.png";
+    if (nombrePieza == "Pomelo")         return "Citron.png";
+    if (nombrePieza == "Mazorca")        return "Kernelpult.png";
+    if (nombrePieza == "Supercerebroz")  return "SuperBrainz.png";
+    if (nombrePieza == "Soldado")        return "Soldier.png";
+    if (nombrePieza == "Zombidito")      return "Imp.png";
+    if (nombrePieza == "All-Star")       return "AllStar.png";
+    if (nombrePieza == "Ingeniero")      return "Engineer.png";
+    return "";
+}
+
+void Renderer::cargarSprites(const std::string& carpeta) {
+    std::vector<std::string> archivos = {
+        "Chomper.png", "Peashooter.png", "Sunflower.png", "Citron.png", "Kernelpult.png",
+        "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png"
+    };
+
+    int cargados = 0;
+    for (const auto& archivo : archivos) {
+        std::string ruta = carpeta + "/" + archivo;
+        sf::Texture tex;
+        if (tex.loadFromFile(ruta)) {
+            tex.setSmooth(true);
+            texturas[archivo] = std::move(tex);
+            cargados++;
+            std::cout << "Sprite cargado: " << archivo << std::endl;
+        }
+        else {
+            std::cout << "Aviso: no se encontro " << ruta << " - usando circulo" << std::endl;
+        }
+    }
+    texturasCargadas = (cargados > 0);
+    std::cout << cargados << "/10 sprites cargados." << std::endl;
+}
+
+// -------------------------------------------------------
+// TABLERO
+// -------------------------------------------------------
 void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (tablero == nullptr) return;
-
     dibujarTablero(tablero);
     dibujarMovimientosDisponibles();
-
-    if (filaSeleccionada >= 0 && colSeleccionada >= 0) {
+    if (filaSeleccionada >= 0 && colSeleccionada >= 0)
         dibujarCasillaResaltada(filaSeleccionada, colSeleccionada);
-    }
-
     dibujarIndicadorTurno(turno);
 }
 
 void Renderer::dibujarTablero(Tablero* tablero) {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
-
             int colorActual = tablero->getColorActual(f, c);
             sf::Color colorFondo;
             if (colorActual == 0) colorFondo = colorBlanco;
@@ -60,9 +97,7 @@ void Renderer::dibujarTablero(Tablero* tablero) {
             ventana.draw(casilla);
 
             Pieza* p = tablero->getPieza(f, c);
-            if (p != nullptr) {
-                dibujarPieza(p, f, c);
-            }
+            if (p != nullptr) dibujarPieza(p, f, c);
         }
     }
 }
@@ -71,34 +106,52 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
     float px = OFFSET_X + col * TAM_CASILLA;
     float py = OFFSET_Y + fila * TAM_CASILLA;
 
-    sf::Color colorPieza = (p->getBando() == LUZ)
-        ? sf::Color(80, 180, 100)
-        : sf::Color(180, 60, 60);
+    std::string archivo = nombreArchivoSprite(p->getNombre());
+    bool tieneSprite = !archivo.empty() && texturas.count(archivo) > 0;
 
-    float radio = TAM_CASILLA * 0.35f;
-    sf::CircleShape circulo(radio);
-    circulo.setFillColor(colorPieza);
-    circulo.setOutlineColor(sf::Color::Black);
-    circulo.setOutlineThickness(2.f);
-    circulo.setPosition(sf::Vector2f(px + TAM_CASILLA / 2.f - radio, py + TAM_CASILLA / 2.f - radio - 8.f));
-    ventana.draw(circulo);
+    if (tieneSprite) {
+        // Sprite escalado con margen dentro de la casilla
+        const sf::Texture& tex = texturas.at(archivo);
+        sf::Sprite sprite(tex);
 
-    if (fuenteCargada) {
-        std::string nombreCorto = p->getNombre().substr(0, 4);
+        float margen = 6.f;
+        float tamDisp = TAM_CASILLA - margen * 2.f;
+        sf::Vector2u texSize = tex.getSize();
+        float escala = tamDisp / std::max((float)texSize.x, (float)texSize.y);
 
-        sf::Text texto(fuente, nombreCorto, 11);
-        texto.setFillColor(sf::Color::White);
-        texto.setStyle(sf::Text::Bold);
+        sprite.setScale(sf::Vector2f(escala, escala));
 
-        sf::FloatRect bounds = texto.getLocalBounds();
-        texto.setPosition(sf::Vector2f(
-            px + TAM_CASILLA / 2.f - bounds.size.x / 2.f,
-            py + TAM_CASILLA - 18.f
+        float spriteW = texSize.x * escala;
+        float spriteH = texSize.y * escala;
+        sprite.setPosition(sf::Vector2f(
+            px + (TAM_CASILLA - spriteW) / 2.f,
+            py + (TAM_CASILLA - spriteH) / 2.f
         ));
-        ventana.draw(texto);
+        ventana.draw(sprite);
 
-        dibujarBarraVida(p->vida, p->vidaMaxima, px + 5.f, py + 4.f, TAM_CASILLA - 10.f);
     }
+    else {
+        // Fallback: circulo de color si no hay sprite
+        sf::Color colorPieza = (p->getBando() == LUZ)
+            ? sf::Color(80, 180, 100)
+            : sf::Color(180, 60, 60);
+
+        float radio = TAM_CASILLA * 0.35f;
+        sf::CircleShape circulo(radio);
+        circulo.setFillColor(colorPieza);
+        circulo.setOutlineColor(sf::Color::Black);
+        circulo.setOutlineThickness(2.f);
+        circulo.setPosition(sf::Vector2f(
+            px + TAM_CASILLA / 2.f - radio,
+            py + TAM_CASILLA / 2.f - radio - 8.f
+        ));
+        ventana.draw(circulo);
+    }
+
+    // Barra de vida siempre encima
+    dibujarBarraVida(p->vida, p->vidaMaxima, px + 5.f, py + 4.f, TAM_CASILLA - 10.f);
+
+    
 }
 
 void Renderer::dibujarCasillaResaltada(int fila, int col) {
@@ -122,7 +175,6 @@ void Renderer::dibujarMovimientosDisponibles() {
         marca.setOutlineThickness(2.f);
         ventana.draw(marca);
 
-        // Circulo pequeño en el centro pa q se vea bien como en chess.com
         float radio = TAM_CASILLA * 0.18f;
         sf::CircleShape punto(radio);
         punto.setFillColor(sf::Color(30u, 160u, 30u, 200u));
@@ -136,7 +188,6 @@ void Renderer::dibujarMovimientosDisponibles() {
 
 void Renderer::dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho) {
     if (vidaMax <= 0) return;
-
     float porcentaje = vida / vidaMax;
 
     sf::RectangleShape fondo(sf::Vector2f(ancho, 5.f));
@@ -157,32 +208,28 @@ void Renderer::dibujarBarraVida(float vida, float vidaMax, float x, float y, flo
 
 void Renderer::dibujarIndicadorTurno(Bando turno) {
     float yFranja = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
-
     bool esLuz = (turno == LUZ);
 
-    sf::Color colorFranja = esLuz
-        ? sf::Color(50, 130, 70)
-        : sf::Color(130, 40, 40);
-
+    sf::Color colorFranja = esLuz ? sf::Color(50, 130, 70) : sf::Color(130, 40, 40);
     sf::RectangleShape franja(sf::Vector2f(760.f, 50.f));
     franja.setPosition(sf::Vector2f(OFFSET_X, yFranja));
     franja.setFillColor(colorFranja);
     ventana.draw(franja);
 
     if (fuenteCargada) {
-        std::string textoTurno = esLuz ? "TURNO: LUZ (Plantas)" : "TURNO: OSCURIDAD (Zombies)";
-
+        std::string textoTurno = esLuz ? "TURNO: PLANTAS" : "TURNO: ZOMBIES";
         sf::Text texto(fuente, textoTurno, 20);
         texto.setFillColor(sf::Color::White);
         texto.setStyle(sf::Text::Bold);
-
         sf::FloatRect b = texto.getLocalBounds();
         texto.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, yFranja + 13.f));
         ventana.draw(texto);
     }
 }
 
-// Dibuja la pantalla de arena (modo combate)
+// -------------------------------------------------------
+// Arena basica (sin interactividad aun)
+// -------------------------------------------------------
 void Renderer::dibujarEstadoArena(Pieza* p1, Pieza* p2) {
     if (p1 == nullptr || p2 == nullptr) return;
 
@@ -195,104 +242,53 @@ void Renderer::dibujarEstadoArena(Pieza* p1, Pieza* p2) {
         sf::FloatRect b = titulo.getLocalBounds();
         titulo.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, 30.f));
         ventana.draw(titulo);
-    }
 
-    // PIEZA 1 (izquierda)
-    {
-        float cx = 180.f;
-        float cy = 200.f;
+        // Nombre y vida p1
+        sf::Text nom1(fuente, p1->getNombre(), 22);
+        nom1.setFillColor(sf::Color(100, 230, 120));
+        nom1.setStyle(sf::Text::Bold);
+        sf::FloatRect b1 = nom1.getLocalBounds();
+        nom1.setPosition(sf::Vector2f(200.f - b1.size.x / 2.f, 120.f));
+        ventana.draw(nom1);
+        dibujarBarraVida(p1->vida, p1->vidaMaxima, 80.f, 160.f, 240.f);
 
-        sf::Color colorP1 = (p1->getBando() == LUZ)
-            ? sf::Color(80, 180, 100) : sf::Color(180, 60, 60);
-
-        sf::CircleShape circ(70.f);
-        circ.setFillColor(colorP1);
-        circ.setOutlineColor(sf::Color::White);
-        circ.setOutlineThickness(3.f);
-        circ.setPosition(sf::Vector2f(cx - 70.f, cy - 70.f));
-        ventana.draw(circ);
-
-        if (fuenteCargada) {
-            sf::Text nombre(fuente, p1->getNombre(), 18);
-            nombre.setFillColor(sf::Color::White);
-            nombre.setStyle(sf::Text::Bold);
-            sf::FloatRect b = nombre.getLocalBounds();
-            nombre.setPosition(sf::Vector2f(cx - b.size.x / 2.f, cy + 85.f));
-            ventana.draw(nombre);
-
-            dibujarBarraVida(p1->vida, p1->vidaMaxima, cx - 80.f, cy + 115.f, 160.f);
-
-            sf::Text vidaTxt(fuente, std::to_string((int)p1->vida) + " / " + std::to_string((int)p1->vidaMaxima), 14);
-            vidaTxt.setFillColor(sf::Color(200, 200, 200));
-            sf::FloatRect bv = vidaTxt.getLocalBounds();
-            vidaTxt.setPosition(sf::Vector2f(cx - bv.size.x / 2.f, cy + 125.f));
-            ventana.draw(vidaTxt);
-        }
-    }
-
-    if (fuenteCargada) {
+        // VS
         sf::Text vs(fuente, "VS", 36);
         vs.setFillColor(sf::Color(255, 100, 100));
         vs.setStyle(sf::Text::Bold);
-        sf::FloatRect b = vs.getLocalBounds();
-        vs.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, 190.f));
+        sf::FloatRect bv = vs.getLocalBounds();
+        vs.setPosition(sf::Vector2f(400.f - bv.size.x / 2.f, 130.f));
         ventana.draw(vs);
-    }
 
-    // PIEZA 2 (derecha)
-    {
-        float cx = 620.f;
-        float cy = 200.f;
-
-        sf::Color colorP2 = (p2->getBando() == LUZ)
-            ? sf::Color(80, 180, 100) : sf::Color(180, 60, 60);
-
-        sf::CircleShape circ(70.f);
-        circ.setFillColor(colorP2);
-        circ.setOutlineColor(sf::Color::White);
-        circ.setOutlineThickness(3.f);
-        circ.setPosition(sf::Vector2f(cx - 70.f, cy - 70.f));
-        ventana.draw(circ);
-
-        if (fuenteCargada) {
-            sf::Text nombre(fuente, p2->getNombre(), 18);
-            nombre.setFillColor(sf::Color::White);
-            nombre.setStyle(sf::Text::Bold);
-            sf::FloatRect b = nombre.getLocalBounds();
-            nombre.setPosition(sf::Vector2f(cx - b.size.x / 2.f, cy + 85.f));
-            ventana.draw(nombre);
-
-            dibujarBarraVida(p2->vida, p2->vidaMaxima, cx - 80.f, cy + 115.f, 160.f);
-
-            sf::Text vidaTxt(fuente, std::to_string((int)p2->vida) + " / " + std::to_string((int)p2->vidaMaxima), 14);
-            vidaTxt.setFillColor(sf::Color(200, 200, 200));
-            sf::FloatRect bv = vidaTxt.getLocalBounds();
-            vidaTxt.setPosition(sf::Vector2f(cx - bv.size.x / 2.f, cy + 125.f));
-            ventana.draw(vidaTxt);
-        }
+        // Nombre y vida p2
+        sf::Text nom2(fuente, p2->getNombre(), 22);
+        nom2.setFillColor(sf::Color(230, 100, 100));
+        nom2.setStyle(sf::Text::Bold);
+        sf::FloatRect b2 = nom2.getLocalBounds();
+        nom2.setPosition(sf::Vector2f(600.f - b2.size.x / 2.f, 120.f));
+        ventana.draw(nom2);
+        dibujarBarraVida(p2->vida, p2->vidaMaxima, 480.f, 160.f, 240.f);
     }
 }
 
-// Seleccion de casillas y calculo de movimientos
+// -------------------------------------------------------
+// Seleccion de casillas
+// -------------------------------------------------------
 void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     filaSeleccionada = fila;
     colSeleccionada = col;
     movimientosDisponibles.clear();
 
     if (tablero == nullptr) return;
-
     Pieza* p = tablero->getPieza(fila, col);
     if (p == nullptr) return;
 
-    // Calculamos todas las casillas dentro del radio de movimiento
     int radio = p->radioMovimiento;
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
-            if (f == fila && c == col) continue; // la propia casilla no cuenta
-
+            if (f == fila && c == col) continue;
             int dist = abs(f - fila) + abs(c - col);
             if (dist <= radio) {
-                // Solo mostramos casillas vacias o con enemigos (no aliados)
                 Pieza* ocupante = tablero->getPieza(f, c);
                 if (ocupante == nullptr || ocupante->getBando() != p->getBando()) {
                     movimientosDisponibles.push_back({ f, c });
@@ -311,13 +307,9 @@ void Renderer::deseleccionar() {
 bool Renderer::pixelACasilla(int px, int py, int& fila, int& col) {
     int fx = px - (int)OFFSET_X;
     int fy = py - (int)OFFSET_Y;
-
     if (fx < 0 || fy < 0) return false;
-
     col = fx / (int)TAM_CASILLA;
     fila = fy / (int)TAM_CASILLA;
-
     if (fila >= 9 || col >= 9) return false;
-
     return true;
 }

@@ -16,6 +16,9 @@ int main() {
         std::cout << "Fuente no encontrada, el juego corre sin texto" << std::endl;
     }
 
+    // Cargamos los sprites PNG desde la carpeta assets
+    renderer.cargarSprites("assets");
+
     while (ventana.isOpen()) {
         while (auto event = ventana.pollEvent()) {
 
@@ -42,7 +45,7 @@ int main() {
                             renderer.deseleccionar();
                         }
                         else {
-                            // Segunda casilla: intentar mover (el turno cambia dentro de moverPieza solo si es valido)
+                            // Segunda casilla: intentar mover
                             juego.moverPieza(filaOrigen, colOrigen, fila, col);
                             renderer.deseleccionar();
                         }

@@ -4,6 +4,7 @@
 #include "Pieza.h"
 #include <string>
 #include <vector>
+#include <map>
 
 // Estados posibles de la pantalla
 enum EstadoPantalla { TABLERO, ARENA };
@@ -17,8 +18,8 @@ private:
 
     // Tamanho de cada casilla en pixeles
     static constexpr float TAM_CASILLA = 80.f;
-    static constexpr float OFFSET_X = 20.f; // margen izquierdo
-    static constexpr float OFFSET_Y = 20.f; // margen superior
+    static constexpr float OFFSET_X = 20.f;
+    static constexpr float OFFSET_Y = 20.f;
 
     EstadoPantalla estado;
 
@@ -29,14 +30,18 @@ private:
     // Casillas resaltadas como movimientos posibles
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
-    // Colores del tablero
+    // Texturas de los sprites — mapa nombre_archivo -> textura
+    std::map<std::string, sf::Texture> texturas;
+    bool texturasCargadas;
+
+    // Colores
     sf::Color colorBlanco;
     sf::Color colorNegro;
     sf::Color colorGris;
     sf::Color colorSeleccion;
-    sf::Color colorMovimiento; // verde pa los movimientos disponibles
+    sf::Color colorMovimiento;
 
-    // Metodos internos
+    // Metodos internos tablero
     void dibujarTablero(Tablero* tablero);
     void dibujarPieza(Pieza* p, int fila, int col);
     void dibujarCasillaResaltada(int fila, int col);
@@ -44,11 +49,16 @@ private:
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
     void dibujarIndicadorTurno(Bando turno);
 
+    // Mapea nombre de pieza a nombre de archivo PNG
+    std::string nombreArchivoSprite(const std::string& nombrePieza) const;
+
 public:
     Renderer(sf::RenderWindow& vent);
 
-    // Carga la fuente desde disco (llamar una vez al inicio)
     bool cargarFuente(const std::string& ruta);
+
+    // Carga los sprites PNG desde la carpeta indicada
+    void cargarSprites(const std::string& carpeta);
 
     // Dibuja el tablero completo con todas las piezas
     void dibujarEstadoTablero(Tablero* tablero, Bando turno);
@@ -61,7 +71,6 @@ public:
     void deseleccionar();
 
     // Convierte coordenadas de pixel a casilla del tablero
-    // Devuelve false si el click cayo fuera del tablero
     bool pixelACasilla(int px, int py, int& fila, int& col);
 
     EstadoPantalla getEstado() const { return estado; }
