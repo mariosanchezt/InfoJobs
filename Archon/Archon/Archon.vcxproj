@@ -132,6 +132,7 @@
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Pieza.h" />
     <ClInclude Include="PiezaDistancia.h" />
+    <ClInclude Include="PiezaLider.h" />
     <ClInclude Include="PiezaMelee.h" />
     <ClInclude Include="PiezaRapida.h" />
     <ClInclude Include="PiezaTanque.h" />
@@ -145,6 +146,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="PiezaDistancia.cpp" />
+    <ClCompile Include="PiezaLider.cpp" />
     <ClCompile Include="PiezaMelee.cpp" />
     <ClCompile Include="PiezaRapida.cpp" />
     <ClCompile Include="PiezaTanque.cpp" />

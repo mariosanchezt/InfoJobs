@@ -41,13 +41,17 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
     if (nombrePieza == "Zombidito")      return "Imp.png";
     if (nombrePieza == "All-Star")       return "AllStar.png";
     if (nombrePieza == "Ingeniero")      return "Engineer.png";
+    if (nombrePieza == "Dave el Loco")      return "Dave el Loco.png";
+    if (nombrePieza == "Dr. Zomboss")      return "Dr. Zomboss.png";
     return "";
 }
 
 void Renderer::cargarSprites(const std::string& carpeta) {
     std::vector<std::string> archivos = {
         "Chomper.png", "Peashooter.png", "Sunflower.png", "Citron.png", "Kernelpult.png",
-        "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png"
+        "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png", 
+        "Dave el Loco.png", "Dr. Zomboss.png"
+
     };
 
     int cargados = 0;
@@ -65,12 +69,12 @@ void Renderer::cargarSprites(const std::string& carpeta) {
         }
     }
     texturasCargadas = (cargados > 0);
-    std::cout << cargados << "/10 sprites cargados." << std::endl;
+    std::cout << cargados << "/12 sprites cargados." << std::endl;
 }
 
-// -------------------------------------------------------
+
 // TABLERO
-// -------------------------------------------------------
+
 void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (tablero == nullptr) return;
     dibujarTablero(tablero);
@@ -227,9 +231,8 @@ void Renderer::dibujarIndicadorTurno(Bando turno) {
     }
 }
 
-// -------------------------------------------------------
 // Arena basica (sin interactividad aun)
-// -------------------------------------------------------
+
 void Renderer::dibujarEstadoArena(Pieza* p1, Pieza* p2) {
     if (p1 == nullptr || p2 == nullptr) return;
 
@@ -271,9 +274,9 @@ void Renderer::dibujarEstadoArena(Pieza* p1, Pieza* p2) {
     }
 }
 
-// -------------------------------------------------------
+
 // Seleccion de casillas
-// -------------------------------------------------------
+
 void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     filaSeleccionada = fila;
     colSeleccionada = col;
