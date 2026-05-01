@@ -21,12 +21,12 @@ public:
 
     bool esPuntoDePoder(int f, int c);
 
-    void avanzarCiclo();
+   void avanzarCiclo();
     int getColorActual(int f, int c);
 
     void dibujar();
 
     //para la oscilacion
-    void avanzarCiclo();
-    int getColorActual(int f, int c);
+   // void avanzarCiclo();
+    //int getColorActual(int f, int c);
 };

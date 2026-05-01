@@ -3,6 +3,7 @@
 #include "Tablero.h"
 #include "Pieza.h"
 #include <string>
+#include <vector>
 
 // Estados posibles de la pantalla
 enum EstadoPantalla { TABLERO, ARENA };
@@ -25,17 +26,23 @@ private:
     int filaSeleccionada;
     int colSeleccionada;
 
+    // Casillas resaltadas como movimientos posibles
+    std::vector<std::pair<int, int>> movimientosDisponibles;
+
     // Colores del tablero
     sf::Color colorBlanco;
     sf::Color colorNegro;
     sf::Color colorGris;
     sf::Color colorSeleccion;
+    sf::Color colorMovimiento; // verde pa los movimientos disponibles
 
     // Metodos internos
     void dibujarTablero(Tablero* tablero);
     void dibujarPieza(Pieza* p, int fila, int col);
     void dibujarCasillaResaltada(int fila, int col);
+    void dibujarMovimientosDisponibles();
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
+    void dibujarIndicadorTurno(Bando turno);
 
 public:
     Renderer(sf::RenderWindow& vent);
@@ -44,22 +51,22 @@ public:
     bool cargarFuente(const std::string& ruta);
 
     // Dibuja el tablero completo con todas las piezas
-    void dibujarEstadoTablero(Tablero* tablero);
+    void dibujarEstadoTablero(Tablero* tablero, Bando turno);
 
     // Dibuja la pantalla de arena con las dos piezas peleando
     void dibujarEstadoArena(Pieza* p1, Pieza* p2);
 
-    // Selecciona/deselecciona una casilla
-    void seleccionarCasilla(int fila, int col);
+    // Selecciona una casilla y calcula sus movimientos disponibles
+    void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();
 
     // Convierte coordenadas de pixel a casilla del tablero
-    // Devuelve false si el click cayo es del tablero
+    // Devuelve false si el click cayo fuera del tablero
     bool pixelACasilla(int px, int py, int& fila, int& col);
 
     EstadoPantalla getEstado() const { return estado; }
     void setEstado(EstadoPantalla e) { estado = e; }
 
     int getFilaSeleccionada() const { return filaSeleccionada; }
-    int getColSeleccionada() const { return colSeleccionada; }
+    int getColSeleccionada()  const { return colSeleccionada; }
 };

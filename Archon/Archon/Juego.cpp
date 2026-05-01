@@ -63,33 +63,34 @@ void Juego::cambiarTurno() {
 }
 
 void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
-    //Que pieza se mueve
     Pieza* p = tablero->getPieza(fOrigen, cOrigen);
 
     if (p == nullptr) {
-        std::cout << "Error: Casilla de origen vacía." << std::endl;
-        return;
+        std::cout << "Error: Casilla de origen vacia." << std::endl;
+        return; // sin cambio de turno
     }
 
-    //A donde se mueve
+    // Primero comprobamos q el movimiento es geometricamente valido
+    if (!tablero->esMovimientoValido(fOrigen, cOrigen, fDestino, cDestino)) {
+        return; // sin cambio de turno
+    }
+
     Pieza* ocupante = tablero->getPieza(fDestino, cDestino);
 
     if (ocupante == nullptr) {
-        //Casilla libre, se mueve directamente
         tablero->moverPieza(fOrigen, cOrigen, fDestino, cDestino);
         std::cout << "Movimiento realizado." << std::endl;
     }
     else {
-        //Casilla ocupada
         if (p->getBando() != ocupante->getBando()) {
-            //Son de bandos opuestos->se pelean
             iniciarCombate(p, ocupante, fOrigen, cOrigen, fDestino, cDestino);
         }
         else {
             std::cout << "No puedes atacar a tus aliados." << std::endl;
-            return;
+            return; // sin cambio de turno
         }
     }
+
     cambiarTurno();
 }
 

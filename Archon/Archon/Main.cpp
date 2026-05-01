@@ -23,37 +23,41 @@ int main() {
                 ventana.close();
             }
 
-            
             if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (click->button == sf::Mouse::Button::Left) {
                     int fila, col;
                     if (renderer.pixelACasilla(click->position.x, click->position.y, fila, col)) {
                         int filaOrigen = renderer.getFilaSeleccionada();
-                        int colOrigen  = renderer.getColSeleccionada();
+                        int colOrigen = renderer.getColSeleccionada();
 
                         if (filaOrigen == -1) {
                             // Nada seleccionado: seleccionar solo si la pieza es del turno actual
                             Pieza* p = juego.getTablero()->getPieza(fila, col);
                             if (p != nullptr && p->getBando() == juego.getTurnoActual()) {
-                                renderer.seleccionarCasilla(fila, col);
+                                renderer.seleccionarCasilla(fila, col, juego.getTablero());
                             }
-                        } else if (fila == filaOrigen && col == colOrigen) {
+                        }
+                        else if (fila == filaOrigen && col == colOrigen) {
                             // Clic en la misma casilla: deseleccionar
                             renderer.deseleccionar();
-                        } else {
-                            // Segunda casilla: mover, cambiar turno y deseleccionar
+                        }
+                        else {
+                            // Segunda casilla: intentar mover (el turno cambia dentro de moverPieza solo si es valido)
                             juego.moverPieza(filaOrigen, colOrigen, fila, col);
-                            juego.cambiarTurno();
                             renderer.deseleccionar();
                         }
                     }
                 }
+
+                // Click derecho: cancelar seleccion
+                if (click->button == sf::Mouse::Button::Right) {
+                    renderer.deseleccionar();
+                }
             }
-            
         }
 
         ventana.clear(sf::Color(20, 20, 20));
-        renderer.dibujarEstadoTablero(juego.getTablero());
+        renderer.dibujarEstadoTablero(juego.getTablero(), juego.getTurnoActual());
         ventana.display();
     }
 
