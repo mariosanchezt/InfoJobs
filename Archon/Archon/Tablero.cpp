@@ -61,6 +61,36 @@ bool Tablero::esMovimientoValido(int fOrigen, int cOrigen, int fDestino, int cDe
         return false;
     }
 
+    // 6. Teleport: puede moverse a cualquier casilla
+    if (p->mov == TELEPORT) {
+        return true;
+    }
+
+    // 7. FLYING: puede saltar piezas (solo comprueba el radio, que ya se comprueba en 6)
+    if (p->mov == FLYING) {
+        return true;
+    }
+
+    // 8. GROUND: no puede saltarse piezas ni moverse en diagonal
+    if (distanciaFilas > 0 && distanciaColumnas > 0) {
+        std::cout << "Movimiento invalido: " << p->getNombre() << " no puede moverse en diagonal." << std::endl;
+        return false;
+    }
+
+    int stepFila = 0;
+    int stepCol = 0;
+    if (distanciaFilas > 0) stepFila = (fDestino > fOrigen) ? 1 : -1;
+    if (distanciaColumnas > 0)stepCol = (cDestino > cOrigen) ? 1 : -1;
+    int f = fOrigen + stepFila;
+    int c = cOrigen + stepCol;
+    while (f != fDestino || c != cDestino) {
+        if (casillas[f][c] != nullptr) {
+            std::cout << "Movimiento invalido: " << p->getNombre() << " tiene el camino bloqueado." << std::endl;
+            return false;
+        }
+        f += stepFila;
+        c += stepCol;
+    }
     return true;
 }
 

@@ -58,6 +58,7 @@ void Juego::inicializarPartida() {
 }
 void Juego::cambiarTurno() {
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
+    tablero->avanzarCiclo();
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
 }
@@ -142,7 +143,25 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
     cambiarTurno();
 }
 void Juego::iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAtac, int fDef, int cDef) {
+    //Codigo para aplicar ventajas segun el color de la casilla
+    int color = tablero->getColorActual(fDef, cDef);
+    float fuerzaOriginalAtacante = atacante->fuerza;
+    float fuerzaOriginalDefensor = defensor->fuerza;
+
+    if (color == 0) {
+        if (atacante->getBando() == LUZ)atacante->fuerza *= 1.25f;
+        if (defensor->getBando() == LUZ)defensor->fuerza *= 1.25f;
+    }
+    else if (color == 1) {
+        if (atacante->getBando() == OSCURIDAD)atacante->fuerza *= 1.25f;
+        if (defensor->getBando() == OSCURIDAD)defensor->fuerza *= 1.25f;
+    }
+
     Pieza* ganador = arena->iniciarCombate(atacante, defensor);
+    //Restauramos la fuerza original de las piezas
+    atacante->fuerza = fuerzaOriginalAtacante;
+    defensor->fuerza = fuerzaOriginalDefensor;
+
 
     if (ganador == atacante) {
         std::cout << "¡" << atacante->getNombre() << " ha ganado el duelo!" << std::endl;

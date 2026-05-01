@@ -287,11 +287,10 @@ void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (f == fila && c == col) continue;
-            int dist = abs(f - fila) + abs(c - col);
-            if (dist <= radio) {
+            if (tablero->esMovimientoValido(fila, col, f, c)) {
                 Pieza* ocupante = tablero->getPieza(f, c);
                 if (ocupante == nullptr || ocupante->getBando() != p->getBando()) {
-                    movimientosDisponibles.push_back({ f, c });
+                    movimientosDisponibles.push_back({ f,c });
                 }
             }
         }
