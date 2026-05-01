@@ -50,7 +50,7 @@ int main() {
     ventana.setFramerateLimit(60);
 
     sf::Font fuente;
-    if (!fuente.openFromFile("C:/Windows/Fonts/arial.ttf")) {
+    if (!fuente.openFromFile("assets/SamdanEvil.ttf")) {
         std::cout << "Fuente no encontrada" << std::endl;
     }
 
