@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include <algorithm>
 
 Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     : ventana(vent), fuente(f), spriteFondo(texFondo)
@@ -17,29 +18,29 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
         float escalaX = 800.f / texSize.x;
         float escalaY = 800.f / texSize.y;
         spriteFondo.setScale(sf::Vector2f(escalaX, escalaY));
+        spriteFondo.setPosition(sf::Vector2f(0.f, 0.f));
     }
 
-    colorBotonActivo = sf::Color(30, 80, 40, 210);
-    colorBotonDeshabilitado = sf::Color(30, 30, 35, 180);
-    colorBotonHover = sf::Color(50, 130, 70, 230);
-    colorTexto = sf::Color::White;
-    colorTextoDeshabilitado = sf::Color(150, 150, 160);
+    colorTexto = sf::Color(30, 30, 30); // Gris muy oscuro
+    colorTextoDeshabilitado = sf::Color(90, 90, 90, 200);
 
-    float anchoBoton = 320.f;
-    float altoBoton = 65.f;
-    float centroX = 400.f - anchoBoton / 2.f;
+
+    float anchoBoton = 240.f;
+    float altoBoton = 60.f;
 
     Boton b1;
     b1.forma.setSize(sf::Vector2f(anchoBoton, altoBoton));
-    b1.forma.setPosition(sf::Vector2f(centroX, 480.f));
-    b1.texto = "1 vs 1  Local";
+    b1.forma.setPosition(sf::Vector2f(400.f, 120.f));
+    b1.forma.setRotation(sf::degrees(2.0f));
+    b1.texto = "1 VS 1 LOCAL";
     b1.habilitado = true;
     botones.push_back(b1);
 
     Boton b2;
     b2.forma.setSize(sf::Vector2f(anchoBoton, altoBoton));
-    b2.forma.setPosition(sf::Vector2f(centroX, 565.f));
-    b2.texto = "1 vs 1  vs IA  (Proximamente)";
+    b2.forma.setPosition(sf::Vector2f(400.f, 220.f));
+    b2.forma.setRotation(sf::degrees(2.0f));
+    b2.texto = "1 VS 1 VS IA";
     b2.habilitado = false;
     botones.push_back(b2);
 }
@@ -80,13 +81,8 @@ EstadoJuego Menu::procesarEvento(const sf::Event& event) {
 }
 
 void Menu::dibujar() {
-    // Fondo
     if (fondoCargado) {
         ventana.draw(spriteFondo);
-        // Overlay oscuro semitransparente pa q los botones se lean bien
-        sf::RectangleShape overlay(sf::Vector2f(800.f, 800.f));
-        overlay.setFillColor(sf::Color(0, 0, 0, 100));
-        ventana.draw(overlay);
     }
     else {
         ventana.clear(sf::Color(15, 15, 25));
@@ -106,52 +102,41 @@ void Menu::dibujar() {
 }
 
 void Menu::dibujarTitulo() {
-    // Titulo con sombra pa q se lea sobre el fondo
-    sf::Text sombra(fuente, "ARCHON PvZ", 60);
-    sombra.setFillColor(sf::Color(0, 0, 0, 200));
-    sombra.setStyle(sf::Text::Bold);
-    sf::FloatRect bs = sombra.getLocalBounds();
-    sombra.setPosition(sf::Vector2f(402.f - bs.size.x / 2.f, 382.f));
-    ventana.draw(sombra);
-
-    sf::Text titulo(fuente, "ARCHON PvZ", 60);
-    titulo.setFillColor(sf::Color(255, 220, 80));
-    titulo.setStyle(sf::Text::Bold);
-    sf::FloatRect b = titulo.getLocalBounds();
-    titulo.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, 380.f));
-    ventana.draw(titulo);
-
-    // Instrucciones
-    sf::Text instr(fuente, "Click para seleccionar  |  Flechas + Enter para navegar", 13);
-    instr.setFillColor(sf::Color(220, 220, 220, 200));
-    sf::FloatRect bi = instr.getLocalBounds();
-    instr.setPosition(sf::Vector2f(400.f - bi.size.x / 2.f, 670.f));
-    ventana.draw(instr);
+   
 }
 
 void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
     sf::RectangleShape forma = b.forma;
 
-    sf::Color colorBase = b.habilitado
-        ? (seleccionado ? colorBotonHover : colorBotonActivo)
-        : colorBotonDeshabilitado;
-
-    forma.setFillColor(colorBase);
-    forma.setOutlineThickness(2.f);
-    forma.setOutlineColor(b.habilitado && seleccionado
-        ? sf::Color(100, 220, 140)
-        : sf::Color(60, 60, 70, 150));
+    // Boton totalmente transparente, solo sirve para detectar clics
+    forma.setFillColor(sf::Color::Transparent);
+    forma.setOutlineThickness(0.f);
     ventana.draw(forma);
 
-    sf::Text texto(fuente, b.texto, 20);
-    texto.setFillColor(b.habilitado ? colorTexto : colorTextoDeshabilitado);
-    if (b.habilitado) texto.setStyle(sf::Text::Bold);
+    // Tamanho de letra ajustado a 40 para que encaje bien en la lapida achatada
+    sf::Text texto(fuente, b.texto, 40);
 
-    sf::FloatRect bounds = texto.getLocalBounds();
-    sf::FloatRect formaB = forma.getGlobalBounds();
-    texto.setPosition(sf::Vector2f(
-        formaB.position.x + formaB.size.x / 2.f - bounds.size.x / 2.f,
-        formaB.position.y + formaB.size.y / 2.f - bounds.size.y / 2.f - 4.f
-    ));
+    if (!b.habilitado) {
+        texto.setFillColor(colorTextoDeshabilitado);
+    }
+    else if (seleccionado) {
+        texto.setFillColor(sf::Color(200, 255, 50)); // Amarillo brillante al seleccionar
+    }
+    else {
+        texto.setFillColor(colorTexto); // Oscuro por defecto
+    }
+
+    // Giramos el texto los mismos grados que la caja
+    texto.setRotation(forma.getRotation());
+
+    sf::FloatRect textBounds = texto.getLocalBounds();
+    texto.setOrigin(sf::Vector2f(textBounds.position.x + textBounds.size.x / 2.f,
+        textBounds.position.y + textBounds.size.y / 2.f));
+
+    sf::FloatRect formaBounds = forma.getLocalBounds();
+    sf::Vector2f centerLocal(formaBounds.size.x / 2.f, formaBounds.size.y / 2.f);
+    sf::Vector2f centerGlobal = forma.getTransform().transformPoint(centerLocal);
+
+    texto.setPosition(centerGlobal);
     ventana.draw(texto);
 }
