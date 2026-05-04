@@ -1,16 +1,20 @@
 #include "Renderer.h"
+#include "Arena.h"
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 
 Renderer::Renderer(sf::RenderWindow& vent)
     : ventana(vent)
 {
+    cursorFila = 4;
+    cursorCol = 4;
     fuenteCargada = false;
     texturasCargadas = false;
     estado = TABLERO;
-
     filaSeleccionada = -1;
     colSeleccionada = -1;
+    ocultarMunecoCursor = false;
 
     colorBlanco = sf::Color(240, 217, 181);
     colorNegro = sf::Color(90, 120, 80);
@@ -29,7 +33,6 @@ bool Renderer::cargarFuente(const std::string& ruta) {
     return true;
 }
 
-// Mapea el nombre de la pieza al archivo PNG correspondiente
 std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const {
     if (nombrePieza == "Carnivora")      return "Chomper.png";
     if (nombrePieza == "Lanzaguisantes") return "Peashooter.png";
@@ -49,7 +52,7 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
 void Renderer::cargarSprites(const std::string& carpeta) {
     std::vector<std::string> archivos = {
         "Chomper.png", "Peashooter.png", "Sunflower.png", "Citron.png", "Kernelpult.png",
-        "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png", 
+        "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png",
         "Dave el Loco.png", "Dr. Zomboss.png"
 
     };
@@ -72,15 +75,17 @@ void Renderer::cargarSprites(const std::string& carpeta) {
     std::cout << cargados << "/12 sprites cargados." << std::endl;
 }
 
-
 // TABLERO
-
 void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (tablero == nullptr) return;
+
     dibujarTablero(tablero);
     dibujarMovimientosDisponibles();
+
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
         dibujarCasillaResaltada(filaSeleccionada, colSeleccionada);
+
+    dibujarCursor();
     dibujarIndicadorTurno(turno);
 }
 
@@ -101,7 +106,10 @@ void Renderer::dibujarTablero(Tablero* tablero) {
             ventana.draw(casilla);
 
             Pieza* p = tablero->getPieza(f, c);
-            if (p != nullptr) dibujarPieza(p, f, c);
+            if (p != nullptr) {
+                if (f == filaSeleccionada && c == colSeleccionada) continue;
+                dibujarPieza(p, f, c);
+            }
         }
     }
 }
@@ -114,17 +122,13 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
     bool tieneSprite = !archivo.empty() && texturas.count(archivo) > 0;
 
     if (tieneSprite) {
-        // Sprite escalado con margen dentro de la casilla
         const sf::Texture& tex = texturas.at(archivo);
         sf::Sprite sprite(tex);
-
         float margen = 6.f;
         float tamDisp = TAM_CASILLA - margen * 2.f;
         sf::Vector2u texSize = tex.getSize();
         float escala = tamDisp / std::max((float)texSize.x, (float)texSize.y);
-
         sprite.setScale(sf::Vector2f(escala, escala));
-
         float spriteW = texSize.x * escala;
         float spriteH = texSize.y * escala;
         sprite.setPosition(sf::Vector2f(
@@ -132,30 +136,21 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
             py + (TAM_CASILLA - spriteH) / 2.f
         ));
         ventana.draw(sprite);
-
     }
     else {
-        // Fallback: circulo de color si no hay sprite
         sf::Color colorPieza = (p->getBando() == LUZ)
             ? sf::Color(80, 180, 100)
             : sf::Color(180, 60, 60);
-
         float radio = TAM_CASILLA * 0.35f;
         sf::CircleShape circulo(radio);
         circulo.setFillColor(colorPieza);
         circulo.setOutlineColor(sf::Color::Black);
         circulo.setOutlineThickness(2.f);
-        circulo.setPosition(sf::Vector2f(
-            px + TAM_CASILLA / 2.f - radio,
-            py + TAM_CASILLA / 2.f - radio - 8.f
-        ));
+        circulo.setPosition(sf::Vector2f(px + TAM_CASILLA / 2.f - radio, py + TAM_CASILLA / 2.f - radio - 8.f));
         ventana.draw(circulo);
     }
 
-    // Barra de vida siempre encima
     dibujarBarraVida(p->vida, p->vidaMaxima, px + 5.f, py + 4.f, TAM_CASILLA - 10.f);
-
-    
 }
 
 void Renderer::dibujarCasillaResaltada(int fila, int col) {
@@ -222,7 +217,7 @@ void Renderer::dibujarIndicadorTurno(Bando turno) {
 
     if (fuenteCargada) {
         std::string textoTurno = esLuz ? "TURNO: PLANTAS" : "TURNO: ZOMBIES";
-        sf::Text texto(fuente, textoTurno, 20);
+        sf::Text texto(fuente, textoTurno, 30);
         texto.setFillColor(sf::Color::White);
         texto.setStyle(sf::Text::Bold);
         sf::FloatRect b = texto.getLocalBounds();
@@ -231,55 +226,117 @@ void Renderer::dibujarIndicadorTurno(Bando turno) {
     }
 }
 
-// Arena basica (sin interactividad aun)
-
-void Renderer::dibujarEstadoArena(Pieza* p1, Pieza* p2) {
-    if (p1 == nullptr || p2 == nullptr) return;
-
-    ventana.clear(sf::Color(30, 20, 40));
-
-    if (fuenteCargada) {
-        sf::Text titulo(fuente, "--- COMBATE ---", 28);
-        titulo.setFillColor(sf::Color(255, 220, 80));
-        titulo.setStyle(sf::Text::Bold);
-        sf::FloatRect b = titulo.getLocalBounds();
-        titulo.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, 30.f));
-        ventana.draw(titulo);
-
-        // Nombre y vida p1
-        sf::Text nom1(fuente, p1->getNombre(), 22);
-        nom1.setFillColor(sf::Color(100, 230, 120));
-        nom1.setStyle(sf::Text::Bold);
-        sf::FloatRect b1 = nom1.getLocalBounds();
-        nom1.setPosition(sf::Vector2f(200.f - b1.size.x / 2.f, 120.f));
-        ventana.draw(nom1);
-        dibujarBarraVida(p1->vida, p1->vidaMaxima, 80.f, 160.f, 240.f);
-
-        // VS
-        sf::Text vs(fuente, "VS", 36);
-        vs.setFillColor(sf::Color(255, 100, 100));
-        vs.setStyle(sf::Text::Bold);
-        sf::FloatRect bv = vs.getLocalBounds();
-        vs.setPosition(sf::Vector2f(400.f - bv.size.x / 2.f, 130.f));
-        ventana.draw(vs);
-
-        // Nombre y vida p2
-        sf::Text nom2(fuente, p2->getNombre(), 22);
-        nom2.setFillColor(sf::Color(230, 100, 100));
-        nom2.setStyle(sf::Text::Bold);
-        sf::FloatRect b2 = nom2.getLocalBounds();
-        nom2.setPosition(sf::Vector2f(600.f - b2.size.x / 2.f, 120.f));
-        ventana.draw(nom2);
-        dibujarBarraVida(p2->vida, p2->vidaMaxima, 480.f, 160.f, 240.f);
-    }
+void Renderer::dibujarCursor() {
+    sf::RectangleShape cursor(sf::Vector2f(TAM_CASILLA, TAM_CASILLA));
+    cursor.setPosition(sf::Vector2f(OFFSET_X + cursorCol * TAM_CASILLA, OFFSET_Y + cursorFila * TAM_CASILLA));
+    cursor.setFillColor(sf::Color::Transparent);
+    cursor.setOutlineColor(sf::Color(0, 255, 255, 200));
+    cursor.setOutlineThickness(4.f);
+    ventana.draw(cursor);
 }
 
+// ARENA INTERACTIVA
+void Renderer::dibujarEstadoArena(const Arena& arena) {
+    sf::RectangleShape fondo(sf::Vector2f(Arena::getAncho(), Arena::getAlto()));
+    fondo.setPosition(sf::Vector2f(Arena::getOffsetX(), Arena::getOffsetY()));
+    fondo.setFillColor(sf::Color(40, 35, 55));
+    fondo.setOutlineColor(sf::Color(200, 200, 200));
+    fondo.setOutlineThickness(3.f);
+    ventana.draw(fondo);
 
-// Seleccion de casillas
+    for (const auto& obs : arena.getObstaculos()) {
+        sf::CircleShape c(obs.tam / 2.f);
+        c.setFillColor(sf::Color(100, 80, 60));
+        c.setOutlineColor(sf::Color(60, 50, 40));
+        c.setOutlineThickness(2.f);
+        c.setPosition(sf::Vector2f(obs.pos.x - obs.tam / 2.f, obs.pos.y - obs.tam / 2.f));
+        ventana.draw(c);
+    }
 
+    for (const auto& p : arena.getProyectiles()) {
+        if (!p.activo) continue;
+        sf::Color colProyectil = p.esDeLuz
+            ? sf::Color(100, 255, 120)
+            : sf::Color(255, 80, 80);
+        sf::CircleShape circulo(Arena::getTamProyectil() / 2.f);
+        circulo.setFillColor(colProyectil);
+        circulo.setPosition(sf::Vector2f(
+            p.pos.x - Arena::getTamProyectil() / 2.f,
+            p.pos.y - Arena::getTamProyectil() / 2.f
+        ));
+        ventana.draw(circulo);
+    }
+
+    dibujarCombatienteArena(arena.getCombatiente1(), arena.getCombatiente1().pieza->getBando() == LUZ);
+    dibujarCombatienteArena(arena.getCombatiente2(), arena.getCombatiente2().pieza->getBando() == LUZ);
+
+    dibujarHUDArena(arena.getCombatiente1().pieza, arena.getCombatiente2().pieza);
+}
+
+void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
+    float radio = Arena::getTamPieza();
+
+    std::string archivo = nombreArchivoSprite(c.pieza->getNombre());
+    bool tieneSprite = !archivo.empty() && texturas.count(archivo) > 0;
+
+    if (tieneSprite) {
+        const sf::Texture& tex = texturas.at(archivo);
+        sf::Sprite sprite(tex);
+        float tam = radio * 2.5f;
+        sf::Vector2u texSize = tex.getSize();
+        float escala = tam / std::max((float)texSize.x, (float)texSize.y);
+        sprite.setScale(sf::Vector2f(escala, escala));
+        float spriteW = texSize.x * escala;
+        float spriteH = texSize.y * escala;
+        sprite.setPosition(sf::Vector2f(c.pos.x - spriteW / 2.f, c.pos.y - spriteH / 2.f));
+        ventana.draw(sprite);
+    }
+    else {
+        sf::Color col = esLuz ? sf::Color(80, 200, 110) : sf::Color(200, 70, 70);
+        sf::CircleShape circ(radio);
+        circ.setFillColor(col);
+        circ.setOutlineColor(sf::Color::White);
+        circ.setOutlineThickness(2.f);
+        circ.setPosition(sf::Vector2f(c.pos.x - radio, c.pos.y - radio));
+        ventana.draw(circ);
+    }
+
+    float anchoVida = 60.f;
+    dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima,
+        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 14.f, anchoVida);
+}
+
+void Renderer::dibujarHUDArena(Pieza* p1, Pieza* p2) {
+    float yHUD = Arena::getOffsetY() + 5.f;
+    float anchoHUD = 300.f;
+
+    if (fuenteCargada) {
+        sf::Text nom1(fuente, p1->getNombre() + "  WASD+Space", 13);
+        nom1.setFillColor(sf::Color(100, 230, 120));
+        nom1.setStyle(sf::Text::Bold);
+        nom1.setPosition(sf::Vector2f(Arena::getOffsetX() + 5.f, yHUD));
+        ventana.draw(nom1);
+
+        sf::Text nom2(fuente, p2->getNombre() + "  Flechas+Enter", 13);
+        nom2.setFillColor(sf::Color(230, 100, 100));
+        nom2.setStyle(sf::Text::Bold);
+        sf::FloatRect b = nom2.getLocalBounds();
+        nom2.setPosition(sf::Vector2f(Arena::getOffsetX() + Arena::getAncho() - b.size.x - 5.f, yHUD));
+        ventana.draw(nom2);
+    }
+
+    dibujarBarraVida(p1->vida, p1->vidaMaxima,
+        Arena::getOffsetX() + 5.f, yHUD + 20.f, anchoHUD);
+    dibujarBarraVida(p2->vida, p2->vidaMaxima,
+        Arena::getOffsetX() + Arena::getAncho() - anchoHUD - 5.f, yHUD + 20.f, anchoHUD);
+}
+
+// Seleccion de casillas y Cursor
 void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     filaSeleccionada = fila;
     colSeleccionada = col;
+    cursorFila = fila;
+    cursorCol = col;
     movimientosDisponibles.clear();
 
     if (tablero == nullptr) return;
@@ -290,11 +347,11 @@ void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (f == fila && c == col) continue;
-            if (tablero->esMovimientoValido(fila, col, f, c)) {
+            int dist = std::abs(f - fila) + std::abs(c - col);
+            if (dist <= radio) {
                 Pieza* ocupante = tablero->getPieza(f, c);
-                if (ocupante == nullptr || ocupante->getBando() != p->getBando()) {
-                    movimientosDisponibles.push_back({ f,c });
-                }
+                if (ocupante == nullptr || ocupante->getBando() != p->getBando())
+                    movimientosDisponibles.push_back({ f, c });
             }
         }
     }
@@ -314,4 +371,51 @@ bool Renderer::pixelACasilla(int px, int py, int& fila, int& col) {
     fila = fy / (int)TAM_CASILLA;
     if (fila >= 9 || col >= 9) return false;
     return true;
+}
+
+void Renderer::moverCursor(int dFila, int dCol) {
+    int nuevaFila = cursorFila + dFila;
+    int nuevaCol = cursorCol + dCol;
+    if (nuevaFila < 0 || nuevaFila > 8 || nuevaCol < 0 || nuevaCol > 8) return;
+    cursorFila = nuevaFila;
+    cursorCol = nuevaCol;
+}
+
+sf::Vector2f Renderer::getCentroCasilla(int fila, int col) const {
+    return sf::Vector2f(
+        OFFSET_X + col * TAM_CASILLA + TAM_CASILLA / 2.f,
+        OFFSET_Y + fila * TAM_CASILLA + TAM_CASILLA / 2.f
+    );
+}
+
+void Renderer::dibujarPiezaPixel(Pieza* p, float px, float py) {
+    std::string archivo = nombreArchivoSprite(p->getNombre());
+    bool tieneSprite = !archivo.empty() && texturas.count(archivo) > 0;
+
+    if (tieneSprite) {
+        const sf::Texture& tex = texturas.at(archivo);
+        sf::Sprite sprite(tex);
+        float margen = 6.f;
+        float tamDisp = TAM_CASILLA - margen * 2.f;
+        sf::Vector2u texSize = tex.getSize();
+        float escala = tamDisp / std::max((float)texSize.x, (float)texSize.y);
+        sprite.setScale(sf::Vector2f(escala, escala));
+        float spriteW = texSize.x * escala;
+        float spriteH = texSize.y * escala;
+        sprite.setPosition(sf::Vector2f(px - spriteW / 2.f, py - spriteH / 2.f));
+        ventana.draw(sprite);
+    }
+    else {
+        sf::Color colorPieza = (p->getBando() == LUZ) ? sf::Color(80, 180, 100) : sf::Color(180, 60, 60);
+        float radio = TAM_CASILLA * 0.35f;
+        sf::CircleShape circulo(radio);
+        circulo.setFillColor(colorPieza);
+        circulo.setOutlineColor(sf::Color::Black);
+        circulo.setOutlineThickness(2.f);
+        circulo.setPosition(sf::Vector2f(px - radio, py - radio - 8.f));
+        ventana.draw(circulo);
+    }
+
+    dibujarBarraVida(p->vida, p->vidaMaxima,
+        px - (TAM_CASILLA - 10.f) / 2.f, py + TAM_CASILLA / 2.f - 14.f, TAM_CASILLA - 10.f);
 }

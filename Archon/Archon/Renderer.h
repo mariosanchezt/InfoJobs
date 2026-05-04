@@ -2,11 +2,11 @@
 #include <SFML/Graphics.hpp>
 #include "Tablero.h"
 #include "Pieza.h"
+#include "Arena.h"
 #include <string>
 #include <vector>
 #include <map>
 
-// Estados posibles de la pantalla
 enum EstadoPantalla { TABLERO, ARENA };
 
 class Renderer {
@@ -16,25 +16,24 @@ private:
     sf::Font fuente;
     bool fuenteCargada;
 
-    // Tamanho de cada casilla en pixeles
     static constexpr float TAM_CASILLA = 80.f;
     static constexpr float OFFSET_X = 20.f;
     static constexpr float OFFSET_Y = 20.f;
 
     EstadoPantalla estado;
 
-    // Casilla seleccionada (-1 si no hay ninguna)
     int filaSeleccionada;
     int colSeleccionada;
 
-    // Casillas resaltadas como movimientos posibles
+    int cursorFila;
+    int cursorCol;
+
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
-    // Texturas de los sprites — mapa nombre_archivo -> textura
+    // Texturas de los sprites
     std::map<std::string, sf::Texture> texturas;
     bool texturasCargadas;
 
-    // Colores
     sf::Color colorBlanco;
     sf::Color colorNegro;
     sf::Color colorGris;
@@ -48,29 +47,26 @@ private:
     void dibujarMovimientosDisponibles();
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
     void dibujarIndicadorTurno(Bando turno);
+    void dibujarCursor();
 
-    // Mapea nombre de pieza a nombre de archivo PNG
+    // Metodos internos arena
+    void dibujarHUDArena(Pieza* p1, Pieza* p2);
+    void dibujarCombatienteArena(const CombatienteArena& c, bool esLuz);
+
     std::string nombreArchivoSprite(const std::string& nombrePieza) const;
 
 public:
     Renderer(sf::RenderWindow& vent);
 
     bool cargarFuente(const std::string& ruta);
-
-    // Carga los sprites PNG desde la carpeta indicada
     void cargarSprites(const std::string& carpeta);
 
-    // Dibuja el tablero completo con todas las piezas
     void dibujarEstadoTablero(Tablero* tablero, Bando turno);
+    void dibujarEstadoArena(const Arena& arena);
 
-    // Dibuja la pantalla de arena con las dos piezas peleando
-    void dibujarEstadoArena(Pieza* p1, Pieza* p2);
-
-    // Selecciona una casilla y calcula sus movimientos disponibles
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();
 
-    // Convierte coordenadas de pixel a casilla del tablero
     bool pixelACasilla(int px, int py, int& fila, int& col);
 
     EstadoPantalla getEstado() const { return estado; }
@@ -78,4 +74,12 @@ public:
 
     int getFilaSeleccionada() const { return filaSeleccionada; }
     int getColSeleccionada()  const { return colSeleccionada; }
+
+    void moverCursor(int dFila, int dCol);
+    int  getCursorFila() const { return cursorFila; }
+    int  getCursorCol()  const { return cursorCol; }
+
+    bool ocultarMunecoCursor = false;
+    void dibujarPiezaPixel(Pieza* p, float px, float py);
+    sf::Vector2f getCentroCasilla(int fila, int col) const;
 };

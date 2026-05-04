@@ -1,19 +1,82 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 #include "Pieza.h"
+#include <vector>
+
+struct Proyectil {
+    sf::Vector2f pos;
+    sf::Vector2f vel;
+    bool activo;
+    bool esDeLuz;
+};
+
+struct Obstaculo {
+    sf::Vector2f pos;
+    float tam;
+};
+
+struct CombatienteArena {
+    sf::Vector2f pos;
+    sf::Vector2f vel;
+    float tiempoRecarga;
+    bool teclaDsparoPulsada;
+    Pieza* pieza;
+};
 
 class Arena {
 private:
-    Pieza* pieza1; //la pieza q ataca
-    Pieza* pieza2; //la pieza q defiende
+    static constexpr float ANCHO = 760.f;
+    static constexpr float ALTO = 700.f;
+    static constexpr float OFFSET_X = 20.f;
+    static constexpr float OFFSET_Y = 20.f;
+    static constexpr float VEL_PROYECTIL = 280.f;
+    static constexpr float TAM_PIEZA = 24.f;
+    static constexpr float TAM_PROYECTIL = 12.f;
+
+    CombatienteArena combatiente1; // LUZ      — WASD + Espacio
+    CombatienteArena combatiente2; // OSCURIDAD — Flechas + Enter
+
+    std::vector<Proyectil>  proyectiles;
+    std::vector<Obstaculo>  obstaculos;
+
+    bool   combateTerminado;
+    Pieza* ganador;
+
+    void generarObstaculos();
+    void moverCombatiente(CombatienteArena& c, sf::Vector2f dir, float dt);
+    void crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo);
+    void actualizarProyectiles(float dt);
+    void comprobarColisiones();
+    bool colisionaConObstaculo(sf::Vector2f pos, float radio);
+    bool dentroDeArena(sf::Vector2f pos);
 
 public:
-    //constructor: la arena se crea vacia, sin piezas
     Arena();
 
-    //lanza el combate recibiendo las dos piezas q van a pelear
-    //devuelve quien gana (nullptr si mueren las dos)
-    Pieza* iniciarCombate(Pieza* p1, Pieza* p2);
+    void   iniciarCombate(Pieza* p1, Pieza* p2);
+    void   update(float dt);
 
-    //Funcion para dibujar la arena 
-    void dibujar();
+    bool   haTerminado() const { return combateTerminado; }
+    Pieza* getGanador()  const { return ganador; }
+
+    void limpiar() {
+        combatiente1.pieza = nullptr;
+        combatiente2.pieza = nullptr;
+        proyectiles.clear();
+    }
+
+    const CombatienteArena& getCombatiente1()  const { return combatiente1; }
+    const CombatienteArena& getCombatiente2()  const { return combatiente2; }
+    const std::vector<Proyectil>& getProyectiles()   const { return proyectiles; }
+    const std::vector<Obstaculo>& getObstaculos()    const { return obstaculos; }
+
+    static constexpr float getAncho() { return ANCHO; }
+    static constexpr float getAlto() { return ALTO; }
+    static constexpr float getOffsetX() { return OFFSET_X; }
+    static constexpr float getOffsetY() { return OFFSET_Y; }
+    static constexpr float getTamPieza() { return TAM_PIEZA; }
+    static constexpr float getTamProyectil() { return TAM_PROYECTIL; }
+
+    // Combate automatico para hechizos u otras situaciones sin interfaz
+    Pieza* iniciarCombateAutomatico(Pieza* p1, Pieza* p2);
 };

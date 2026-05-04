@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include "Juego.h"
 #include "Renderer.h"
+#include "Arena.h"
 #include "Menu.h"
 #include <iostream>
 
-// Muestra la pantalla de carga durante 'segundos' segundos
 void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float segundos) {
     sf::Texture texCarga;
     bool cargada = texCarga.loadFromFile("assets/loading_bg.png");
@@ -12,7 +12,6 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
 
     sf::Clock temporizador;
     while (temporizador.getElapsedTime().asSeconds() < segundos && ventana.isOpen()) {
-        // Procesamos eventos pa q la ventana no se congele
         while (auto event = ventana.pollEvent()) {
             if (event->is<sf::Event::Closed>()) ventana.close();
         }
@@ -27,13 +26,11 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
             sprite.setScale(sf::Vector2f(escalaX, escalaY));
             ventana.draw(sprite);
 
-            // Overlay oscuro suave
             sf::RectangleShape overlay(sf::Vector2f(800.f, 800.f));
             overlay.setFillColor(sf::Color(0, 0, 0, 60));
             ventana.draw(overlay);
         }
 
-        // Texto "Cargando..."
         sf::Text texto(fuente, "Cargando...", 28);
         texto.setFillColor(sf::Color::White);
         texto.setStyle(sf::Text::Bold);
@@ -59,37 +56,96 @@ int main() {
 
     Juego* juego = nullptr;
     Renderer* renderer = nullptr;
+    Arena* arena = nullptr;
+
+    bool enCombate = false;
+    int filaAtacante = -1, colAtacante = -1;
+    int filaDefensor = -1, colDefensor = -1;
+
+    sf::Clock reloj;
 
     while (ventana.isOpen()) {
+        float dt = reloj.restart().asSeconds();
+        if (dt > 0.05f) dt = 0.05f;
 
-        // MENU
+        // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
                 if (event->is<sf::Event::Closed>()) ventana.close();
 
                 EstadoJuego resultado = menu.procesarEvento(*event);
                 if (resultado != EstadoJuego::MENU) {
-                    // Pantalla de carga antes de iniciar
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
 
                     estadoJuego = EstadoJuego::JUGANDO_LOCAL;
 
                     delete juego;
                     delete renderer;
+                    delete arena;
 
                     juego = new Juego();
                     renderer = new Renderer(ventana);
-                    renderer->cargarFuente("C:/Windows/Fonts/arial.ttf");
+                    arena = new Arena();
+
+                    renderer->cargarFuente("assets/SamdanEvil.ttf");
                     renderer->cargarSprites("assets");
                     juego->inicializarPartida();
                 }
             }
+
+            ventana.clear(sf::Color(15, 15, 25));
             menu.dibujar();
             ventana.display();
             continue;
         }
 
-        // JUGANDO
+        // MODO ARENA
+        if (enCombate) {
+            while (auto event = ventana.pollEvent()) {
+                if (event->is<sf::Event::Closed>()) ventana.close();
+            }
+
+            arena->update(dt);
+            ventana.clear(sf::Color(20, 20, 20));
+
+            if (arena->haTerminado()) {
+                enCombate = false;
+                renderer->setEstado(TABLERO);
+
+                Pieza* ganador = arena->getGanador();
+                Pieza* atacante = juego->getTablero()->getPieza(filaAtacante, colAtacante);
+                Pieza* defensor = juego->getTablero()->getPieza(filaDefensor, colDefensor);
+
+                juego->getTablero()->colocarPieza(filaAtacante, colAtacante, nullptr);
+                juego->getTablero()->colocarPieza(filaDefensor, colDefensor, nullptr);
+
+                arena->limpiar();
+
+                if (ganador == nullptr) {
+                    delete atacante; delete defensor;
+                }
+                else if (ganador == atacante) {
+                    juego->getTablero()->colocarPieza(filaDefensor, colDefensor, atacante);
+                    atacante->filaInicial = filaDefensor;
+                    atacante->colInicial = colDefensor;
+                    delete defensor;
+                }
+                else {
+                    juego->getTablero()->colocarPieza(filaDefensor, colDefensor, defensor);
+                    delete atacante;
+                }
+
+                juego->cambiarTurno();
+            }
+            else {
+                renderer->dibujarEstadoArena(*arena);
+            }
+
+            ventana.display();
+            continue;
+        }
+
+        // MODO TABLERO
         while (auto event = ventana.pollEvent()) {
             if (event->is<sf::Event::Closed>()) ventana.close();
 
@@ -97,37 +153,50 @@ int main() {
                 if (click->button == sf::Mouse::Button::Left) {
                     int fila, col;
                     if (renderer->pixelACasilla(click->position.x, click->position.y, fila, col)) {
-                        int filaOrigen = renderer->getFilaSeleccionada();
-                        int colOrigen = renderer->getColSeleccionada();
+                        int fSel = renderer->getFilaSeleccionada();
+                        int cSel = renderer->getColSeleccionada();
 
-                        if (filaOrigen == -1) {
+                        if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
-                            if (p != nullptr && p->getBando() == juego->getTurnoActual()) {
+                            if (p && p->getBando() == juego->getTurnoActual())
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
-                            }
                         }
-                        else if (fila == filaOrigen && col == colOrigen) {
+                        else if (fila == fSel && col == cSel) {
                             renderer->deseleccionar();
                         }
                         else {
-                            juego->moverPieza(filaOrigen, colOrigen, fila, col);
+                            Pieza* p = juego->getTablero()->getPieza(fSel, cSel);
+                            Pieza* ocupante = juego->getTablero()->getPieza(fila, col);
+
+                            if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
+                                filaAtacante = fSel; colAtacante = cSel;
+                                filaDefensor = fila; colDefensor = col;
+                                arena->iniciarCombate(p, ocupante);
+                                enCombate = true;
+                                renderer->setEstado(ARENA);
+                            }
+                            else {
+                                juego->moverPieza(fSel, cSel, fila, col);
+                            }
                             renderer->deseleccionar();
                         }
                     }
                 }
-                if (click->button == sf::Mouse::Button::Right) {
+
+                if (click->button == sf::Mouse::Button::Right)
                     renderer->deseleccionar();
-                }
             }
 
             // Escape vuelve al menu
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->code == sf::Keyboard::Key::Escape) {
+                    enCombate = false;
                     estadoJuego = EstadoJuego::MENU;
                 }
             }
         }
 
+        // DIBUJADO
         ventana.clear(sf::Color(20, 20, 20));
         renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual());
         ventana.display();
@@ -135,5 +204,6 @@ int main() {
 
     delete juego;
     delete renderer;
+    delete arena;
     return 0;
 }
