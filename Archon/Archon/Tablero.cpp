@@ -136,7 +136,7 @@ void Tablero::avanzarCiclo() {
 int Tablero::getColorActual(int f, int c) {
     // 1. Identificamos si esta casilla es una de las que "oscila" (1/3 del tablero) 
     // Usamos una fórmula matemática para elegir 1 de cada 3 casillas de forma repartida
-    if ((f * 9 + c) % 3 == 0) {
+    if ((f + c) % 3 == 0) {
         // Estas casillas cambian según la variable 'ciclo'
         if (ciclo == 0 || ciclo == 6) return 0; // Blanco puro
         if (ciclo == 1 || ciclo == 5) return 2; // Gris (tirando a blanco)
