@@ -68,6 +68,26 @@ int main() {
         float dt = reloj.restart().asSeconds();
         if (dt > 0.05f) dt = 0.05f;
 
+        // PANTALLA DE VICTORIA
+        if (estadoJuego == EstadoJuego::VICTORIA) {
+            while (auto event = ventana.pollEvent()) {
+                if (event->is<sf::Event::Closed>()) ventana.close();
+
+                if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                    if (key->code == sf::Keyboard::Key::Enter ||
+                        key->code == sf::Keyboard::Key::Escape)
+                        estadoJuego = EstadoJuego::MENU;
+                }
+                if (event->is<sf::Event::MouseButtonPressed>())
+                    estadoJuego = EstadoJuego::MENU;
+            }
+
+            ventana.clear(sf::Color(10, 10, 20));
+            renderer->dibujarPantallaVictoria(juego->getBandoGanador());
+            ventana.display();
+            continue;
+        }
+
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {

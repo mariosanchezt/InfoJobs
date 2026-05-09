@@ -80,6 +80,7 @@ void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (tablero == nullptr) return;
 
     dibujarTablero(tablero);
+    dibujarPuntosDePoder(tablero);
     dibujarMovimientosDisponibles();
 
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
@@ -154,9 +155,13 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
 }
 
 void Renderer::dibujarCasillaResaltada(int fila, int col) {
+    float t = relojAnimacion.getElapsedTime().asSeconds();
+    float pulso = 0.5f + 0.5f * std::sin(t * 4.f);
+    uint8_t alpha = static_cast<uint8_t>(120 + static_cast<int>(80 * pulso));
+
     sf::RectangleShape resalte(sf::Vector2f(TAM_CASILLA, TAM_CASILLA));
     resalte.setPosition(sf::Vector2f(OFFSET_X + col * TAM_CASILLA, OFFSET_Y + fila * TAM_CASILLA));
-    resalte.setFillColor(colorSeleccion);
+    resalte.setFillColor(sf::Color(255u, 215u, 0u, alpha));
     resalte.setOutlineColor(sf::Color(255u, 200u, 0u));
     resalte.setOutlineThickness(3.f);
     ventana.draw(resalte);
@@ -418,4 +423,83 @@ void Renderer::dibujarPiezaPixel(Pieza* p, float px, float py) {
 
     dibujarBarraVida(p->vida, p->vidaMaxima,
         px - (TAM_CASILLA - 10.f) / 2.f, py + TAM_CASILLA / 2.f - 14.f, TAM_CASILLA - 10.f);
+}
+
+void Renderer::dibujarPuntosDePoder(Tablero* tablero) {
+    // Los 5 puntos de poder: centro del tablero y centros de los 4 bordes
+    const std::pair<int, int> puntos[5] = { {0,4}, {4,0}, {4,4}, {4,8}, {8,4} };
+
+    float t = relojAnimacion.getElapsedTime().asSeconds();
+    float pulso = 0.5f + 0.5f * std::sin(t * 1.8f);
+    uint8_t alpha = static_cast<uint8_t>(90 + static_cast<int>(100 * pulso));
+
+    for (const auto& [f, c] : puntos) {
+        float cx = OFFSET_X + c * TAM_CASILLA + TAM_CASILLA / 2.f;
+        float cy = OFFSET_Y + f * TAM_CASILLA + TAM_CASILLA / 2.f;
+        float radio = TAM_CASILLA * 0.13f;
+
+        // Diamante dorado animado (circulo con 4 puntas rotado 45 grados)
+        sf::CircleShape diamante(radio, 4);
+        diamante.setFillColor(sf::Color(255u, 210u, 0u, alpha));
+        diamante.setOutlineColor(sf::Color(200u, 160u, 0u, alpha));
+        diamante.setOutlineThickness(1.5f);
+        diamante.setRotation(sf::degrees(45.f));
+        diamante.setOrigin(sf::Vector2f(radio, radio));
+        diamante.setPosition(sf::Vector2f(cx, cy));
+        ventana.draw(diamante);
+    }
+}
+
+void Renderer::dibujarPantallaVictoria(Bando ganador) {
+    // Overlay oscuro sobre lo que haya detras
+    sf::RectangleShape overlay(sf::Vector2f(800.f, 800.f));
+    overlay.setFillColor(sf::Color(0u, 0u, 0u, 210u));
+    ventana.draw(overlay);
+
+    bool esLuz = (ganador == LUZ);
+    sf::Color colorGanador = esLuz ? sf::Color(80u, 220u, 120u) : sf::Color(220u, 80u, 80u);
+
+    // Pulso para animar el texto
+    float t = relojAnimacion.getElapsedTime().asSeconds();
+    float pulso = 0.5f + 0.5f * std::sin(t * 2.5f);
+    uint8_t alphaTexto = static_cast<uint8_t>(180 + static_cast<int>(75 * pulso));
+
+    // Panel central
+    float panelW = 580.f, panelH = 280.f;
+    float panelX = (800.f - panelW) / 2.f;
+    float panelY = (800.f - panelH) / 2.f;
+
+    sf::RectangleShape panel(sf::Vector2f(panelW, panelH));
+    panel.setPosition(sf::Vector2f(panelX, panelY));
+    sf::Color colorPanel = esLuz ? sf::Color(15u, 50u, 25u) : sf::Color(50u, 15u, 15u);
+    panel.setFillColor(colorPanel);
+    panel.setOutlineColor(colorGanador);
+    panel.setOutlineThickness(4.f);
+    ventana.draw(panel);
+
+    if (!fuenteCargada) return;
+
+    // Titulo: quien gana
+    std::string txtVictoria = esLuz ? "PLANTAS GANAN!" : "ZOMBIES GANAN!";
+    sf::Text textoVictoria(fuente, txtVictoria, 50);
+    textoVictoria.setFillColor(sf::Color(colorGanador.r, colorGanador.g, colorGanador.b, alphaTexto));
+    textoVictoria.setStyle(sf::Text::Bold);
+    sf::FloatRect b1 = textoVictoria.getLocalBounds();
+    textoVictoria.setPosition(sf::Vector2f(400.f - b1.size.x / 2.f, panelY + 60.f));
+    ventana.draw(textoVictoria);
+
+    // Subtitulo
+    std::string txtSub = esLuz ? "Las plantas han tomado el control" : "Los zombies han tomado el control";
+    sf::Text textoSub(fuente, txtSub, 22);
+    textoSub.setFillColor(sf::Color(200u, 200u, 200u));
+    sf::FloatRect b2 = textoSub.getLocalBounds();
+    textoSub.setPosition(sf::Vector2f(400.f - b2.size.x / 2.f, panelY + 140.f));
+    ventana.draw(textoSub);
+
+    // Instruccion para volver
+    sf::Text textoVolver(fuente, "Pulsa ENTER o haz click para volver al menu", 18);
+    textoVolver.setFillColor(sf::Color(160u, 160u, 160u));
+    sf::FloatRect b3 = textoVolver.getLocalBounds();
+    textoVolver.setPosition(sf::Vector2f(400.f - b3.size.x / 2.f, panelY + 210.f));
+    ventana.draw(textoVolver);
 }

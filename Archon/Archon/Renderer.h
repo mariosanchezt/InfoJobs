@@ -40,6 +40,8 @@ private:
     sf::Color colorSeleccion;
     sf::Color colorMovimiento;
 
+    sf::Clock relojAnimacion;
+
     // Metodos internos tablero
     void dibujarTablero(Tablero* tablero);
     void dibujarPieza(Pieza* p, int fila, int col);
@@ -48,6 +50,7 @@ private:
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
     void dibujarIndicadorTurno(Bando turno);
     void dibujarCursor();
+    void dibujarPuntosDePoder(Tablero* tablero);
 
     // Metodos internos arena
     void dibujarHUDArena(Pieza* p1, Pieza* p2);
@@ -63,6 +66,7 @@ public:
 
     void dibujarEstadoTablero(Tablero* tablero, Bando turno);
     void dibujarEstadoArena(const Arena& arena);
+    void dibujarPantallaVictoria(Bando ganador);
 
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();
