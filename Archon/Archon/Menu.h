@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA };
+enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, VICTORIA };
 
 struct Boton {
     sf::RectangleShape forma;

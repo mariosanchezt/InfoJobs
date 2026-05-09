@@ -163,6 +163,35 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
+    int piezasLuz = 0;
+    int piezasOscuridad = 0;
+    int puntosPoderLuz = 0;
+    int puntosPoderOscuridad = 0;
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p == nullptr) continue;
+
+            if (p->getBando() == LUZ) {
+                piezasLuz++;
+                if (tablero->esPuntoDePoder(f, c)) puntosPoderLuz++;
+            }
+            else {
+                piezasOscuridad++;
+                if (tablero->esPuntoDePoder(f, c)) puntosPoderOscuridad++;
+            }
+        }
+    }
+
+    // Condicion 1: un bando se queda sin piezas
+    if (piezasOscuridad == 0) { ganadorPartida = LUZ;       return true; }
+    if (piezasLuz == 0)       { ganadorPartida = OSCURIDAD; return true; }
+
+    // Condicion 2: un bando controla los 5 puntos de poder
+    if (puntosPoderLuz == 5)       { ganadorPartida = LUZ;       return true; }
+    if (puntosPoderOscuridad == 5) { ganadorPartida = OSCURIDAD; return true; }
+
     return false;
 }
 

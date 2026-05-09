@@ -11,6 +11,7 @@ private:
     Tablero* tablero;
     Arena* arena;
     Bando turnoActual;
+    Bando ganadorPartida;
     int hechizosRestantesLuz;
     int hechizosRestantesOscuridad;
     bool hechizosUsadosLuz[7];
@@ -28,7 +29,8 @@ public:
     bool verificarVictoria();
     void dibujar();
 
-    // Getter pa q el Renderer pueda acceder al tablero
+    // Getters
     Tablero* getTablero() const { return tablero; }
     Bando getTurnoActual() const { return turnoActual; }
+    Bando getBandoGanador() const { return ganadorPartida; }
 };

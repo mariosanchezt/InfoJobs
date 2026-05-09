@@ -136,6 +136,8 @@ int main() {
                 }
 
                 juego->cambiarTurno();
+                if (juego->verificarVictoria())
+                    estadoJuego = EstadoJuego::VICTORIA;
             }
             else {
                 renderer->dibujarEstadoArena(*arena);
@@ -177,6 +179,8 @@ int main() {
                             }
                             else {
                                 juego->moverPieza(fSel, cSel, fila, col);
+                                if (juego->verificarVictoria())
+                                    estadoJuego = EstadoJuego::VICTORIA;
                             }
                             renderer->deseleccionar();
                         }
