@@ -16,6 +16,10 @@ private:
     int hechizosRestantesOscuridad;
     bool hechizosUsadosLuz[7];
     bool hechizosUsadosOscuridad[7];
+    Pieza* piezaRalentizada;
+    float velAtaqueOriginalRalentizada;
+    Pieza* piezaCongelada;
+    float velAtaqueOriginalCongelada;
 
 public:
     Juego();

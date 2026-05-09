@@ -20,6 +20,10 @@ Juego::Juego() {
         hechizosUsadosLuz[i] = false;
         hechizosUsadosOscuridad[i] = false;
     }
+    piezaRalentizada = nullptr;
+    velAtaqueOriginalRalentizada = 0.f;
+    piezaCongelada = nullptr;
+    velAtaqueOriginalCongelada = 0.f;
 }
 
 void Juego::inicializarPartida() {
@@ -105,22 +109,68 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
 
     switch (idHechizo) {
     case 1: // HEAL
-        if (objetivo != nullptr) {
-            objetivo->vida = 100.0f;
-            std::cout << "Hechizo de Curacion lanzado." << std::endl;
+        if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
+            objetivo->vida = objetivo->vidaMaxima;
+            std::cout << "Curacion: " << objetivo->getNombre() << " restaurado" << std::endl;
         }
         break;
     case 2: // TELEPORT
-        if (objetivo != nullptr) {
+        if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
+            tablero->colocarPieza(objetivo->filaInicial, objetivo->colInicial, nullptr);
             tablero->colocarPieza(fDest, cDest, objetivo);
-            std::cout << "Teletransporte realizado." << std::endl;
+            objetivo->filaInicial = fDest;
+            objetivo->colInicial = cDest;
+            std::cout << "Teletransporte: " << objetivo->getNombre() << "movido" << std::endl;
         }
         break;
-    default:
-        std::cout << "Este hechizo aun no esta implementado." << std::endl;
-        return;
-    }
+    case 3: //DAÑO DIRECTO
+        if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
+            objetivo->vida -= 50.f;
+            if (objetivo->vida < 0.f) objetivo->vida = 0.f;
+            std::cout << "Daño directo a " << objetivo->getNombre() << ". Vida restante: " << objetivo->vida << std::endl;
+            if (objetivo->vida <= 0.f) {
+                tablero->colocarPieza(objetivo->filaInicial, objetivo->colInicial, nullptr);
+                delete objetivo;
+            }
+        }
+        break;
 
+    case 4: //RALENTIZAR
+        if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
+            // Restaurar pieza anterior si habia una ralentizada
+            if (piezaRalentizada != nullptr) piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
+            piezaRalentizada = objetivo;
+            velAtaqueOriginalRalentizada = objetivo->velAtaque;
+            objetivo->velAtaque *= 0.5f;
+            std::cout << "Ralentizado: " << objetivo->getNombre() << std::endl;
+        }
+        break;
+    case 5: // FORTALECER
+        if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
+            objetivo->fuerza *= 1.5f;
+            std::cout << "Fortalecido: " << objetivo->getNombre() << std::endl;
+        }
+        break;
+    case 6: // ESCUDO
+        if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
+            if (piezaCongelada != nullptr)
+                piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
+            piezaCongelada = objetivo;
+            velAtaqueOriginalCongelada = objetivo->velAtaque;
+            objetivo->velAtaque = 0.f;
+            std::cout << "Escudo: " << objetivo->getNombre() << " protegido." << std::endl;
+        }
+        break;
+    case 7: // CONGELAR
+        if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
+            if (piezaCongelada != nullptr)
+                piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
+            piezaCongelada = objetivo;
+            velAtaqueOriginalCongelada = objetivo->velAtaque;
+            objetivo->velAtaque = 0.f;
+            std::cout << "Congelado: " << objetivo->getNombre() << std::endl;
+        }
+        break;
     listaUsados[indice] = true;
 
     if (turnoActual == LUZ) {
