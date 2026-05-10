@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
 
 Renderer::Renderer(sf::RenderWindow& vent)
     : ventana(vent)
@@ -87,8 +89,14 @@ void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
         dibujarCasillaResaltada(filaSeleccionada, colSeleccionada);
 
-    dibujarCursor();
-    dibujarIndicadorTurno(turno);
+    dibujarCursor(tablero);
+
+    Pieza* piezaSeleccionada = nullptr;
+    if (filaSeleccionada >= 0 && colSeleccionada >= 0) {
+        piezaSeleccionada = tablero->getPieza(filaSeleccionada, colSeleccionada);
+    }
+
+    dibujarIndicadorTurno(turno, piezaSeleccionada);
 }
 
 void Renderer::dibujarTablero(Tablero* tablero) {
@@ -156,14 +164,46 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
 
 void Renderer::dibujarCasillaResaltada(int fila, int col) {
     float t = relojAnimacion.getElapsedTime().asSeconds();
+
     float pulso = 0.5f + 0.5f * std::sin(t * 4.f);
+
     uint8_t alpha = static_cast<uint8_t>(180 + static_cast<int>(75 * pulso));
 
+    sf::Color colorResalte;
+
+    //Se observa de que lado es la pieza
+
+    colorResalte = sf::Color(255u, 215u, 0u, alpha);
+
+    // Si hay una pieza seleccionada:
+    // verde plantas / rojo zombies
+
+    // PLANTAS
+    if (filaSeleccionada >= 0 && colSeleccionada >= 0) {
+
+        // Verde tipo plantas
+        colorResalte = sf::Color(60u, 255u, 60u, alpha);
+
+        //Se comprueba si está en el lado derecho 
+
+        if (col >= 7) {
+            colorResalte = sf::Color(255u, 60u, 60u, alpha);
+        }
+    }
+
     sf::RectangleShape resalte(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
-    resalte.setPosition(sf::Vector2f(OFFSET_X + col * TAM_CASILLA + 2.f, OFFSET_Y + fila * TAM_CASILLA + 2.f));
+
+    resalte.setPosition(sf::Vector2f(
+        OFFSET_X + col * TAM_CASILLA + 2.f,
+        OFFSET_Y + fila * TAM_CASILLA + 2.f
+    ));
+
     resalte.setFillColor(sf::Color::Transparent);
-    resalte.setOutlineColor(sf::Color(255u, 215u, 0u, alpha));
+
+    resalte.setOutlineColor(colorResalte);
+
     resalte.setOutlineThickness(4.f);
+
     ventana.draw(resalte);
 }
 
@@ -210,33 +250,115 @@ void Renderer::dibujarBarraVida(float vida, float vidaMax, float x, float y, flo
     ventana.draw(relleno);
 }
 
-void Renderer::dibujarIndicadorTurno(Bando turno) {
+void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada) {
     float yFranja = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
     bool esLuz = (turno == LUZ);
 
     sf::Color colorFranja = esLuz ? sf::Color(50, 130, 70) : sf::Color(130, 40, 40);
+
     sf::RectangleShape franja(sf::Vector2f(760.f, 50.f));
     franja.setPosition(sf::Vector2f(OFFSET_X, yFranja));
     franja.setFillColor(colorFranja);
     ventana.draw(franja);
 
     if (fuenteCargada) {
-        std::string textoTurno = esLuz ? "TURNO: PLANTAS" : "TURNO: ZOMBIES";
-        sf::Text texto(fuente, textoTurno, 30);
+        std::string textoInferior;
+
+        if (piezaSeleccionada != nullptr) {
+            textoInferior = construirTextoPieza(piezaSeleccionada);
+        }
+        else {
+            textoInferior = esLuz ? "TURNO: PLANTAS" : "TURNO: ZOMBIES";
+        }
+
+        sf::Text texto(fuente, textoInferior, 24);
         texto.setFillColor(sf::Color::White);
         texto.setStyle(sf::Text::Bold);
+
         sf::FloatRect b = texto.getLocalBounds();
-        texto.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, yFranja + 13.f));
+        texto.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, yFranja + 15.f));
+
         ventana.draw(texto);
     }
 }
+std::string Renderer::tipoMovimientoTexto(TipoMovimiento mov) const {
+    switch (mov) {
+    case GROUND:
+        return "GROUND";
+    case FLYING:
+        return "FLYING";
+    case TELEPORT:
+        return "TELEPORT";
+    default:
+        return "UNKNOWN";
+    }
+}
 
-void Renderer::dibujarCursor() {
+std::string Renderer::numeroTexto(float valor) const {
+    std::ostringstream oss;
+
+    if (std::fabs(valor - std::round(valor)) < 0.01f) {
+        oss << static_cast<int>(std::round(valor));
+    }
+    else {
+        oss << std::fixed << std::setprecision(1) << valor;
+    }
+
+    return oss.str();
+}
+
+std::string Renderer::construirTextoPieza(Pieza* pieza) const {
+    if (pieza == nullptr) return "";
+
+    std::ostringstream oss;
+
+    oss << pieza->getNombre()
+        << "  VIDA: " << numeroTexto(pieza->vida) << "/" << numeroTexto(pieza->vidaMaxima)
+        << "  FUERZA: " << numeroTexto(pieza->fuerza)
+        << "  MOV: " << pieza->radioMovimiento
+        << "  " << tipoMovimientoTexto(pieza->mov);
+
+    return oss.str();
+}
+
+void Renderer::dibujarCursor(Tablero* tablero) {
+
+    sf::Color colorCursor = sf::Color(0, 255, 255, 200);
+
+    // Si hay pieza seleccionada,
+    // cambiamos color según bando
+
+    if (filaSeleccionada >= 0 && colSeleccionada >= 0 && tablero != nullptr) {
+
+        Pieza* p = tablero->getPieza(filaSeleccionada, colSeleccionada);
+
+        if (p != nullptr) {
+
+            // PLANTAS
+            if (p->getBando() == LUZ) {
+                colorCursor = sf::Color(40, 255, 40, 220);
+            }
+
+            // ZOMBIES
+            else {
+                colorCursor = sf::Color(255, 60, 60, 220);
+            }
+        }
+    }
+
     sf::RectangleShape cursor(sf::Vector2f(TAM_CASILLA, TAM_CASILLA));
-    cursor.setPosition(sf::Vector2f(OFFSET_X + cursorCol * TAM_CASILLA, OFFSET_Y + cursorFila * TAM_CASILLA));
+
+    cursor.setPosition(sf::Vector2f(
+        OFFSET_X + cursorCol * TAM_CASILLA,
+        OFFSET_Y + cursorFila * TAM_CASILLA
+    ));
+
     cursor.setFillColor(sf::Color::Transparent);
-    cursor.setOutlineColor(sf::Color(0, 255, 255, 200));
+
+    cursor.setOutlineColor(colorCursor);
+
     cursor.setOutlineThickness(4.f);
+
     ventana.draw(cursor);
 }
 

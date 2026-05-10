@@ -30,7 +30,7 @@ private:
     // Variables del Cursor
     int cursorFila;
     int cursorCol;
-    void dibujarCursor();
+    void dibujarCursor(Tablero* tablero);
 
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
@@ -53,7 +53,10 @@ private:
     void dibujarCasillaResaltada(int fila, int col);
     void dibujarMovimientosDisponibles();
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
-    void dibujarIndicadorTurno(Bando turno);
+    void dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada);
+    std::string tipoMovimientoTexto(TipoMovimiento mov) const;
+    std::string numeroTexto(float valor) const;
+    std::string construirTextoPieza(Pieza* pieza) const;
     void dibujarPuntosDePoder(Tablero* tablero);
 
     // Metodos internos arena
