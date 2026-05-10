@@ -2,10 +2,12 @@
 #include <SFML/Graphics.hpp>
 #include "Tablero.h"
 #include "Pieza.h"
-#include "Arena.h"
 #include <string>
 #include <vector>
 #include <map>
+
+class Arena;
+struct CombatienteArena;
 
 enum EstadoPantalla { TABLERO, ARENA };
 
@@ -25,22 +27,25 @@ private:
     int filaSeleccionada;
     int colSeleccionada;
 
+    // Variables del Cursor
     int cursorFila;
     int cursorCol;
+    void dibujarCursor();
 
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
-    // Texturas de los sprites
+    // Texturas de los sprites 
     std::map<std::string, sf::Texture> texturas;
     bool texturasCargadas;
 
+    // Colores
     sf::Color colorBlanco;
     sf::Color colorNegro;
     sf::Color colorGris;
     sf::Color colorSeleccion;
     sf::Color colorMovimiento;
 
-    sf::Clock relojAnimacion;
+    sf::Clock relojAnimacion; // pa las animaciones de pulso y puntos de poder
 
     // Metodos internos tablero
     void dibujarTablero(Tablero* tablero);
@@ -49,7 +54,6 @@ private:
     void dibujarMovimientosDisponibles();
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
     void dibujarIndicadorTurno(Bando turno);
-    void dibujarCursor();
     void dibujarPuntosDePoder(Tablero* tablero);
 
     // Metodos internos arena
@@ -66,7 +70,7 @@ public:
 
     void dibujarEstadoTablero(Tablero* tablero, Bando turno);
     void dibujarEstadoArena(const Arena& arena);
-    void dibujarPantallaVictoria(Bando ganador);
+    void dibujarPantallaVictoria(Bando ganador); // pantalla final del repo
 
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();
@@ -79,10 +83,12 @@ public:
     int getFilaSeleccionada() const { return filaSeleccionada; }
     int getColSeleccionada()  const { return colSeleccionada; }
 
+    // Metodos publicos del Cursor
     void moverCursor(int dFila, int dCol);
-    int  getCursorFila() const { return cursorFila; }
-    int  getCursorCol()  const { return cursorCol; }
+    int getCursorFila() const { return cursorFila; }
+    int getCursorCol()  const { return cursorCol; }
 
+    // Variables y metodos pa animacion y arrastre (de la copia local)
     bool ocultarMunecoCursor = false;
     void dibujarPiezaPixel(Pieza* p, float px, float py);
     sf::Vector2f getCentroCasilla(int fila, int col) const;

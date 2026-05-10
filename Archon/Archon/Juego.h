@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Pieza.h" 
+#include "Pieza.h"
 
 class Tablero;
 class Arena;
@@ -33,7 +33,6 @@ public:
     bool verificarVictoria();
     void dibujar();
 
-    // Getters
     Tablero* getTablero() const { return tablero; }
     Bando getTurnoActual() const { return turnoActual; }
     Bando getBandoGanador() const { return ganadorPartida; }

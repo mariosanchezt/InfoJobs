@@ -4,6 +4,7 @@
 #include "Arena.h"
 #include "Menu.h"
 #include <iostream>
+#include <cmath>
 
 void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float segundos) {
     sf::Texture texCarga;
@@ -62,6 +63,14 @@ int main() {
     int filaAtacante = -1, colAtacante = -1;
     int filaDefensor = -1, colDefensor = -1;
 
+    // Variables de animacion y arrastre
+    bool arrastrando = false;
+    bool animando = false;
+    sf::Vector2f posPixelMuneco;
+    sf::Vector2f posPixelDestino;
+    int targetFila = -1, targetCol = -1;
+    float velAnimacion = 750.f; // pixeles por segundo
+
     sf::Clock reloj;
 
     while (ventana.isOpen()) {
@@ -107,6 +116,11 @@ int main() {
                     renderer = new Renderer(ventana);
                     arena = new Arena();
 
+                    // Reseteamos variables de movimiento al empezar partida nueva
+                    arrastrando = false;
+                    animando = false;
+                    enCombate = false;
+
                     renderer->cargarFuente("assets/SamdanEvil.ttf");
                     renderer->cargarSprites("assets");
                     juego->inicializarPartida();
@@ -118,6 +132,25 @@ int main() {
             ventana.display();
             continue;
         }
+
+        auto ejecutarMovimiento = [&](int fOri, int cOri, int fDest, int cDest) {
+            Pieza* p = juego->getTablero()->getPieza(fOri, cOri);
+            Pieza* ocupante = juego->getTablero()->getPieza(fDest, cDest);
+
+            if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
+                filaAtacante = fOri; colAtacante = cOri;
+                filaDefensor = fDest; colDefensor = cDest;
+                arena->iniciarCombate(p, ocupante);
+                enCombate = true;
+                renderer->setEstado(ARENA);
+            }
+            else {
+                juego->moverPieza(fOri, cOri, fDest, cDest);
+                if (juego->verificarVictoria())
+                    estadoJuego = EstadoJuego::VICTORIA;
+            }
+            renderer->deseleccionar();
+            };
 
         // MODO ARENA
         if (enCombate) {
@@ -167,10 +200,29 @@ int main() {
             continue;
         }
 
-        // MODO TABLERO
+        // LOGICA DE ANIMACION
+        if (animando) {
+            sf::Vector2f dir = posPixelDestino - posPixelMuneco;
+            float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+            if (dist <= velAnimacion * dt) {
+                // Llego al destino
+                animando = false;
+                ejecutarMovimiento(renderer->getFilaSeleccionada(), renderer->getColSeleccionada(), targetFila, targetCol);
+            }
+            else {
+                dir /= dist;
+                posPixelMuneco += dir * velAnimacion * dt;
+            }
+        }
+
+        // MODO TABLERO (Eventos)
         while (auto event = ventana.pollEvent()) {
             if (event->is<sf::Event::Closed>()) ventana.close();
 
+            if (animando) continue; // si se esta moviendo sola ignoramos el input
+
+            // 1. DRAG AND DROP Y CLICS CON EL RATON
             if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (click->button == sf::Mouse::Button::Left) {
                     int fila, col;
@@ -180,49 +232,131 @@ int main() {
 
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
-                            if (p && p->getBando() == juego->getTurnoActual())
+                            if (p && p->getBando() == juego->getTurnoActual()) {
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                                arrastrando = true;
+                                posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
+                            }
                         }
                         else if (fila == fSel && col == cSel) {
-                            renderer->deseleccionar();
+                            arrastrando = true;
+                            posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
                         }
                         else {
-                            Pieza* p = juego->getTablero()->getPieza(fSel, cSel);
-                            Pieza* ocupante = juego->getTablero()->getPieza(fila, col);
-
-                            if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
-                                filaAtacante = fSel; colAtacante = cSel;
-                                filaDefensor = fila; colDefensor = col;
-                                arena->iniciarCombate(p, ocupante);
-                                enCombate = true;
-                                renderer->setEstado(ARENA);
+                            if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
+                                animando = true;
+                                targetFila = fila; targetCol = col;
+                                posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
+                                posPixelDestino = renderer->getCentroCasilla(fila, col);
                             }
                             else {
-                                juego->moverPieza(fSel, cSel, fila, col);
-                                if (juego->verificarVictoria())
-                                    estadoJuego = EstadoJuego::VICTORIA;
+                                renderer->deseleccionar();
                             }
+                        }
+                    }
+                }
+                if (click->button == sf::Mouse::Button::Right) renderer->deseleccionar();
+            }
+            else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
+                if (arrastrando) {
+                    posPixelMuneco = sf::Vector2f((float)move->position.x, (float)move->position.y);
+                }
+            }
+            else if (const auto* release = event->getIf<sf::Event::MouseButtonReleased>()) {
+                if (release->button == sf::Mouse::Button::Left && arrastrando) {
+                    arrastrando = false;
+                    int fila, col;
+                    if (renderer->pixelACasilla(release->position.x, release->position.y, fila, col)) {
+                        int fSel = renderer->getFilaSeleccionada();
+                        int cSel = renderer->getColSeleccionada();
+
+                        if (fila != fSel || col != cSel) {
+                            if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
+                                ejecutarMovimiento(fSel, cSel, fila, col);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. CONTROLES POR TECLADO
+            if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                // Escape vuelve al menu
+                if (key->code == sf::Keyboard::Key::Escape) {
+                    animando = false;
+                    arrastrando = false;
+                    enCombate = false;
+                    estadoJuego = EstadoJuego::MENU;
+                    continue;
+                }
+
+                Bando turno = juego->getTurnoActual();
+                int dFila = 0, dCol = 0;
+                bool accion = false;
+
+                // WASD pa LUZ, flechas pa OSCURIDAD
+                if (turno == LUZ) {
+                    if (key->code == sf::Keyboard::Key::W) dFila = -1;
+                    if (key->code == sf::Keyboard::Key::S) dFila = 1;
+                    if (key->code == sf::Keyboard::Key::A) dCol = -1;
+                    if (key->code == sf::Keyboard::Key::D) dCol = 1;
+                    if (key->code == sf::Keyboard::Key::Space) accion = true;
+                }
+                else {
+                    if (key->code == sf::Keyboard::Key::Up)    dFila = -1;
+                    if (key->code == sf::Keyboard::Key::Down)  dFila = 1;
+                    if (key->code == sf::Keyboard::Key::Left)  dCol = -1;
+                    if (key->code == sf::Keyboard::Key::Right) dCol = 1;
+                    if (key->code == sf::Keyboard::Key::Enter) accion = true;
+                }
+
+                if (dFila != 0 || dCol != 0) renderer->moverCursor(dFila, dCol);
+
+                if (accion) {
+                    int fila = renderer->getCursorFila();
+                    int col = renderer->getCursorCol();
+                    int fSel = renderer->getFilaSeleccionada();
+                    int cSel = renderer->getColSeleccionada();
+
+                    if (fSel == -1) {
+                        Pieza* p = juego->getTablero()->getPieza(fila, col);
+                        if (p && p->getBando() == turno) {
+                            renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                        }
+                    }
+                    else if (fila == fSel && col == cSel) {
+                        renderer->deseleccionar();
+                    }
+                    else {
+                        if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
+                            animando = true;
+                            targetFila = fila; targetCol = col;
+                            posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
+                            posPixelDestino = renderer->getCentroCasilla(fila, col);
+                        }
+                        else {
                             renderer->deseleccionar();
                         }
                     }
                 }
-
-                if (click->button == sf::Mouse::Button::Right)
-                    renderer->deseleccionar();
-            }
-
-            // Escape vuelve al menu
-            if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                if (key->code == sf::Keyboard::Key::Escape) {
-                    enCombate = false;
-                    estadoJuego = EstadoJuego::MENU;
-                }
             }
         }
 
-        // DIBUJADO
+        // DIBUJADO FINAL
         ventana.clear(sf::Color(20, 20, 20));
+
+        renderer->ocultarMunecoCursor = (arrastrando || animando);
         renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual());
+
+        // Si se esta arrastrando o animando, dibujamos el muñeco siguiendo el raton/animacion
+        if ((arrastrando || animando) && renderer->getFilaSeleccionada() != -1) {
+            Pieza* p = juego->getTablero()->getPieza(
+                renderer->getFilaSeleccionada(),
+                renderer->getColSeleccionada()
+            );
+            if (p) renderer->dibujarPiezaPixel(p, posPixelMuneco.x, posPixelMuneco.y);
+        }
+
         ventana.display();
     }
 

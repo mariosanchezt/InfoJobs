@@ -44,8 +44,8 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
     if (nombrePieza == "Zombidito")      return "Imp.png";
     if (nombrePieza == "All-Star")       return "AllStar.png";
     if (nombrePieza == "Ingeniero")      return "Engineer.png";
-    if (nombrePieza == "Dave el Loco")      return "Dave el Loco.png";
-    if (nombrePieza == "Dr. Zomboss")      return "Dr. Zomboss.png";
+    if (nombrePieza == "Dave el Loco")   return "Dave el Loco.png";
+    if (nombrePieza == "Dr. Zomboss")    return "Dr. Zomboss.png";
     return "";
 }
 
@@ -54,7 +54,6 @@ void Renderer::cargarSprites(const std::string& carpeta) {
         "Chomper.png", "Peashooter.png", "Sunflower.png", "Citron.png", "Kernelpult.png",
         "SuperBrainz.png", "Soldier.png", "Imp.png", "AllStar.png", "Engineer.png",
         "Dave el Loco.png", "Dr. Zomboss.png"
-
     };
 
     int cargados = 0;
@@ -79,8 +78,10 @@ void Renderer::cargarSprites(const std::string& carpeta) {
 void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     if (tablero == nullptr) return;
 
+    // Primero el tablero base
     dibujarTablero(tablero);
     dibujarPuntosDePoder(tablero);
+
     dibujarMovimientosDisponibles();
 
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
@@ -108,7 +109,6 @@ void Renderer::dibujarTablero(Tablero* tablero) {
 
             Pieza* p = tablero->getPieza(f, c);
             if (p != nullptr) {
-                if (f == filaSeleccionada && c == colSeleccionada) continue;
                 dibujarPieza(p, f, c);
             }
         }
@@ -157,13 +157,13 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
 void Renderer::dibujarCasillaResaltada(int fila, int col) {
     float t = relojAnimacion.getElapsedTime().asSeconds();
     float pulso = 0.5f + 0.5f * std::sin(t * 4.f);
-    uint8_t alpha = static_cast<uint8_t>(120 + static_cast<int>(80 * pulso));
+    uint8_t alpha = static_cast<uint8_t>(180 + static_cast<int>(75 * pulso));
 
-    sf::RectangleShape resalte(sf::Vector2f(TAM_CASILLA, TAM_CASILLA));
-    resalte.setPosition(sf::Vector2f(OFFSET_X + col * TAM_CASILLA, OFFSET_Y + fila * TAM_CASILLA));
-    resalte.setFillColor(sf::Color(255u, 215u, 0u, alpha));
-    resalte.setOutlineColor(sf::Color(255u, 200u, 0u));
-    resalte.setOutlineThickness(3.f);
+    sf::RectangleShape resalte(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
+    resalte.setPosition(sf::Vector2f(OFFSET_X + col * TAM_CASILLA + 2.f, OFFSET_Y + fila * TAM_CASILLA + 2.f));
+    resalte.setFillColor(sf::Color::Transparent);
+    resalte.setOutlineColor(sf::Color(255u, 215u, 0u, alpha));
+    resalte.setOutlineThickness(4.f);
     ventana.draw(resalte);
 }
 
@@ -348,15 +348,11 @@ void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {
     Pieza* p = tablero->getPieza(fila, col);
     if (p == nullptr) return;
 
-    int radio = p->radioMovimiento;
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             if (f == fila && c == col) continue;
-            int dist = std::abs(f - fila) + std::abs(c - col);
-            if (dist <= radio) {
-                Pieza* ocupante = tablero->getPieza(f, c);
-                if (ocupante == nullptr || ocupante->getBando() != p->getBando())
-                    movimientosDisponibles.push_back({ f, c });
+            if (tablero->esMovimientoValido(fila, col, f, c)) {
+                movimientosDisponibles.push_back({ f, c });
             }
         }
     }
@@ -379,11 +375,44 @@ bool Renderer::pixelACasilla(int px, int py, int& fila, int& col) {
 }
 
 void Renderer::moverCursor(int dFila, int dCol) {
-    int nuevaFila = cursorFila + dFila;
-    int nuevaCol = cursorCol + dCol;
-    if (nuevaFila < 0 || nuevaFila > 8 || nuevaCol < 0 || nuevaCol > 8) return;
-    cursorFila = nuevaFila;
-    cursorCol = nuevaCol;
+    if (filaSeleccionada != -1 && !movimientosDisponibles.empty()) {
+        // Buscamos la casilla verde mas cercana en esa direccion
+        int mejorFila = cursorFila;
+        int mejorCol = cursorCol;
+        int mejorDist = 999;
+
+        for (auto& pos : movimientosDisponibles) {
+            int f = pos.first;
+            int c = pos.second;
+
+            // Solo miramos casillas en la direccion q se pulso
+            bool enDireccion = false;
+            if (dFila < 0 && f < cursorFila) enDireccion = true;
+            if (dFila > 0 && f > cursorFila) enDireccion = true;
+            if (dCol < 0 && c < cursorCol)   enDireccion = true;
+            if (dCol > 0 && c > cursorCol)   enDireccion = true;
+
+            if (!enDireccion) continue;
+
+            int dist = std::abs(f - cursorFila) + std::abs(c - cursorCol);
+            if (dist < mejorDist) {
+                mejorDist = dist;
+                mejorFila = f;
+                mejorCol = c;
+            }
+        }
+
+        cursorFila = mejorFila;
+        cursorCol = mejorCol;
+    }
+    else {
+        // Sin seleccion: movimiento libre
+        int nuevaFila = cursorFila + dFila;
+        int nuevaCol = cursorCol + dCol;
+        if (nuevaFila < 0 || nuevaFila > 8 || nuevaCol < 0 || nuevaCol > 8) return;
+        cursorFila = nuevaFila;
+        cursorCol = nuevaCol;
+    }
 }
 
 sf::Vector2f Renderer::getCentroCasilla(int fila, int col) const {
@@ -426,7 +455,6 @@ void Renderer::dibujarPiezaPixel(Pieza* p, float px, float py) {
 }
 
 void Renderer::dibujarPuntosDePoder(Tablero* tablero) {
-    // Los 5 puntos de poder: centro del tablero y centros de los 4 bordes
     const std::pair<int, int> puntos[5] = { {0,4}, {4,0}, {4,4}, {4,8}, {8,4} };
 
     float t = relojAnimacion.getElapsedTime().asSeconds();
@@ -438,7 +466,6 @@ void Renderer::dibujarPuntosDePoder(Tablero* tablero) {
         float cy = OFFSET_Y + f * TAM_CASILLA + TAM_CASILLA / 2.f;
         float radio = TAM_CASILLA * 0.13f;
 
-        // Diamante dorado animado (circulo con 4 puntas rotado 45 grados)
         sf::CircleShape diamante(radio, 4);
         diamante.setFillColor(sf::Color(255u, 210u, 0u, alpha));
         diamante.setOutlineColor(sf::Color(200u, 160u, 0u, alpha));
@@ -451,7 +478,6 @@ void Renderer::dibujarPuntosDePoder(Tablero* tablero) {
 }
 
 void Renderer::dibujarPantallaVictoria(Bando ganador) {
-    // Overlay oscuro sobre lo que haya detras
     sf::RectangleShape overlay(sf::Vector2f(800.f, 800.f));
     overlay.setFillColor(sf::Color(0u, 0u, 0u, 210u));
     ventana.draw(overlay);
@@ -459,12 +485,10 @@ void Renderer::dibujarPantallaVictoria(Bando ganador) {
     bool esLuz = (ganador == LUZ);
     sf::Color colorGanador = esLuz ? sf::Color(80u, 220u, 120u) : sf::Color(220u, 80u, 80u);
 
-    // Pulso para animar el texto
     float t = relojAnimacion.getElapsedTime().asSeconds();
     float pulso = 0.5f + 0.5f * std::sin(t * 2.5f);
     uint8_t alphaTexto = static_cast<uint8_t>(180 + static_cast<int>(75 * pulso));
 
-    // Panel central
     float panelW = 580.f, panelH = 280.f;
     float panelX = (800.f - panelW) / 2.f;
     float panelY = (800.f - panelH) / 2.f;
@@ -479,7 +503,6 @@ void Renderer::dibujarPantallaVictoria(Bando ganador) {
 
     if (!fuenteCargada) return;
 
-    // Titulo: quien gana
     std::string txtVictoria = esLuz ? "PLANTAS GANAN!" : "ZOMBIES GANAN!";
     sf::Text textoVictoria(fuente, txtVictoria, 50);
     textoVictoria.setFillColor(sf::Color(colorGanador.r, colorGanador.g, colorGanador.b, alphaTexto));
@@ -488,7 +511,6 @@ void Renderer::dibujarPantallaVictoria(Bando ganador) {
     textoVictoria.setPosition(sf::Vector2f(400.f - b1.size.x / 2.f, panelY + 60.f));
     ventana.draw(textoVictoria);
 
-    // Subtitulo
     std::string txtSub = esLuz ? "Las plantas han tomado el control" : "Los zombies han tomado el control";
     sf::Text textoSub(fuente, txtSub, 22);
     textoSub.setFillColor(sf::Color(200u, 200u, 200u));
@@ -496,7 +518,6 @@ void Renderer::dibujarPantallaVictoria(Bando ganador) {
     textoSub.setPosition(sf::Vector2f(400.f - b2.size.x / 2.f, panelY + 140.f));
     ventana.draw(textoSub);
 
-    // Instruccion para volver
     sf::Text textoVolver(fuente, "Pulsa ENTER o haz click para volver al menu", 18);
     textoVolver.setFillColor(sf::Color(160u, 160u, 160u));
     sf::FloatRect b3 = textoVolver.getLocalBounds();

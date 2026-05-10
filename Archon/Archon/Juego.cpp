@@ -39,7 +39,6 @@ void Juego::inicializarPartida() {
     tablero->colocarPieza(2, 0, new PiezaVoladora("Mazorca", LUZ, 2, 0, FLYING));
     tablero->colocarPieza(3, 0, new PiezaRapida("Girasol", LUZ, 3, 0, GROUND));
     tablero->colocarPieza(4, 0, new PiezaLider("Dave el Loco", LUZ, 4, 0, TELEPORT));
-
     tablero->colocarPieza(5, 0, new PiezaRapida("Girasol", LUZ, 5, 0, GROUND));
     tablero->colocarPieza(6, 0, new PiezaVoladora("Mazorca", LUZ, 6, 0, FLYING));
     tablero->colocarPieza(7, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 7, 0, GROUND));
@@ -50,8 +49,7 @@ void Juego::inicializarPartida() {
     tablero->colocarPieza(1, 8, new PiezaDistancia("Soldado", OSCURIDAD, 1, 8, GROUND));
     tablero->colocarPieza(2, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 2, 8, FLYING));
     tablero->colocarPieza(3, 8, new PiezaRapida("Zombidito", OSCURIDAD, 3, 8, GROUND));
-    tablero->colocarPieza(4, 8, new PiezaLider("Dr. Zombi", OSCURIDAD, 4, 8, TELEPORT));
-
+    tablero->colocarPieza(4, 8, new PiezaLider("Dr. Zomboss", OSCURIDAD, 4, 8, TELEPORT));
     tablero->colocarPieza(5, 8, new PiezaRapida("Zombidito", OSCURIDAD, 5, 8, GROUND));
     tablero->colocarPieza(6, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 6, 8, FLYING));
     tablero->colocarPieza(7, 8, new PiezaDistancia("Soldado", OSCURIDAD, 7, 8, GROUND));
@@ -61,7 +59,7 @@ void Juego::inicializarPartida() {
 }
 
 void Juego::cambiarTurno() {
-    //Restaurar efectos temporales
+    // Restaurar efectos temporales al cambiar turno
     if (piezaRalentizada != nullptr) {
         piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
         piezaRalentizada = nullptr;
@@ -79,6 +77,7 @@ void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
         return; // sin cambio de turno
     }
 
+    // Primero comprobamos q el movimiento es valido
     if (!tablero->esMovimientoValido(fOrigen, cOrigen, fDestino, cDestino)) {
         return; // sin cambio de turno
     }
@@ -125,10 +124,10 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             tablero->colocarPieza(fDest, cDest, objetivo);
             objetivo->filaInicial = fDest;
             objetivo->colInicial = cDest;
-            std::cout << "Teletransporte: " << objetivo->getNombre() << "movido" << std::endl;
+            std::cout << "Teletransporte: " << objetivo->getNombre() << " movido" << std::endl;
         }
         break;
-    case 3: //DAÑO DIRECTO
+    case 3: // DAÑO DIRECTO
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
             objetivo->vida -= 50.f;
             if (objetivo->vida < 0.f) objetivo->vida = 0.f;
@@ -139,10 +138,8 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             }
         }
         break;
-
-    case 4: //RALENTIZAR
+    case 4: // RALENTIZAR
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
-            // Restaurar pieza anterior si habia una ralentizada
             if (piezaRalentizada != nullptr) piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
             piezaRalentizada = objetivo;
             velAtaqueOriginalRalentizada = objetivo->velAtaque;
@@ -177,6 +174,7 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
         }
         break;
     }
+
     listaUsados[indice] = true;
 
     if (turnoActual == LUZ) {
@@ -242,10 +240,10 @@ bool Juego::verificarVictoria() {
 
     // Condicion 1: un bando se queda sin piezas
     if (piezasOscuridad == 0) { ganadorPartida = LUZ;       return true; }
-    if (piezasLuz == 0)       { ganadorPartida = OSCURIDAD; return true; }
+    if (piezasLuz == 0) { ganadorPartida = OSCURIDAD; return true; }
 
     // Condicion 2: un bando controla los 5 puntos de poder
-    if (puntosPoderLuz == 5)       { ganadorPartida = LUZ;       return true; }
+    if (puntosPoderLuz == 5) { ganadorPartida = LUZ;       return true; }
     if (puntosPoderOscuridad == 5) { ganadorPartida = OSCURIDAD; return true; }
 
     return false;
