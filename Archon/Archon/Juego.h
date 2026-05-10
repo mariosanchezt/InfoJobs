@@ -39,4 +39,6 @@ public:
     Bando getTurnoActual() const { return turnoActual; }
     Bando getBandoGanador() const { return ganadorPartida; }
     Pieza* getPiezaCongelada() const { return piezaCongelada; }
+    bool* getHechizosUsadosLuz() { return hechizosUsadosLuz; }
+    bool* getHechizosUsadosOscuridad() { return hechizosUsadosOscuridad; }
 };

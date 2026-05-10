@@ -44,7 +44,7 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
 }
 
 int main() {
-    sf::RenderWindow ventana(sf::VideoMode({ 800, 800 }), "Archon PvZ");
+    sf::RenderWindow ventana(sf::VideoMode({ 800, 900 }), "Archon PvZ");
     ventana.setFramerateLimit(60);
 
     sf::Font fuente;
@@ -70,6 +70,7 @@ int main() {
     sf::Vector2f posPixelDestino;
     int targetFila = -1, targetCol = -1;
     float velAnimacion = 750.f; // pixeles por segundo
+    int hechizoSeleccionado = -1;
 
     sf::Clock reloj;
 
@@ -234,6 +235,14 @@ int main() {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
 
+                        if (hechizoSeleccionado != -1) {
+                            Pieza* objetivo = juego->getTablero()->getPieza(fila, col);
+                            juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                            hechizoSeleccionado = -1;
+                            renderer->deseleccionar();
+                            continue;
+                        }
+
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
                             if (p && p->getBando() == juego->getTurnoActual()) {
@@ -294,6 +303,20 @@ int main() {
                     continue;
                 }
 
+                int teclaHechizo = -1;
+                if (key->code == sf::Keyboard::Key::Num1) teclaHechizo = 0;
+                else if(key->code == sf::Keyboard::Key::Num2) teclaHechizo = 1;
+                else if (key->code == sf::Keyboard::Key::Num3) teclaHechizo = 2;
+                else if (key->code == sf::Keyboard::Key::Num4) teclaHechizo = 3;
+                else if (key->code == sf::Keyboard::Key::Num5) teclaHechizo = 4;
+                else if (key->code == sf::Keyboard::Key::Num6) teclaHechizo = 5;
+                else if (key->code == sf::Keyboard::Key::Num7) teclaHechizo = 6;
+
+                if (teclaHechizo != -1) {
+                    hechizoSeleccionado = (hechizoSeleccionado == teclaHechizo) ? -1 : teclaHechizo;
+                    renderer->deseleccionar();
+                    continue;
+                }
                 Bando turno = juego->getTurnoActual();
                 int dFila = 0, dCol = 0;
                 bool accion = false;
@@ -321,6 +344,14 @@ int main() {
                     int col = renderer->getCursorCol();
                     int fSel = renderer->getFilaSeleccionada();
                     int cSel = renderer->getColSeleccionada();
+
+                    if (hechizoSeleccionado != -1) {
+                        Pieza* objetivo = juego->getTablero()->getPieza(fila, col);
+                        juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                        hechizoSeleccionado = -1;
+                        renderer->deseleccionar();
+                        continue;
+                    }
 
                     if (fSel == -1) {
                         Pieza* p = juego->getTablero()->getPieza(fila, col);
@@ -350,7 +381,7 @@ int main() {
         ventana.clear(sf::Color(20, 20, 20));
 
         renderer->ocultarMunecoCursor = (arrastrando || animando);
-        renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual());
+        renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado );
 
         // Si se esta arrastrando o animando, dibujamos el muñeco siguiendo el raton/animacion
         if ((arrastrando || animando) && renderer->getFilaSeleccionada() != -1) {

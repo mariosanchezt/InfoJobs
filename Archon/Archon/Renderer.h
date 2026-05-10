@@ -27,11 +27,13 @@ private:
     int filaSeleccionada;
     int colSeleccionada;
 
+    int hechizoSeleccionado;
+
     // Variables del Cursor
     int cursorFila;
     int cursorCol;
     void dibujarCursor(Tablero* tablero);
-
+    
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
     // Texturas de los sprites 
@@ -71,9 +73,10 @@ public:
     bool cargarFuente(const std::string& ruta);
     void cargarSprites(const std::string& carpeta);
 
-    void dibujarEstadoTablero(Tablero* tablero, Bando turno);
+    void dibujarEstadoTablero(Tablero* tablero, Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado);
     void dibujarEstadoArena(const Arena& arena);
     void dibujarPantallaVictoria(Bando ganador); // pantalla final del repo
+    void dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado);
 
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();

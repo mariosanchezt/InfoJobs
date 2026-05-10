@@ -17,6 +17,7 @@ Renderer::Renderer(sf::RenderWindow& vent)
     filaSeleccionada = -1;
     colSeleccionada = -1;
     ocultarMunecoCursor = false;
+    hechizoSeleccionado = -1;
 
     colorBlanco = sf::Color(240, 217, 181);
     colorNegro = sf::Color(90, 120, 80);
@@ -77,7 +78,7 @@ void Renderer::cargarSprites(const std::string& carpeta) {
 }
 
 // TABLERO
-void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
+void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado) {
     if (tablero == nullptr) return;
 
     // Primero el tablero base
@@ -97,6 +98,7 @@ void Renderer::dibujarEstadoTablero(Tablero* tablero, Bando turno) {
     }
 
     dibujarIndicadorTurno(turno, piezaSeleccionada);
+    dibujarPanelHechizos(turno, hechizosUsadosLuz, hechizosUsadosOscuridad, hechizoSeleccionado);
 }
 
 void Renderer::dibujarTablero(Tablero* tablero) {
@@ -645,4 +647,49 @@ void Renderer::dibujarPantallaVictoria(Bando ganador) {
     sf::FloatRect b3 = textoVolver.getLocalBounds();
     textoVolver.setPosition(sf::Vector2f(400.f - b3.size.x / 2.f, panelY + 210.f));
     ventana.draw(textoVolver);
+}
+
+void Renderer::dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado) {
+    if (!fuenteCargada) return;
+
+    bool* listaUsados = (turno == LUZ) ? hechizosUsadosLuz : hechizosUsadosOscuridad;
+
+    std::vector<std::string> nombres = {
+        "1. Curacion", "2. Teletransporte", "3.Daño directo",
+        "4. Ralentizar", "5. Fortalecer", "6. Escudo", "7. Congelar"
+    };
+
+    float yInicio = 820.f;
+    float xInicio = 20.f;
+    float anchoCasilla = 105.f;
+    float altoCasilla = 50.f;
+
+    for (int i = 0; i < 7; i++) {
+        float x = xInicio + i * anchoCasilla;
+        float y = yInicio;
+
+        //Fondo del hechizo
+        sf::RectangleShape fondo(sf::Vector2f(anchoCasilla - 5.f, altoCasilla));
+        fondo.setPosition(sf::Vector2f(x, y));
+
+        if (listaUsados[i]) {
+            fondo.setFillColor(sf::Color(60, 60, 60)); //Agotado
+        }
+        else if (i == hechizoSeleccionado) {
+            fondo.setFillColor(sf::Color(215, 215, 0, 180)); //Seleccionado
+        }
+        else {
+            fondo.setFillColor(turno == LUZ ? sf::Color(30, 80, 40) : sf::Color(80, 30, 30));
+        }
+
+        fondo.setOutlineColor(sf::Color(200, 200, 200));
+        fondo.setOutlineThickness(1.f);
+        ventana.draw(fondo);
+
+        //Texto del hechizo
+        sf::Text texto(fuente, nombres[i], 11);
+        texto.setFillColor(listaUsados[i] ? sf::Color(120, 120, 120) : sf::Color::White);
+        texto.setPosition(sf::Vector2f(x + 4.f, y + 16.f));
+        ventana.draw(texto);
+    }
 }
