@@ -66,6 +66,7 @@ int main() {
     // Variables de animacion y arrastre
     bool arrastrando = false;
     bool animando = false;
+    bool moverConTeclado = false; // pieza "cogida" con teclado, se mueve con el cursor
     sf::Vector2f posPixelMuneco;
     sf::Vector2f posPixelDestino;
     int targetFila = -1, targetCol = -1;
@@ -120,6 +121,7 @@ int main() {
                     // Reseteamos variables de movimiento al empezar partida nueva
                     arrastrando = false;
                     animando = false;
+                    moverConTeclado = false;
                     enCombate = false;
 
                     renderer->cargarFuente("assets/SamdanEvil.ttf");
@@ -248,15 +250,18 @@ int main() {
                             if (p && p->getBando() == juego->getTurnoActual()) {
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
                                 arrastrando = true;
+                                moverConTeclado = false;
                                 posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
                             }
                         }
                         else if (fila == fSel && col == cSel) {
                             arrastrando = true;
+                            moverConTeclado = false;
                             posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
                         }
                         else {
                             if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
+                                moverConTeclado = false;
                                 animando = true;
                                 targetFila = fila; targetCol = col;
                                 posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
@@ -264,11 +269,15 @@ int main() {
                             }
                             else {
                                 renderer->deseleccionar();
+                                moverConTeclado = false;
                             }
                         }
                     }
                 }
-                if (click->button == sf::Mouse::Button::Right) renderer->deseleccionar();
+                if (click->button == sf::Mouse::Button::Right) {
+                    renderer->deseleccionar();
+                    moverConTeclado = false;
+                }
             }
             else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
                 if (arrastrando) {
@@ -298,6 +307,7 @@ int main() {
                 if (key->code == sf::Keyboard::Key::Escape) {
                     animando = false;
                     arrastrando = false;
+                    moverConTeclado = false;
                     enCombate = false;
                     estadoJuego = EstadoJuego::MENU;
                     continue;
@@ -305,7 +315,7 @@ int main() {
 
                 int teclaHechizo = -1;
                 if (key->code == sf::Keyboard::Key::Num1) teclaHechizo = 0;
-                else if(key->code == sf::Keyboard::Key::Num2) teclaHechizo = 1;
+                else if (key->code == sf::Keyboard::Key::Num2) teclaHechizo = 1;
                 else if (key->code == sf::Keyboard::Key::Num3) teclaHechizo = 2;
                 else if (key->code == sf::Keyboard::Key::Num4) teclaHechizo = 3;
                 else if (key->code == sf::Keyboard::Key::Num5) teclaHechizo = 4;
@@ -315,8 +325,10 @@ int main() {
                 if (teclaHechizo != -1) {
                     hechizoSeleccionado = (hechizoSeleccionado == teclaHechizo) ? -1 : teclaHechizo;
                     renderer->deseleccionar();
+                    moverConTeclado = false;
                     continue;
                 }
+
                 Bando turno = juego->getTurnoActual();
                 int dFila = 0, dCol = 0;
                 bool accion = false;
@@ -337,7 +349,20 @@ int main() {
                     if (key->code == sf::Keyboard::Key::Enter) accion = true;
                 }
 
-                if (dFila != 0 || dCol != 0) renderer->moverCursor(dFila, dCol);
+                if (dFila != 0 || dCol != 0) {
+                    int fSel = renderer->getFilaSeleccionada();
+
+                    renderer->moverCursor(dFila, dCol);
+
+                    if (fSel != -1) {
+                        // Hay pieza seleccionada: la pieza se ve en la casilla del cursor
+                        moverConTeclado = true;
+                        posPixelMuneco = renderer->getCentroCasilla(
+                            renderer->getCursorFila(),
+                            renderer->getCursorCol()
+                        );
+                    }
+                }
 
                 if (accion) {
                     int fila = renderer->getCursorFila();
@@ -350,20 +375,28 @@ int main() {
                         juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
                         hechizoSeleccionado = -1;
                         renderer->deseleccionar();
+                        moverConTeclado = false;
                         continue;
                     }
 
                     if (fSel == -1) {
+                        // Sin seleccion: seleccionamos la pieza donde esta el cursor
                         Pieza* p = juego->getTablero()->getPieza(fila, col);
                         if (p && p->getBando() == turno) {
                             renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                            moverConTeclado = false;
+                            posPixelMuneco = renderer->getCentroCasilla(fila, col);
                         }
                     }
                     else if (fila == fSel && col == cSel) {
+                        // Confirmar en la misma casilla = deseleccionar
                         renderer->deseleccionar();
+                        moverConTeclado = false;
                     }
                     else {
+                        // Confirmar movimiento con animacion
                         if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
+                            moverConTeclado = false;
                             animando = true;
                             targetFila = fila; targetCol = col;
                             posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
@@ -371,6 +404,7 @@ int main() {
                         }
                         else {
                             renderer->deseleccionar();
+                            moverConTeclado = false;
                         }
                     }
                 }
@@ -380,11 +414,11 @@ int main() {
         // DIBUJADO FINAL
         ventana.clear(sf::Color(20, 20, 20));
 
-        renderer->ocultarMunecoCursor = (arrastrando || animando);
-        renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado );
+        renderer->ocultarMunecoCursor = (arrastrando || animando || moverConTeclado);
+        renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado);
 
-        // Si se esta arrastrando o animando, dibujamos el muñeco siguiendo el raton/animacion
-        if ((arrastrando || animando) && renderer->getFilaSeleccionada() != -1) {
+        // Dibujamos el sprite siguiendo al cursor/raton/animacion
+        if ((arrastrando || animando || moverConTeclado) && renderer->getFilaSeleccionada() != -1) {
             Pieza* p = juego->getTablero()->getPieza(
                 renderer->getFilaSeleccionada(),
                 renderer->getColSeleccionada()

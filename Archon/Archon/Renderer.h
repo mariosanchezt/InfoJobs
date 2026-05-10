@@ -33,10 +33,10 @@ private:
     int cursorFila;
     int cursorCol;
     void dibujarCursor(Tablero* tablero);
-    
+
     std::vector<std::pair<int, int>> movimientosDisponibles;
 
-    // Texturas de los sprites 
+    // Texturas de los sprites
     std::map<std::string, sf::Texture> texturas;
     bool texturasCargadas;
 
@@ -75,7 +75,7 @@ public:
 
     void dibujarEstadoTablero(Tablero* tablero, Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado);
     void dibujarEstadoArena(const Arena& arena);
-    void dibujarPantallaVictoria(Bando ganador); // pantalla final del repo
+    void dibujarPantallaVictoria(Bando ganador);
     void dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado);
 
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
@@ -94,7 +94,7 @@ public:
     int getCursorFila() const { return cursorFila; }
     int getCursorCol()  const { return cursorCol; }
 
-    // Variables y metodos pa animacion y arrastre (de la copia local)
+    // Variables y metodos pa animacion y arrastre
     bool ocultarMunecoCursor = false;
     void dibujarPiezaPixel(Pieza* p, float px, float py);
     sf::Vector2f getCentroCasilla(int fila, int col) const;

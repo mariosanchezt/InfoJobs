@@ -119,6 +119,10 @@ void Renderer::dibujarTablero(Tablero* tablero) {
 
             Pieza* p = tablero->getPieza(f, c);
             if (p != nullptr) {
+                // Si la estamos moviendo no la dibujamos en su casilla original
+                // pa q no salgan dos (una fija y otra siguiendo al cursor/raton)
+                if (ocultarMunecoCursor && f == filaSeleccionada && c == colSeleccionada)
+                    continue;
                 dibujarPieza(p, f, c);
             }
         }
@@ -174,7 +178,6 @@ void Renderer::dibujarCasillaResaltada(int fila, int col) {
     sf::Color colorResalte;
 
     //Se observa de que lado es la pieza
-
     colorResalte = sf::Color(255u, 215u, 0u, alpha);
 
     // Si hay una pieza seleccionada:
@@ -186,8 +189,7 @@ void Renderer::dibujarCasillaResaltada(int fila, int col) {
         // Verde tipo plantas
         colorResalte = sf::Color(60u, 255u, 60u, alpha);
 
-        //Se comprueba si está en el lado derecho 
-
+        //Se comprueba si está en el lado derecho
         if (col >= 7) {
             colorResalte = sf::Color(255u, 60u, 60u, alpha);
         }
@@ -201,9 +203,7 @@ void Renderer::dibujarCasillaResaltada(int fila, int col) {
     ));
 
     resalte.setFillColor(sf::Color::Transparent);
-
     resalte.setOutlineColor(colorResalte);
-
     resalte.setOutlineThickness(4.f);
 
     ventana.draw(resalte);
@@ -283,6 +283,7 @@ void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada) {
         ventana.draw(texto);
     }
 }
+
 std::string Renderer::tipoMovimientoTexto(TipoMovimiento mov) const {
     switch (mov) {
     case GROUND:
@@ -329,7 +330,6 @@ void Renderer::dibujarCursor(Tablero* tablero) {
 
     // Si hay pieza seleccionada,
     // cambiamos color según bando
-
     if (filaSeleccionada >= 0 && colSeleccionada >= 0 && tablero != nullptr) {
 
         Pieza* p = tablero->getPieza(filaSeleccionada, colSeleccionada);
@@ -356,9 +356,7 @@ void Renderer::dibujarCursor(Tablero* tablero) {
     ));
 
     cursor.setFillColor(sf::Color::Transparent);
-
     cursor.setOutlineColor(colorCursor);
-
     cursor.setOutlineThickness(4.f);
 
     ventana.draw(cursor);
