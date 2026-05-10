@@ -61,6 +61,11 @@ void Juego::inicializarPartida() {
 }
 
 void Juego::cambiarTurno() {
+    //Restaurar efectos temporales
+    if (piezaRalentizada != nullptr) {
+        piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
+        piezaRalentizada = nullptr;
+    }
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
@@ -171,6 +176,7 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             std::cout << "Congelado: " << objetivo->getNombre() << std::endl;
         }
         break;
+    }
     listaUsados[indice] = true;
 
     if (turnoActual == LUZ) {
