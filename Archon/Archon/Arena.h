@@ -21,6 +21,7 @@ struct CombatienteArena {
     float tiempoRecarga;
     bool teclaDsparoPulsada;
     Pieza* pieza;
+    float multiplicadorVelocidad;
 };
 
 class Arena {
@@ -55,6 +56,7 @@ public:
 
     void   iniciarCombate(Pieza* p1, Pieza* p2);
     void   update(float dt);
+    void setMultiplicadorVelocidad(Pieza* p, float n);
 
     bool   haTerminado() const { return combateTerminado; }
     Pieza* getGanador()  const { return ganador; }

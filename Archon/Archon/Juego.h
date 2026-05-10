@@ -20,6 +20,8 @@ private:
     float velAtaqueOriginalRalentizada;
     Pieza* piezaCongelada;
     float velAtaqueOriginalCongelada;
+    Pieza* piezaFortalecida;
+    float fuerzaOriginalFortalecida;
 
 public:
     Juego();
@@ -36,4 +38,5 @@ public:
     Tablero* getTablero() const { return tablero; }
     Bando getTurnoActual() const { return turnoActual; }
     Bando getBandoGanador() const { return ganadorPartida; }
+    Pieza* getPiezaCongelada() const { return piezaCongelada; }
 };

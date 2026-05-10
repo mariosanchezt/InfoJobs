@@ -141,6 +141,10 @@ int main() {
                 filaAtacante = fOri; colAtacante = cOri;
                 filaDefensor = fDest; colDefensor = cDest;
                 arena->iniciarCombate(p, ocupante);
+                if (juego->getPiezaCongelada() == p)
+                    arena->setMultiplicadorVelocidad(p, 0.f);
+                else if (juego->getPiezaCongelada() == ocupante)
+                    arena->setMultiplicadorVelocidad(ocupante, 0.f);
                 enCombate = true;
                 renderer->setEstado(ARENA);
             }

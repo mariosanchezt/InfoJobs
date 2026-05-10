@@ -25,12 +25,14 @@ void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
     cLuz->vel = sf::Vector2f(0.f, 0.f);
     cLuz->tiempoRecarga = 0.f;
     cLuz->teclaDsparoPulsada = false;
+    cLuz->multiplicadorVelocidad = 1.f;
 
     cOscuridad->pieza = piezaOscuridad;
     cOscuridad->pos = sf::Vector2f(OFFSET_X + ANCHO - 80.f, OFFSET_Y + ALTO / 2.f);
     cOscuridad->vel = sf::Vector2f(0.f, 0.f);
     cOscuridad->tiempoRecarga = 0.f;
     cOscuridad->teclaDsparoPulsada = false;
+    cOscuridad->multiplicadorVelocidad = 1.f;
 
     generarObstaculos();
 
@@ -58,7 +60,7 @@ void Arena::generarObstaculos() {
 }
 
 void Arena::moverCombatiente(CombatienteArena& c, sf::Vector2f dir, float dt) {
-    float velocidad = 160.f + c.pieza->velAtaque * 30.f;
+    float velocidad = (160.f + c.pieza->velAtaque * 30.f)*c.multiplicadorVelocidad;
     sf::Vector2f nuevaPos = c.pos + dir * velocidad * dt;
     if (dentroDeArena(nuevaPos) && !colisionaConObstaculo(nuevaPos, TAM_PIEZA))
         c.pos = nuevaPos;
@@ -205,4 +207,9 @@ Pieza* Arena::iniciarCombateAutomatico(Pieza* p1, Pieza* p2) {
     if (p1->vida <= 0 && p2->vida <= 0) return nullptr;
     else if (p1->vida > 0)                   return p1;
     else                                     return p2;
+}
+
+void Arena::setMultiplicadorVelocidad(Pieza* pieza, float multiplicador) {
+    if (combatiente1.pieza == pieza) combatiente1.multiplicadorVelocidad = multiplicador;
+    if (combatiente2.pieza == pieza) combatiente2.multiplicadorVelocidad = multiplicador;
 }

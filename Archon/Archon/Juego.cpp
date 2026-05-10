@@ -24,6 +24,8 @@ Juego::Juego() {
     velAtaqueOriginalRalentizada = 0.f;
     piezaCongelada = nullptr;
     velAtaqueOriginalCongelada = 0.f;
+    piezaFortalecida = nullptr;
+    fuerzaOriginalFortalecida = 0.f;
 }
 
 void Juego::inicializarPartida() {
@@ -60,9 +62,11 @@ void Juego::inicializarPartida() {
 
 void Juego::cambiarTurno() {
     // Restaurar efectos temporales al cambiar turno
-    if (piezaRalentizada != nullptr) {
-        piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
-        piezaRalentizada = nullptr;
+    if (piezaFortalecida != nullptr) {
+        piezaFortalecida->fuerza = fuerzaOriginalFortalecida;
+   }
+    if (piezaCongelada != nullptr) {
+        piezaCongelada = nullptr;
     }
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
     std::cout << "Cambio de turno. Ahora le toca a: "
@@ -149,6 +153,10 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
         break;
     case 5: // FORTALECER
         if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
+            if (piezaFortalecida != nullptr)
+                piezaFortalecida->fuerza = fuerzaOriginalFortalecida;
+            piezaFortalecida = objetivo;
+            fuerzaOriginalFortalecida = objetivo->fuerza;
             objetivo->fuerza *= 1.5f;
             std::cout << "Fortalecido: " << objetivo->getNombre() << std::endl;
         }
@@ -165,11 +173,7 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
         break;
     case 7: // CONGELAR
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
-            if (piezaCongelada != nullptr)
-                piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
             piezaCongelada = objetivo;
-            velAtaqueOriginalCongelada = objetivo->velAtaque;
-            objetivo->velAtaque = 0.f;
             std::cout << "Congelado: " << objetivo->getNombre() << std::endl;
         }
         break;
