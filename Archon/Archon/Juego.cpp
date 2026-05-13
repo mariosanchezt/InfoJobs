@@ -26,6 +26,8 @@ Juego::Juego() {
     velAtaqueOriginalCongelada = 0.f;
     piezaFortalecida = nullptr;
     fuerzaOriginalFortalecida = 0.f;
+    ia = nullptr;
+    modoIA = false;
 }
 
 void Juego::inicializarPartida() {
@@ -253,7 +255,19 @@ bool Juego::verificarVictoria() {
     return false;
 }
 
+void Juego::activarIA(Dificultad d) {
+    delete ia;
+    ia = new IAJugador(OSCURIDAD, d);
+    modoIA = true;
+}
+
+MovimientoIA Juego::obtenerMovimientoIA() {
+    if (ia == nullptr) return { -1, -1, -1, -1, 0.f };
+    return ia->decidirMovimiento(tablero);
+}
+
 Juego::~Juego() {
     delete tablero;
     delete arena;
+    delete ia;
 }

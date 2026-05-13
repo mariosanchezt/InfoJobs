@@ -115,6 +115,7 @@ int main() {
                     delete arena;
 
                     juego = new Juego();
+                    //juego->activarIA(MEDIO);
                     renderer = new Renderer(ventana);
                     arena = new Arena();
 
@@ -220,6 +221,19 @@ int main() {
             else {
                 dir /= dist;
                 posPixelMuneco += dir * velAnimacion * dt;
+            }
+        }
+
+        //TURNO DE LA IA
+        if (juego->esModoIA() && juego->getTurnoActual() == OSCURIDAD && !enCombate && !animando) {
+            MovimientoIA mov = juego->obtenerMovimientoIA();
+            if (mov.fOrigen != -1) {
+                animando = true;
+                targetFila = mov.fDestino;
+                targetCol = mov.cDestino;
+                renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
+                posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
+                posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cOrigen);
             }
         }
 

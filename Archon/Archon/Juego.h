@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Pieza.h"
+#include "IAJugador.h"
 
 class Tablero;
 class Arena;
@@ -22,6 +23,8 @@ private:
     float velAtaqueOriginalCongelada;
     Pieza* piezaFortalecida;
     float fuerzaOriginalFortalecida;
+    IAJugador* ia;
+    bool modoIA;
 
 public:
     Juego();
@@ -34,6 +37,9 @@ public:
     void iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAtac, int fDef, int cDef);
     bool verificarVictoria();
     void dibujar();
+    void activarIA(Dificultad d);
+    bool esModoIA()const { return modoIA; }
+    MovimientoIA obtenerMovimientoIA();
 
     Tablero* getTablero() const { return tablero; }
     Bando getTurnoActual() const { return turnoActual; }
