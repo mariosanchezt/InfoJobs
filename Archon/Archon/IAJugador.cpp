@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <vector>
 #include <iostream>
+#include "PiezaLider.h"
 
 IAJugador::IAJugador(Bando b, Dificultad d) {
 	bando = b;
@@ -95,6 +96,14 @@ float IAJugador::evaluarMovimiento(Tablero* tablero, int fOri, int cOri, int fDe
 	float distEnemigAntes = abs(cOri - colEnemigo);
 	float distEnemigoDespues = abs(cDest - colEnemigo);
 	puntos += (distEnemigAntes - distEnemigoDespues) * 3.f;
+
+	//4. Penalizar que el lider se arriesgue
+	Pieza* pieza = tablero->getPieza(fOri, cOri);
+	if (dynamic_cast<PiezaLider*>(pieza) != nullptr) {
+		if (objetivo != nullptr) {
+			puntos -= 40.f;
+		}
+	}
 
 	return puntos;
 }

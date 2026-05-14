@@ -73,6 +73,8 @@ int main() {
     float velAnimacion = 750.f; // pixeles por segundo
     int hechizoSeleccionado = -1;
 
+    float tiempoEsperaIA = 0.f;
+
     sf::Clock reloj;
 
     while (ventana.isOpen()) {
@@ -142,15 +144,25 @@ int main() {
             Pieza* ocupante = juego->getTablero()->getPieza(fDest, cDest);
 
             if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
-                filaAtacante = fOri; colAtacante = cOri;
-                filaDefensor = fDest; colDefensor = cDest;
-                arena->iniciarCombate(p, ocupante);
-                if (juego->getPiezaCongelada() == p)
-                    arena->setMultiplicadorVelocidad(p, 0.f);
-                else if (juego->getPiezaCongelada() == ocupante)
-                    arena->setMultiplicadorVelocidad(ocupante, 0.f);
-                enCombate = true;
-                renderer->setEstado(ARENA);
+                if (juego->esModoIA()) {
+                    //Combate automatico en mod8o IA
+                    juego->iniciarCombate(p, ocupante, fOri, cOri, fDest, cDest);
+                    juego->cambiarTurno();
+                    if (juego->verificarVictoria()) {
+                        estadoJuego = EstadoJuego::VICTORIA;
+                    }
+                }
+               else{
+                    filaAtacante = fOri; colAtacante = cOri;
+                    filaDefensor = fDest; colDefensor = cDest;
+                    arena->iniciarCombate(p, ocupante);
+                    if (juego->getPiezaCongelada() == p)
+                        arena->setMultiplicadorVelocidad(p, 0.f);
+                    else if (juego->getPiezaCongelada() == ocupante)
+                        arena->setMultiplicadorVelocidad(ocupante, 0.f);
+                    enCombate = true;
+                    renderer->setEstado(ARENA);
+                }
             }
             else {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
@@ -197,8 +209,12 @@ int main() {
                 }
 
                 juego->cambiarTurno();
+                tiempoEsperaIA = 0.f;
                 if (juego->verificarVictoria())
                     estadoJuego = EstadoJuego::VICTORIA;
+                ventana.clear(sf::Color(20, 20, 20));
+                renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado);
+                ventana.display();
             }
             else {
                 renderer->dibujarEstadoArena(*arena);
@@ -226,14 +242,18 @@ int main() {
 
         //TURNO DE LA IA
         if (juego->esModoIA() && juego->getTurnoActual() == OSCURIDAD && !enCombate && !animando) {
-            MovimientoIA mov = juego->obtenerMovimientoIA();
-            if (mov.fOrigen != -1) {
-                animando = true;
-                targetFila = mov.fDestino;
-                targetCol = mov.cDestino;
-                renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
-                posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
-                posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cOrigen);
+            tiempoEsperaIA += dt;
+            if (tiempoEsperaIA > 0.8f) {
+                tiempoEsperaIA = 0.f;
+                MovimientoIA mov = juego->obtenerMovimientoIA();
+                if (mov.fOrigen != -1) {
+                    animando = true;
+                    targetFila = mov.fDestino;
+                    targetCol = mov.cDestino;
+                    renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
+                    posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
+                    posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cDestino);
+                }
             }
         }
 
