@@ -1,5 +1,7 @@
 #include "Menu.h"
 #include <algorithm>
+#include "IAJugador.h"
+
 
 Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     : ventana(vent), fuente(f), spriteFondo(texFondo)
@@ -41,13 +43,42 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     b2.forma.setPosition(sf::Vector2f(400.f, 220.f));
     b2.forma.setRotation(sf::degrees(2.0f));
     b2.texto = "1 VS 1 VS IA";
-    b2.habilitado = false;
+    b2.habilitado = true;
     botones.push_back(b2);
+
+    float anchoBoton2 = 240.f;
+    float altoBoton2 = 60.f;
+
+    Boton d1;
+    d1.forma.setSize(sf::Vector2f(anchoBoton2, altoBoton2));
+    d1.forma.setPosition(sf::Vector2f(400.f, 120.f));
+    d1.forma.setRotation(sf::degrees(2.0f));
+    d1.texto = "FACIL";
+    d1.habilitado = true;
+    botonesDificultad.push_back(d1);
+
+    Boton d2;
+    d2.forma.setSize(sf::Vector2f(anchoBoton2, altoBoton2));
+    d2.forma.setPosition(sf::Vector2f(400.f, 220.f));
+    d2.forma.setRotation(sf::degrees(2.0f));
+    d2.texto = "MEDIO";
+    d2.habilitado = true;
+    botonesDificultad.push_back(d2);
+
+    Boton d3;
+    d3.forma.setSize(sf::Vector2f(anchoBoton2, altoBoton2));
+    d3.forma.setPosition(sf::Vector2f(400.f, 320.f));
+    d3.forma.setRotation(sf::degrees(2.0f));
+    d3.texto = "DIFICIL";
+    d3.habilitado = true;
+    botonesDificultad.push_back(d3);
+
+    dificultadSeleccionada = MEDIO;
 }
 
 EstadoJuego Menu::confirmarBoton(int indice) {
     if (indice == 0) return EstadoJuego::CARGANDO;
-    if (indice == 1) return EstadoJuego::JUGANDO_IA;
+    if (indice == 1) return EstadoJuego::SELECCION_DIFICULTAD;
     return EstadoJuego::MENU;
 }
 
@@ -139,4 +170,42 @@ void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
 
     texto.setPosition(centerGlobal);
     ventana.draw(texto);
+}
+
+EstadoJuego Menu::procesarEventoDificultad(const sf::Event& event) {
+    if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->code == sf::Keyboard::Key::Escape)
+            return EstadoJuego::MENU;
+
+        if (key->code == sf::Keyboard::Key::Up && botonSeleccionado > 0)
+            botonSeleccionado--;
+        if (key->code == sf::Keyboard::Key::Down && botonSeleccionado < 2)
+            botonSeleccionado++;
+        if (key->code == sf::Keyboard::Key::Enter || key->code == sf::Keyboard::Key::Space) {
+            switch (botonSeleccionado) {
+            case 0: dificultadSeleccionada = FACIL; break;
+            case 1: dificultadSeleccionada = MEDIO; break;
+            case 2: dificultadSeleccionada = DIFICIL; break;
+            }
+            return EstadoJuego::JUGANDO_IA;
+        }
+    }
+    if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->code == sf::Keyboard::Key::Escape)
+            return EstadoJuego::MENU;
+    }
+    return EstadoJuego::SELECCION_DIFICULTAD;
+}
+
+void Menu::dibujarDificultad() {
+    if (fondoCargado) ventana.draw(spriteFondo);
+    else ventana.clear(sf::Color(15, 15, 25));
+
+    sf::Vector2i mousePx = sf::Mouse::getPosition(ventana);
+    sf::Vector2f mouse((float)mousePx.x, (float)mousePx.y);
+
+    for (int i = 0; i < (int)botonesDificultad.size(); i++) {
+        bool hover = botonesDificultad[i].forma.getGlobalBounds().contains(mouse);
+        dibujarBoton(botonesDificultad[i], hover || i == botonSeleccionado);
+    }
 }

@@ -2,8 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
+#include "IAJugador.h"
 
-enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, VICTORIA };
+enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, SELECCION_DIFICULTAD, VICTORIA };
 
 struct Boton {
     sf::RectangleShape forma;
@@ -18,6 +19,9 @@ private:
 
     std::vector<Boton> botones;
     int botonSeleccionado;
+
+    std::vector<Boton> botonesDificultad;
+    void dibujarSubmenuDificultad();
 
     // Imagen de fondo del menu
     sf::Texture texFondo;
@@ -39,4 +43,7 @@ public:
 
     EstadoJuego procesarEvento(const sf::Event& event);
     void dibujar();
+    EstadoJuego procesarEventoDificultad(const sf::Event& event);
+    void dibujarDificultad();
+    Dificultad dificultadSeleccionada;
 };

@@ -139,8 +139,10 @@ int main() {
                 }
 
                 EstadoJuego resultado = menu.procesarEvento(*event);
-
-                if (resultado != EstadoJuego::MENU) {
+                if (resultado == EstadoJuego::SELECCION_DIFICULTAD) {
+                    estadoJuego = EstadoJuego::SELECCION_DIFICULTAD;
+                }
+                else if (resultado != EstadoJuego::MENU) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
 
                     estadoJuego = EstadoJuego::JUGANDO_LOCAL;
@@ -150,10 +152,6 @@ int main() {
                     delete arena;
 
                     juego = new Juego();
-
-                    // Para activar IA:
-                    // juego->activarIA(MEDIO);
-
                     renderer = new Renderer(ventana);
                     arena = new Arena();
 
@@ -178,6 +176,46 @@ int main() {
 
             ventana.display();
 
+            continue;
+        }
+
+        // SELECCION DE DIFICULTAD
+        if (estadoJuego == EstadoJuego::SELECCION_DIFICULTAD) {
+            while (auto event = ventana.pollEvent()) {
+                if (event->is<sf::Event::Closed>()) ventana.close();
+
+                EstadoJuego resultado = menu.procesarEventoDificultad(*event);
+                if (resultado == EstadoJuego::JUGANDO_IA) {
+                    mostrarPantallaCarga(ventana, fuente, 2.0f);
+
+                    estadoJuego = EstadoJuego::JUGANDO_LOCAL;
+
+                    delete juego;
+                    delete renderer;
+                    delete arena;
+
+                    juego = new Juego();
+                    juego->activarIA(menu.dificultadSeleccionada);
+                    renderer = new Renderer(ventana);
+                    arena = new Arena();
+
+                    arrastrando = false;
+                    animando = false;
+                    moverConTeclado = false;
+                    enCombate = false;
+
+                    renderer->cargarFuente("assets/SamdanEvil.ttf");
+                    renderer->cargarSprites("assets");
+                    juego->inicializarPartida();
+                }
+                else if (resultado == EstadoJuego::MENU) {
+                    estadoJuego = EstadoJuego::MENU;
+                }
+            }
+
+            ventana.clear(sf::Color(15, 15, 25));
+            menu.dibujarDificultad();
+            ventana.display();
             continue;
         }
 
