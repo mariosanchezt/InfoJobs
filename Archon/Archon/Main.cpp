@@ -12,22 +12,29 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
     texCarga.setSmooth(true);
 
     sf::Clock temporizador;
+
     while (temporizador.getElapsedTime().asSeconds() < segundos && ventana.isOpen()) {
         while (auto event = ventana.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) ventana.close();
+            if (event->is<sf::Event::Closed>()) {
+                ventana.close();
+            }
         }
 
         ventana.clear(sf::Color(10, 10, 20));
 
         if (cargada) {
             sf::Sprite sprite(texCarga);
+
             sf::Vector2u texSize = texCarga.getSize();
-            float escalaX = 800.f / texSize.x;
-            float escalaY = 800.f / texSize.y;
+
+            float escalaX = 1000.f / texSize.x;
+            float escalaY = 900.f / texSize.y;
+
             sprite.setScale(sf::Vector2f(escalaX, escalaY));
+
             ventana.draw(sprite);
 
-            sf::RectangleShape overlay(sf::Vector2f(800.f, 800.f));
+            sf::RectangleShape overlay(sf::Vector2f(1000.f, 900.f));
             overlay.setFillColor(sf::Color(0, 0, 0, 60));
             ventana.draw(overlay);
         }
@@ -35,8 +42,10 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
         sf::Text texto(fuente, "Cargando...", 28);
         texto.setFillColor(sf::Color::White);
         texto.setStyle(sf::Text::Bold);
+
         sf::FloatRect b = texto.getLocalBounds();
-        texto.setPosition(sf::Vector2f(400.f - b.size.x / 2.f, 750.f));
+        texto.setPosition(sf::Vector2f(500.f - b.size.x / 2.f, 830.f));
+
         ventana.draw(texto);
 
         ventana.display();
@@ -44,10 +53,11 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
 }
 
 int main() {
-    sf::RenderWindow ventana(sf::VideoMode({ 800, 900 }), "Archon PvZ");
+    sf::RenderWindow ventana(sf::VideoMode({ 1000, 900 }), "Archon PvZ");
     ventana.setFramerateLimit(60);
 
     sf::Font fuente;
+
     if (!fuente.openFromFile("assets/SamdanEvil.ttf")) {
         std::cout << "Fuente no encontrada" << std::endl;
     }
@@ -60,17 +70,26 @@ int main() {
     Arena* arena = nullptr;
 
     bool enCombate = false;
-    int filaAtacante = -1, colAtacante = -1;
-    int filaDefensor = -1, colDefensor = -1;
+
+    int filaAtacante = -1;
+    int colAtacante = -1;
+
+    int filaDefensor = -1;
+    int colDefensor = -1;
 
     // Variables de animacion y arrastre
     bool arrastrando = false;
     bool animando = false;
-    bool moverConTeclado = false; // pieza "cogida" con teclado, se mueve con el cursor
+    bool moverConTeclado = false;
+
     sf::Vector2f posPixelMuneco;
     sf::Vector2f posPixelDestino;
-    int targetFila = -1, targetCol = -1;
-    float velAnimacion = 750.f; // pixeles por segundo
+
+    int targetFila = -1;
+    int targetCol = -1;
+
+    float velAnimacion = 750.f;
+
     int hechizoSeleccionado = -1;
 
     float tiempoEsperaIA = 0.f;
@@ -79,34 +98,48 @@ int main() {
 
     while (ventana.isOpen()) {
         float dt = reloj.restart().asSeconds();
-        if (dt > 0.05f) dt = 0.05f;
+
+        if (dt > 0.05f) {
+            dt = 0.05f;
+        }
 
         // PANTALLA DE VICTORIA
         if (estadoJuego == EstadoJuego::VICTORIA) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) ventana.close();
+                if (event->is<sf::Event::Closed>()) {
+                    ventana.close();
+                }
 
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     if (key->code == sf::Keyboard::Key::Enter ||
-                        key->code == sf::Keyboard::Key::Escape)
+                        key->code == sf::Keyboard::Key::Escape) {
                         estadoJuego = EstadoJuego::MENU;
+                    }
                 }
-                if (event->is<sf::Event::MouseButtonPressed>())
+
+                if (event->is<sf::Event::MouseButtonPressed>()) {
                     estadoJuego = EstadoJuego::MENU;
+                }
             }
 
             ventana.clear(sf::Color(10, 10, 20));
+
             renderer->dibujarPantallaVictoria(juego->getBandoGanador());
+
             ventana.display();
+
             continue;
         }
 
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) ventana.close();
+                if (event->is<sf::Event::Closed>()) {
+                    ventana.close();
+                }
 
                 EstadoJuego resultado = menu.procesarEvento(*event);
+
                 if (resultado != EstadoJuego::MENU) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
 
@@ -117,25 +150,34 @@ int main() {
                     delete arena;
 
                     juego = new Juego();
-                    //juego->activarIA(MEDIO);
+
+                    // Para activar IA:
+                    // juego->activarIA(MEDIO);
+
                     renderer = new Renderer(ventana);
                     arena = new Arena();
 
-                    // Reseteamos variables de movimiento al empezar partida nueva
                     arrastrando = false;
                     animando = false;
                     moverConTeclado = false;
                     enCombate = false;
 
+                    hechizoSeleccionado = -1;
+                    tiempoEsperaIA = 0.f;
+
                     renderer->cargarFuente("assets/SamdanEvil.ttf");
                     renderer->cargarSprites("assets");
+
                     juego->inicializarPartida();
                 }
             }
 
             ventana.clear(sf::Color(15, 15, 25));
+
             menu.dibujar();
+
             ventana.display();
+
             continue;
         }
 
@@ -145,47 +187,65 @@ int main() {
 
             if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
                 if (juego->esModoIA()) {
-                    //Combate automatico en mod8o IA
+                    // Combate automatico en modo IA
                     juego->iniciarCombate(p, ocupante, fOri, cOri, fDest, cDest);
                     juego->cambiarTurno();
+
                     if (juego->verificarVictoria()) {
                         estadoJuego = EstadoJuego::VICTORIA;
                     }
                 }
-               else{
-                    filaAtacante = fOri; colAtacante = cOri;
-                    filaDefensor = fDest; colDefensor = cDest;
+                else {
+                    filaAtacante = fOri;
+                    colAtacante = cOri;
+
+                    filaDefensor = fDest;
+                    colDefensor = cDest;
+
                     arena->iniciarCombate(p, ocupante);
-                    if (juego->getPiezaCongelada() == p)
+
+                    if (juego->getPiezaCongelada() == p) {
                         arena->setMultiplicadorVelocidad(p, 0.f);
-                    else if (juego->getPiezaCongelada() == ocupante)
+                    }
+                    else if (juego->getPiezaCongelada() == ocupante) {
                         arena->setMultiplicadorVelocidad(ocupante, 0.f);
+                    }
+
                     enCombate = true;
+
                     renderer->setEstado(ARENA);
                 }
             }
             else {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
-                if (juego->verificarVictoria())
+
+                if (juego->verificarVictoria()) {
                     estadoJuego = EstadoJuego::VICTORIA;
+                }
             }
+
             renderer->deseleccionar();
             };
 
         // MODO ARENA
         if (enCombate) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) ventana.close();
+                if (event->is<sf::Event::Closed>()) {
+                    ventana.close();
+                }
             }
 
             arena->update(dt);
+
             ventana.clear(sf::Color(20, 20, 20));
 
             if (arena->haTerminado()) {
                 enCombate = false;
+
                 renderer->setEstado(TABLERO);
 
                 Pieza* ganador = arena->getGanador();
+
                 Pieza* atacante = juego->getTablero()->getPieza(filaAtacante, colAtacante);
                 Pieza* defensor = juego->getTablero()->getPieza(filaDefensor, colDefensor);
 
@@ -195,25 +255,50 @@ int main() {
                 arena->limpiar();
 
                 if (ganador == nullptr) {
-                    delete atacante; delete defensor;
+                    juego->registrarMuerte(atacante);
+                    juego->registrarMuerte(defensor);
+
+                    delete atacante;
+                    delete defensor;
                 }
                 else if (ganador == atacante) {
                     juego->getTablero()->colocarPieza(filaDefensor, colDefensor, atacante);
+
                     atacante->filaInicial = filaDefensor;
                     atacante->colInicial = colDefensor;
+
+                    juego->registrarMuerte(defensor);
+
                     delete defensor;
                 }
                 else {
                     juego->getTablero()->colocarPieza(filaDefensor, colDefensor, defensor);
+
+                    juego->registrarMuerte(atacante);
+
                     delete atacante;
                 }
 
                 juego->cambiarTurno();
+
                 tiempoEsperaIA = 0.f;
-                if (juego->verificarVictoria())
+
+                if (juego->verificarVictoria()) {
                     estadoJuego = EstadoJuego::VICTORIA;
+                }
+
                 ventana.clear(sf::Color(20, 20, 20));
-                renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado);
+
+                renderer->dibujarEstadoTablero(
+                    juego->getTablero(),
+                    juego->getTurnoActual(),
+                    juego->getHechizosUsadosLuz(),
+                    juego->getHechizosUsadosOscuridad(),
+                    hechizoSeleccionado,
+                    juego->getCementerioLuz(),
+                    juego->getCementerioOscuridad()
+                );
+
                 ventana.display();
             }
             else {
@@ -221,18 +306,25 @@ int main() {
             }
 
             ventana.display();
+
             continue;
         }
 
         // LOGICA DE ANIMACION
         if (animando) {
             sf::Vector2f dir = posPixelDestino - posPixelMuneco;
+
             float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
             if (dist <= velAnimacion * dt) {
-                // Llego al destino
                 animando = false;
-                ejecutarMovimiento(renderer->getFilaSeleccionada(), renderer->getColSeleccionada(), targetFila, targetCol);
+
+                ejecutarMovimiento(
+                    renderer->getFilaSeleccionada(),
+                    renderer->getColSeleccionada(),
+                    targetFila,
+                    targetCol
+                );
             }
             else {
                 dir /= dist;
@@ -240,64 +332,113 @@ int main() {
             }
         }
 
-        //TURNO DE LA IA
-        if (juego->esModoIA() && juego->getTurnoActual() == OSCURIDAD && !enCombate && !animando) {
+        // TURNO DE LA IA
+        if (juego->esModoIA() &&
+            juego->getTurnoActual() == OSCURIDAD &&
+            !enCombate &&
+            !animando) {
+
             tiempoEsperaIA += dt;
+
             if (tiempoEsperaIA > 0.8f) {
                 tiempoEsperaIA = 0.f;
+
                 MovimientoIA mov = juego->obtenerMovimientoIA();
+
                 if (mov.fOrigen != -1) {
                     animando = true;
+
                     targetFila = mov.fDestino;
                     targetCol = mov.cDestino;
-                    renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
-                    posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
-                    posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cDestino);
+
+                    renderer->seleccionarCasilla(
+                        mov.fOrigen,
+                        mov.cOrigen,
+                        juego->getTablero()
+                    );
+
+                    posPixelMuneco = renderer->getCentroCasilla(
+                        mov.fOrigen,
+                        mov.cOrigen
+                    );
+
+                    posPixelDestino = renderer->getCentroCasilla(
+                        mov.fDestino,
+                        mov.cDestino
+                    );
                 }
             }
         }
 
-        // MODO TABLERO (Eventos)
+        // MODO TABLERO - EVENTOS
         while (auto event = ventana.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) ventana.close();
+            if (event->is<sf::Event::Closed>()) {
+                ventana.close();
+            }
 
-            if (animando) continue; // si se esta moviendo sola ignoramos el input
+            if (animando) {
+                continue;
+            }
 
-            // 1. DRAG AND DROP Y CLICS CON EL RATON
+            // DRAG AND DROP / CLICK RATON
             if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (click->button == sf::Mouse::Button::Left) {
-                    int fila, col;
+                    int fila;
+                    int col;
+
                     if (renderer->pixelACasilla(click->position.x, click->position.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
 
                         if (hechizoSeleccionado != -1) {
                             Pieza* objetivo = juego->getTablero()->getPieza(fila, col);
-                            juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+
+                            juego->lanzarHechizo(
+                                hechizoSeleccionado + 1,
+                                objetivo,
+                                fila,
+                                col
+                            );
+
                             hechizoSeleccionado = -1;
+
                             renderer->deseleccionar();
+
                             continue;
                         }
 
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
+
                             if (p && p->getBando() == juego->getTurnoActual()) {
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
+
                                 arrastrando = true;
                                 moverConTeclado = false;
-                                posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
+
+                                posPixelMuneco = sf::Vector2f(
+                                    (float)click->position.x,
+                                    (float)click->position.y
+                                );
                             }
                         }
                         else if (fila == fSel && col == cSel) {
                             arrastrando = true;
                             moverConTeclado = false;
-                            posPixelMuneco = sf::Vector2f((float)click->position.x, (float)click->position.y);
+
+                            posPixelMuneco = sf::Vector2f(
+                                (float)click->position.x,
+                                (float)click->position.y
+                            );
                         }
                         else {
                             if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                                 moverConTeclado = false;
                                 animando = true;
-                                targetFila = fila; targetCol = col;
+
+                                targetFila = fila;
+                                targetCol = col;
+
                                 posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
                                 posPixelDestino = renderer->getCentroCasilla(fila, col);
                             }
@@ -308,6 +449,7 @@ int main() {
                         }
                     }
                 }
+
                 if (click->button == sf::Mouse::Button::Right) {
                     renderer->deseleccionar();
                     moverConTeclado = false;
@@ -315,13 +457,19 @@ int main() {
             }
             else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
                 if (arrastrando) {
-                    posPixelMuneco = sf::Vector2f((float)move->position.x, (float)move->position.y);
+                    posPixelMuneco = sf::Vector2f(
+                        (float)move->position.x,
+                        (float)move->position.y
+                    );
                 }
             }
             else if (const auto* release = event->getIf<sf::Event::MouseButtonReleased>()) {
                 if (release->button == sf::Mouse::Button::Left && arrastrando) {
                     arrastrando = false;
-                    int fila, col;
+
+                    int fila;
+                    int col;
+
                     if (renderer->pixelACasilla(release->position.x, release->position.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
@@ -335,19 +483,21 @@ int main() {
                 }
             }
 
-            // 2. CONTROLES POR TECLADO
+            // CONTROLES POR TECLADO
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                // Escape vuelve al menu
                 if (key->code == sf::Keyboard::Key::Escape) {
                     animando = false;
                     arrastrando = false;
                     moverConTeclado = false;
                     enCombate = false;
+
                     estadoJuego = EstadoJuego::MENU;
+
                     continue;
                 }
 
                 int teclaHechizo = -1;
+
                 if (key->code == sf::Keyboard::Key::Num1) teclaHechizo = 0;
                 else if (key->code == sf::Keyboard::Key::Num2) teclaHechizo = 1;
                 else if (key->code == sf::Keyboard::Key::Num3) teclaHechizo = 2;
@@ -357,17 +507,25 @@ int main() {
                 else if (key->code == sf::Keyboard::Key::Num7) teclaHechizo = 6;
 
                 if (teclaHechizo != -1) {
-                    hechizoSeleccionado = (hechizoSeleccionado == teclaHechizo) ? -1 : teclaHechizo;
+                    hechizoSeleccionado =
+                        (hechizoSeleccionado == teclaHechizo)
+                        ? -1
+                        : teclaHechizo;
+
                     renderer->deseleccionar();
+
                     moverConTeclado = false;
+
                     continue;
                 }
 
                 Bando turno = juego->getTurnoActual();
-                int dFila = 0, dCol = 0;
+
+                int dFila = 0;
+                int dCol = 0;
+
                 bool accion = false;
 
-                // WASD pa LUZ, flechas pa OSCURIDAD
                 if (turno == LUZ) {
                     if (key->code == sf::Keyboard::Key::W) dFila = -1;
                     if (key->code == sf::Keyboard::Key::S) dFila = 1;
@@ -376,9 +534,9 @@ int main() {
                     if (key->code == sf::Keyboard::Key::Space) accion = true;
                 }
                 else {
-                    if (key->code == sf::Keyboard::Key::Up)    dFila = -1;
-                    if (key->code == sf::Keyboard::Key::Down)  dFila = 1;
-                    if (key->code == sf::Keyboard::Key::Left)  dCol = -1;
+                    if (key->code == sf::Keyboard::Key::Up) dFila = -1;
+                    if (key->code == sf::Keyboard::Key::Down) dFila = 1;
+                    if (key->code == sf::Keyboard::Key::Left) dCol = -1;
                     if (key->code == sf::Keyboard::Key::Right) dCol = 1;
                     if (key->code == sf::Keyboard::Key::Enter) accion = true;
                 }
@@ -389,8 +547,8 @@ int main() {
                     renderer->moverCursor(dFila, dCol);
 
                     if (fSel != -1) {
-                        // Hay pieza seleccionada: la pieza se ve en la casilla del cursor
                         moverConTeclado = true;
+
                         posPixelMuneco = renderer->getCentroCasilla(
                             renderer->getCursorFila(),
                             renderer->getCursorCol()
@@ -401,38 +559,57 @@ int main() {
                 if (accion) {
                     int fila = renderer->getCursorFila();
                     int col = renderer->getCursorCol();
+
                     int fSel = renderer->getFilaSeleccionada();
                     int cSel = renderer->getColSeleccionada();
 
                     if (hechizoSeleccionado != -1) {
                         Pieza* objetivo = juego->getTablero()->getPieza(fila, col);
-                        juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+
+                        juego->lanzarHechizo(
+                            hechizoSeleccionado + 1,
+                            objetivo,
+                            fila,
+                            col
+                        );
+
                         hechizoSeleccionado = -1;
+
                         renderer->deseleccionar();
+
                         moverConTeclado = false;
+
                         continue;
                     }
 
                     if (fSel == -1) {
-                        // Sin seleccion: seleccionamos la pieza donde esta el cursor
                         Pieza* p = juego->getTablero()->getPieza(fila, col);
+
                         if (p && p->getBando() == turno) {
-                            renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                            renderer->seleccionarCasilla(
+                                fila,
+                                col,
+                                juego->getTablero()
+                            );
+
                             moverConTeclado = false;
+
                             posPixelMuneco = renderer->getCentroCasilla(fila, col);
                         }
                     }
                     else if (fila == fSel && col == cSel) {
-                        // Confirmar en la misma casilla = deseleccionar
                         renderer->deseleccionar();
+
                         moverConTeclado = false;
                     }
                     else {
-                        // Confirmar movimiento con animacion
                         if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                             moverConTeclado = false;
                             animando = true;
-                            targetFila = fila; targetCol = col;
+
+                            targetFila = fila;
+                            targetCol = col;
+
                             posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
                             posPixelDestino = renderer->getCentroCasilla(fila, col);
                         }
@@ -448,16 +625,34 @@ int main() {
         // DIBUJADO FINAL
         ventana.clear(sf::Color(20, 20, 20));
 
-        renderer->ocultarMunecoCursor = (arrastrando || animando || moverConTeclado);
-        renderer->dibujarEstadoTablero(juego->getTablero(), juego->getTurnoActual(), juego->getHechizosUsadosLuz(), juego->getHechizosUsadosOscuridad(), hechizoSeleccionado);
+        renderer->ocultarMunecoCursor =
+            (arrastrando || animando || moverConTeclado);
 
-        // Dibujamos el sprite siguiendo al cursor/raton/animacion
-        if ((arrastrando || animando || moverConTeclado) && renderer->getFilaSeleccionada() != -1) {
+        renderer->dibujarEstadoTablero(
+            juego->getTablero(),
+            juego->getTurnoActual(),
+            juego->getHechizosUsadosLuz(),
+            juego->getHechizosUsadosOscuridad(),
+            hechizoSeleccionado,
+            juego->getCementerioLuz(),
+            juego->getCementerioOscuridad()
+        );
+
+        if ((arrastrando || animando || moverConTeclado) &&
+            renderer->getFilaSeleccionada() != -1) {
+
             Pieza* p = juego->getTablero()->getPieza(
                 renderer->getFilaSeleccionada(),
                 renderer->getColSeleccionada()
             );
-            if (p) renderer->dibujarPiezaPixel(p, posPixelMuneco.x, posPixelMuneco.y);
+
+            if (p) {
+                renderer->dibujarPiezaPixel(
+                    p,
+                    posPixelMuneco.x,
+                    posPixelMuneco.y
+                );
+            }
         }
 
         ventana.display();
@@ -466,5 +661,6 @@ int main() {
     delete juego;
     delete renderer;
     delete arena;
+
     return 0;
 }
