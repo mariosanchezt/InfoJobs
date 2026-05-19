@@ -13,19 +13,30 @@
 Juego::Juego() {
     tablero = new Tablero();
     arena = new Arena();
+
     turnoActual = LUZ;
+    ganadorPartida = LUZ;
+
     hechizosRestantesLuz = 7;
     hechizosRestantesOscuridad = 7;
+
     for (int i = 0; i < 7; i++) {
         hechizosUsadosLuz[i] = false;
         hechizosUsadosOscuridad[i] = false;
     }
+
     piezaRalentizada = nullptr;
     velAtaqueOriginalRalentizada = 0.f;
+
     piezaCongelada = nullptr;
     velAtaqueOriginalCongelada = 0.f;
+
     piezaFortalecida = nullptr;
     fuerzaOriginalFortalecida = 0.f;
+
+    piezaEscudo = nullptr;
+    velAtaqueOriginalEscudo = 0.f;
+
     ia = nullptr;
     modoIA = false;
 }
@@ -63,15 +74,8 @@ void Juego::inicializarPartida() {
 }
 
 void Juego::cambiarTurno() {
-    if (piezaRalentizada != nullptr) {
-        piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
-        piezaRalentizada = nullptr;
-    }
-    if (piezaFortalecida != nullptr) {
-        piezaFortalecida->fuerza = fuerzaOriginalFortalecida;
-        piezaFortalecida = nullptr;
-    }
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
+
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
 }
@@ -84,8 +88,9 @@ void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
         return;
     }
 
-    if (!tablero->esMovimientoValido(fOrigen, cOrigen, fDestino, cDestino))
+    if (!tablero->esMovimientoValido(fOrigen, cOrigen, fDestino, cDestino)) {
         return;
+    }
 
     Pieza* ocupante = tablero->getPieza(fDestino, cDestino);
 
@@ -94,8 +99,9 @@ void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
         std::cout << "Movimiento realizado." << std::endl;
     }
     else {
-        if (p->getBando() != ocupante->getBando())
+        if (p->getBando() != ocupante->getBando()) {
             iniciarCombate(p, ocupante, fOrigen, cOrigen, fDestino, cDestino);
+        }
         else {
             std::cout << "No puedes atacar a tus aliados." << std::endl;
             return;
@@ -119,23 +125,36 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
     case 1: // CURACION
         if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
             objetivo->vida = objetivo->vidaMaxima;
-            std::cout << "Curacion: " << objetivo->getNombre() << " restaurado" << std::endl;
+
+            std::cout << "Curacion: " << objetivo->getNombre()
+                << " restaurado." << std::endl;
         }
         break;
+
     case 2: // TELEPORT
         if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
             tablero->colocarPieza(objetivo->filaInicial, objetivo->colInicial, nullptr);
             tablero->colocarPieza(fDest, cDest, objetivo);
+
             objetivo->filaInicial = fDest;
             objetivo->colInicial = cDest;
-            std::cout << "Teletransporte: " << objetivo->getNombre() << " movido" << std::endl;
+
+            std::cout << "Teletransporte: " << objetivo->getNombre()
+                << " movido." << std::endl;
         }
         break;
+
     case 3: // DAÑO DIRECTO
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
             objetivo->vida -= 50.f;
-            if (objetivo->vida < 0.f) objetivo->vida = 0.f;
-            std::cout << "Daño directo a " << objetivo->getNombre() << ". Vida restante: " << objetivo->vida << std::endl;
+
+            if (objetivo->vida < 0.f) {
+                objetivo->vida = 0.f;
+            }
+
+            std::cout << "Daño directo a " << objetivo->getNombre()
+                << ". Vida restante: " << objetivo->vida << std::endl;
+
             if (objetivo->vida <= 0.f) {
                 tablero->colocarPieza(objetivo->filaInicial, objetivo->colInicial, nullptr);
                 registrarMuerte(objetivo);
@@ -143,39 +162,57 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             }
         }
         break;
+
     case 4: // RALENTIZAR
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
-            if (piezaRalentizada != nullptr) piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
+            if (piezaRalentizada != nullptr) {
+                piezaRalentizada->velAtaque = velAtaqueOriginalRalentizada;
+            }
+
             piezaRalentizada = objetivo;
             velAtaqueOriginalRalentizada = objetivo->velAtaque;
+
             objetivo->velAtaque *= 0.5f;
+
             std::cout << "Ralentizado: " << objetivo->getNombre() << std::endl;
         }
         break;
+
     case 5: // FORTALECER
         if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
-            if (piezaFortalecida != nullptr) piezaFortalecida->fuerza = fuerzaOriginalFortalecida;
+            if (piezaFortalecida != nullptr) {
+                piezaFortalecida->fuerza = fuerzaOriginalFortalecida;
+            }
+
             piezaFortalecida = objetivo;
             fuerzaOriginalFortalecida = objetivo->fuerza;
+
             objetivo->fuerza *= 1.5f;
+
             std::cout << "Fortalecido: " << objetivo->getNombre() << std::endl;
         }
         break;
+
     case 6: // ESCUDO
         if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
-            if (piezaCongelada != nullptr) piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
-            piezaCongelada = objetivo;
-            velAtaqueOriginalCongelada = objetivo->velAtaque;
-            objetivo->velAtaque = 0.f;
-            std::cout << "Escudo: " << objetivo->getNombre() << " protegido." << std::endl;
+            piezaEscudo = objetivo;
+            velAtaqueOriginalEscudo = objetivo->velAtaque;
+
+            std::cout << "Escudo aplicado a: " << objetivo->getNombre() << std::endl;
         }
         break;
+
     case 7: // CONGELAR
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
-            if (piezaCongelada != nullptr) piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
+            if (piezaCongelada != nullptr) {
+                piezaCongelada->velAtaque = velAtaqueOriginalCongelada;
+            }
+
             piezaCongelada = objetivo;
             velAtaqueOriginalCongelada = objetivo->velAtaque;
+
             objetivo->velAtaque = 0.f;
+
             std::cout << "Congelado: " << objetivo->getNombre() << std::endl;
         }
         break;
@@ -185,11 +222,15 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
 
     if (turnoActual == LUZ) {
         hechizosRestantesLuz--;
-        std::cout << "Le quedan " << hechizosRestantesLuz << " hechizos a la Luz." << std::endl;
+
+        std::cout << "Le quedan " << hechizosRestantesLuz
+            << " hechizos a la Luz." << std::endl;
     }
     else {
         hechizosRestantesOscuridad--;
-        std::cout << "Le quedan " << hechizosRestantesOscuridad << " hechizos a la Oscuridad." << std::endl;
+
+        std::cout << "Le quedan " << hechizosRestantesOscuridad
+            << " hechizos a la Oscuridad." << std::endl;
     }
 
     cambiarTurno();
@@ -199,24 +240,34 @@ void Juego::iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAta
     Pieza* ganador = arena->iniciarCombateAutomatico(atacante, defensor);
 
     if (ganador == atacante) {
-        std::cout << "¡" << atacante->getNombre() << " ha ganado el duelo!" << std::endl;
+        std::cout << "¡" << atacante->getNombre()
+            << " ha ganado el duelo!" << std::endl;
+
         tablero->colocarPieza(fDef, cDef, nullptr);
+
         registrarMuerte(defensor);
         delete defensor;
+
         tablero->moverPieza(fAtac, cAtac, fDef, cDef);
     }
     else if (ganador == defensor) {
-        std::cout << "El defensor (" << defensor->getNombre() << ") se ha mantenido firme." << std::endl;
+        std::cout << "El defensor (" << defensor->getNombre()
+            << ") se ha mantenido firme." << std::endl;
+
         tablero->colocarPieza(fAtac, cAtac, nullptr);
+
         registrarMuerte(atacante);
         delete atacante;
     }
     else {
         std::cout << "¡Ambas piezas han muerto en combate!" << std::endl;
+
         tablero->colocarPieza(fAtac, cAtac, nullptr);
         tablero->colocarPieza(fDef, cDef, nullptr);
+
         registrarMuerte(atacante);
         registrarMuerte(defensor);
+
         delete atacante;
         delete defensor;
     }
@@ -224,10 +275,33 @@ void Juego::iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAta
 
 void Juego::registrarMuerte(Pieza* pieza) {
     if (pieza == nullptr) return;
-    if (pieza->getBando() == LUZ)
+
+    if (pieza == piezaRalentizada) {
+        piezaRalentizada = nullptr;
+        velAtaqueOriginalRalentizada = 0.f;
+    }
+
+    if (pieza == piezaCongelada) {
+        piezaCongelada = nullptr;
+        velAtaqueOriginalCongelada = 0.f;
+    }
+
+    if (pieza == piezaFortalecida) {
+        piezaFortalecida = nullptr;
+        fuerzaOriginalFortalecida = 0.f;
+    }
+
+    if (pieza == piezaEscudo) {
+        piezaEscudo = nullptr;
+        velAtaqueOriginalEscudo = 0.f;
+    }
+
+    if (pieza->getBando() == LUZ) {
         cementerioLuz[pieza->getNombre()]++;
-    else
+    }
+    else {
         cementerioOscuridad[pieza->getNombre()]++;
+    }
 }
 
 void Juego::dibujar() {
@@ -235,29 +309,54 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
-    int piezasLuz = 0, piezasOscuridad = 0;
-    int puntosPoderLuz = 0, puntosPoderOscuridad = 0;
+    int piezasLuz = 0;
+    int piezasOscuridad = 0;
+
+    int puntosPoderLuz = 0;
+    int puntosPoderOscuridad = 0;
 
     for (int f = 0; f < 9; f++) {
         for (int c = 0; c < 9; c++) {
             Pieza* p = tablero->getPieza(f, c);
+
             if (p == nullptr) continue;
 
             if (p->getBando() == LUZ) {
                 piezasLuz++;
-                if (tablero->esPuntoDePoder(f, c)) puntosPoderLuz++;
+
+                if (tablero->esPuntoDePoder(f, c)) {
+                    puntosPoderLuz++;
+                }
             }
             else {
                 piezasOscuridad++;
-                if (tablero->esPuntoDePoder(f, c)) puntosPoderOscuridad++;
+
+                if (tablero->esPuntoDePoder(f, c)) {
+                    puntosPoderOscuridad++;
+                }
             }
         }
     }
 
-    if (piezasOscuridad == 0) { ganadorPartida = LUZ;       return true; }
-    if (piezasLuz == 0) { ganadorPartida = OSCURIDAD; return true; }
-    if (puntosPoderLuz == 5) { ganadorPartida = LUZ;       return true; }
-    if (puntosPoderOscuridad == 5) { ganadorPartida = OSCURIDAD; return true; }
+    if (piezasOscuridad == 0) {
+        ganadorPartida = LUZ;
+        return true;
+    }
+
+    if (piezasLuz == 0) {
+        ganadorPartida = OSCURIDAD;
+        return true;
+    }
+
+    if (puntosPoderLuz == 5) {
+        ganadorPartida = LUZ;
+        return true;
+    }
+
+    if (puntosPoderOscuridad == 5) {
+        ganadorPartida = OSCURIDAD;
+        return true;
+    }
 
     return false;
 }
@@ -269,7 +368,10 @@ void Juego::activarIA(Dificultad d) {
 }
 
 MovimientoIA Juego::obtenerMovimientoIA() {
-    if (ia == nullptr) return { -1, -1, -1, -1, 0.f };
+    if (ia == nullptr) {
+        return { -1, -1, -1, -1, 0.f };
+    }
+
     return ia->decidirMovimiento(tablero);
 }
 

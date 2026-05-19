@@ -23,6 +23,11 @@ Renderer::Renderer(sf::RenderWindow& vent)
     panelHechizosVisible = false;
     nombrePiezaTeleport = "";
 
+    piezaCongelada = nullptr;
+    piezaRalentizada = nullptr;
+    piezaFortalecida = nullptr;
+    piezaEscudo = nullptr;
+
     colorBlanco = sf::Color(240, 217, 181);
     colorNegro = sf::Color(90, 120, 80);
     colorGris = sf::Color(160, 160, 140);
@@ -106,11 +111,16 @@ void Renderer::actualizarAnimaciones(float dt) {
 
     if (animTeleport.fase != FASE_NINGUNA) {
         animTeleport.progreso += dt / animTeleport.duracionFase;
+
         if (animTeleport.progreso >= 1.f) {
             animTeleport.progreso = 0.f;
-            if (animTeleport.fase == FASE_HUNDIR)  animTeleport.fase = FASE_MOVER;
-            else if (animTeleport.fase == FASE_MOVER)   animTeleport.fase = FASE_EMERGER;
-            else if (animTeleport.fase == FASE_EMERGER) animTeleport.fase = FASE_NINGUNA;
+
+            if (animTeleport.fase == FASE_HUNDIR)
+                animTeleport.fase = FASE_MOVER;
+            else if (animTeleport.fase == FASE_MOVER)
+                animTeleport.fase = FASE_EMERGER;
+            else if (animTeleport.fase == FASE_EMERGER)
+                animTeleport.fase = FASE_NINGUNA;
         }
     }
 }
@@ -140,22 +150,57 @@ void Renderer::dibujarBordeEfecto(int fila, int col, sf::Color color, float t) {
     float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
     color.a = static_cast<uint8_t>(150 + static_cast<int>(105 * pulso));
 
+    // Borde exterior parpadeante
     sf::RectangleShape borde(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
-    borde.setPosition(sf::Vector2f(OFFSET_X + col * TAM_CASILLA + 2.f, OFFSET_Y + fila * TAM_CASILLA + 2.f));
+    borde.setPosition(sf::Vector2f(
+        OFFSET_X + col * TAM_CASILLA + 2.f,
+        OFFSET_Y + fila * TAM_CASILLA + 2.f
+    ));
     borde.setFillColor(sf::Color::Transparent);
     borde.setOutlineColor(color);
     borde.setOutlineThickness(3.f);
     ventana.draw(borde);
+
+    // Borde interior para que el efecto destaque más
+    sf::Color colorInterior = color;
+    colorInterior.a = static_cast<uint8_t>(80 + static_cast<int>(80 * pulso));
+
+    sf::RectangleShape bordeInterior(sf::Vector2f(TAM_CASILLA - 14.f, TAM_CASILLA - 14.f));
+    bordeInterior.setPosition(sf::Vector2f(
+        OFFSET_X + col * TAM_CASILLA + 7.f,
+        OFFSET_Y + fila * TAM_CASILLA + 7.f
+    ));
+    bordeInterior.setFillColor(sf::Color::Transparent);
+    bordeInterior.setOutlineColor(colorInterior);
+    bordeInterior.setOutlineThickness(2.f);
+    ventana.draw(bordeInterior);
+
+    // Pequeño icono/círculo en la esquina para marcar que tiene estado activo
+    float radio = 7.f + 2.f * pulso;
+
+    sf::CircleShape marca(radio);
+    marca.setFillColor(color);
+    marca.setOutlineColor(sf::Color::White);
+    marca.setOutlineThickness(1.f);
+    marca.setOrigin(sf::Vector2f(radio, radio));
+    marca.setPosition(sf::Vector2f(
+        OFFSET_X + col * TAM_CASILLA + TAM_CASILLA - 13.f,
+        OFFSET_Y + fila * TAM_CASILLA + 13.f
+    ));
+
+    ventana.draw(marca);
 }
 
 void Renderer::dibujarAnimaciones() {
     for (const auto& anim : animaciones) {
         float progreso = 1.f - (anim.tiempoRestante / anim.tiempoTotal);
+
         float cx = OFFSET_X + anim.col * TAM_CASILLA + TAM_CASILLA / 2.f;
         float cy = OFFSET_Y + anim.fila * TAM_CASILLA + TAM_CASILLA / 2.f;
 
         uint8_t alpha = static_cast<uint8_t>(220 * (1.f - progreso));
-        float radio = TAM_CASILLA * 0.2f + TAM_CASILLA * 0.35f * progreso;
+
+        float radio = TAM_CASILLA * 0.18f + TAM_CASILLA * 0.42f * progreso;
 
         sf::Color colorFlash;
 
@@ -176,12 +221,13 @@ void Renderer::dibujarAnimaciones() {
             colorFlash = sf::Color(80, 160, 255, alpha);
             break;
         case ANIM_CONGELAR:
-            colorFlash = sf::Color(120, 200, 255, alpha);
+            colorFlash = sf::Color(120, 220, 255, alpha);
             break;
         default:
             continue;
         }
 
+        // Círculo exterior expansivo
         sf::CircleShape circulo(radio);
         circulo.setFillColor(sf::Color::Transparent);
         circulo.setOutlineColor(colorFlash);
@@ -190,13 +236,35 @@ void Renderer::dibujarAnimaciones() {
         circulo.setPosition(sf::Vector2f(cx, cy));
         ventana.draw(circulo);
 
-        float radio2 = radio * 0.6f;
+        // Flash central
+        float radio2 = radio * 0.55f;
 
         sf::CircleShape circulo2(radio2);
-        circulo2.setFillColor(sf::Color(colorFlash.r, colorFlash.g, colorFlash.b, alpha / 2));
+        circulo2.setFillColor(sf::Color(colorFlash.r, colorFlash.g, colorFlash.b, alpha / 3));
         circulo2.setOrigin(sf::Vector2f(radio2, radio2));
         circulo2.setPosition(sf::Vector2f(cx, cy));
         ventana.draw(circulo2);
+
+        // Partículas simples alrededor
+        const int numParticulas = 8;
+        const float PI2 = 6.28318f;
+
+        for (int i = 0; i < numParticulas; i++) {
+            float angulo = (PI2 / numParticulas) * i;
+            float distancia = 12.f + 32.f * progreso;
+
+            float px = cx + std::cos(angulo) * distancia;
+            float py = cy + std::sin(angulo) * distancia;
+
+            float tam = 3.f + 3.f * (1.f - progreso);
+
+            sf::CircleShape particula(tam);
+            particula.setFillColor(colorFlash);
+            particula.setOrigin(sf::Vector2f(tam, tam));
+            particula.setPosition(sf::Vector2f(px, py));
+
+            ventana.draw(particula);
+        }
     }
 }
 
@@ -248,16 +316,40 @@ void Renderer::dibujarEstadoTablero(
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
         dibujarCasillaResaltada(filaSeleccionada, colSeleccionada);
 
+    // Bordes persistentes de efectos activos
     float t = relojAnimacion.getElapsedTime().asSeconds();
 
     if (piezaCongelada != nullptr)
-        dibujarBordeEfecto(piezaCongelada->filaInicial, piezaCongelada->colInicial, sf::Color(120, 200, 255), t);
+        dibujarBordeEfecto(
+            piezaCongelada->filaInicial,
+            piezaCongelada->colInicial,
+            sf::Color(120, 220, 255),
+            t
+        );
 
     if (piezaRalentizada != nullptr)
-        dibujarBordeEfecto(piezaRalentizada->filaInicial, piezaRalentizada->colInicial, sf::Color(220, 180, 30), t);
+        dibujarBordeEfecto(
+            piezaRalentizada->filaInicial,
+            piezaRalentizada->colInicial,
+            sf::Color(220, 180, 30),
+            t
+        );
 
     if (piezaFortalecida != nullptr)
-        dibujarBordeEfecto(piezaFortalecida->filaInicial, piezaFortalecida->colInicial, sf::Color(255, 200, 0), t);
+        dibujarBordeEfecto(
+            piezaFortalecida->filaInicial,
+            piezaFortalecida->colInicial,
+            sf::Color(255, 200, 0),
+            t
+        );
+
+    if (piezaEscudo != nullptr)
+        dibujarBordeEfecto(
+            piezaEscudo->filaInicial,
+            piezaEscudo->colInicial,
+            sf::Color(60, 120, 255),
+            t
+        );
 
     dibujarAnimaciones();
     dibujarTeleportEnCurso();

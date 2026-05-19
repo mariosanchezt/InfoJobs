@@ -12,13 +12,18 @@ struct CombatienteArena;
 enum EstadoPantalla { TABLERO, ARENA };
 enum ModoHechizo { SIN_HECHIZO, HECHIZO_ALIADO, HECHIZO_ENEMIGO, HECHIZO_CASILLA };
 
-// Tipos de animacion de hechizo (flash puntual)
+// Tipos de animacion de hechizo
 enum TipoAnimHechizo {
-    ANIM_NINGUNA, ANIM_CURACION, ANIM_DANO, ANIM_RALENTIZAR,
-    ANIM_FORTALECER, ANIM_ESCUDO, ANIM_CONGELAR
+    ANIM_NINGUNA,
+    ANIM_CURACION,
+    ANIM_DANO,
+    ANIM_RALENTIZAR,
+    ANIM_FORTALECER,
+    ANIM_ESCUDO,
+    ANIM_CONGELAR
 };
 
-// Una animacion puntual sobre una casilla (flash que dura un momento)
+// Una animacion puntual sobre una casilla
 struct AnimHechizo {
     int fila;
     int col;
@@ -27,14 +32,23 @@ struct AnimHechizo {
     float tiempoTotal;
 };
 
-// Estado de la animacion de teleport (hundirse y emerger)
-enum FaseTeleport { FASE_NINGUNA, FASE_HUNDIR, FASE_MOVER, FASE_EMERGER };
+// Estado de la animacion de teleport
+enum FaseTeleport {
+    FASE_NINGUNA,
+    FASE_HUNDIR,
+    FASE_MOVER,
+    FASE_EMERGER
+};
 
 struct AnimTeleport {
     FaseTeleport fase = FASE_NINGUNA;
     Pieza* pieza = nullptr;
-    int filaOrigen, colOrigen;
-    int filaDest, colDest;
+
+    int filaOrigen;
+    int colOrigen;
+    int filaDest;
+    int colDest;
+
     float progreso = 0.f;
     float duracionFase = 0.3f;
 };
@@ -47,7 +61,7 @@ private:
     bool fuenteCargada;
 
     static constexpr float TAM_CASILLA = 80.f;
-    static constexpr float OFFSET_X = 140.f; // espacio pa cementerios
+    static constexpr float OFFSET_X = 140.f; // espacio para cementerios
     static constexpr float OFFSET_Y = 20.f;
 
     EstadoPantalla estado;
@@ -60,10 +74,11 @@ private:
 
     ModoHechizo modoHechizo;
 
-    std::string nombrePiezaTeleport; // nombre de la pieza elegida en paso 1 del teleport
+    std::string nombrePiezaTeleport;
 
     int cursorFila;
     int cursorCol;
+
     void dibujarCursor(Tablero* tablero);
 
     std::vector<std::pair<int, int>> movimientosDisponibles;
@@ -79,12 +94,13 @@ private:
 
     sf::Clock relojAnimacion;
 
-    // Punteros a piezas con efecto activo (pa dibujar bordes persistentes)
+    // Piezas con efectos activos para dibujar bordes persistentes
     Pieza* piezaCongelada = nullptr;
     Pieza* piezaRalentizada = nullptr;
     Pieza* piezaFortalecida = nullptr;
+    Pieza* piezaEscudo = nullptr;
 
-    // Animaciones puntuales (flash de hechizo)
+    // Animaciones puntuales de hechizo
     std::vector<AnimHechizo> animaciones;
 
     // Animacion de teleport
@@ -93,18 +109,36 @@ private:
     // Metodos internos tablero
     void dibujarTablero(Tablero* tablero);
     void dibujarPieza(Pieza* p, int fila, int col);
+
     void dibujarBordeEfecto(int fila, int col, sf::Color color, float t);
     void dibujarAnimaciones();
     void dibujarTeleportEnCurso();
+
     void dibujarCasillaResaltada(int fila, int col);
     void dibujarMovimientosDisponibles();
+
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
-    void dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada, Tablero* tablero, int hechizoSeleccionado);
+
+    void dibujarIndicadorTurno(
+        Bando turno,
+        Pieza* piezaSeleccionada,
+        Tablero* tablero,
+        int hechizoSeleccionado
+    );
+
     std::string tipoMovimientoTexto(TipoMovimiento mov) const;
     std::string numeroTexto(float valor) const;
     std::string construirTextoPieza(Pieza* pieza) const;
+
     void dibujarPuntosDePoder(Tablero* tablero);
-    void dibujarCementerio(const std::map<std::string, int>& cementerio, float x, float y, sf::Color colorTitulo, const std::string& titulo);
+
+    void dibujarCementerio(
+        const std::map<std::string, int>& cementerio,
+        float x,
+        float y,
+        sf::Color colorTitulo,
+        const std::string& titulo
+    );
 
     // Metodos internos arena
     void dibujarHUDArena(Pieza* p1, Pieza* p2);
@@ -120,10 +154,11 @@ public:
 
     void actualizarAnimaciones(float dt);
 
-    // Firma con cementerios (version de compis + la nuestra fusionadas)
     void dibujarEstadoTablero(
-        Tablero* tablero, Bando turno,
-        bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad,
+        Tablero* tablero,
+        Bando turno,
+        bool* hechizosUsadosLuz,
+        bool* hechizosUsadosOscuridad,
         int hechizoSeleccionado,
         const std::map<std::string, int>& cementerioLuz,
         const std::map<std::string, int>& cementerioOscuridad
@@ -131,7 +166,13 @@ public:
 
     void dibujarEstadoArena(const Arena& arena);
     void dibujarPantallaVictoria(Bando ganador);
-    void dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado);
+
+    void dibujarPanelHechizos(
+        Bando turno,
+        bool* hechizosUsadosLuz,
+        bool* hechizosUsadosOscuridad,
+        int hechizoSeleccionado
+    );
 
     void seleccionarCasilla(int fila, int col, Tablero* tablero);
     void deseleccionar();
@@ -142,37 +183,79 @@ public:
     void setEstado(EstadoPantalla e) { estado = e; }
 
     int getFilaSeleccionada() const { return filaSeleccionada; }
-    int getColSeleccionada()  const { return colSeleccionada; }
+    int getColSeleccionada() const { return colSeleccionada; }
 
     void moverCursor(int dFila, int dCol);
+
     int getCursorFila() const { return cursorFila; }
-    int getCursorCol()  const { return cursorCol; }
+    int getCursorCol() const { return cursorCol; }
 
     void setModoHechizo(ModoHechizo modo) { modoHechizo = modo; }
     ModoHechizo getModoHechizo() const { return modoHechizo; }
 
-    // Pa mostrar el nombre de la pieza elegida en el teleport
-    void setNombrePiezaTeleport(const std::string& nombre) { nombrePiezaTeleport = nombre; }
-    void resetNombrePiezaTeleport() { nombrePiezaTeleport = ""; }
+    void setNombrePiezaTeleport(const std::string& nombre) {
+        nombrePiezaTeleport = nombre;
+    }
 
-    void setPanelHechizosVisible(bool v) { panelHechizosVisible = v; }
-    bool getPanelHechizosVisible() const { return panelHechizosVisible; }
+    void resetNombrePiezaTeleport() {
+        nombrePiezaTeleport = "";
+    }
 
-    void setPiezasConEfecto(Pieza* congelada, Pieza* ralentizada, Pieza* fortalecida) {
+    void setPanelHechizosVisible(bool v) {
+        panelHechizosVisible = v;
+    }
+
+    bool getPanelHechizosVisible() const {
+        return panelHechizosVisible;
+    }
+
+    // Piezas con efectos activos para pintar bordes permanentes
+    void setPiezasConEfecto(
+        Pieza* congelada,
+        Pieza* ralentizada,
+        Pieza* fortalecida,
+        Pieza* escudo
+    ) {
         piezaCongelada = congelada;
         piezaRalentizada = ralentizada;
         piezaFortalecida = fortalecida;
+        piezaEscudo = escudo;
     }
 
-    void lanzarAnimHechizo(int fila, int col, TipoAnimHechizo tipo, float duracion = 0.5f);
+    // Animacion puntual sobre una casilla
+    void lanzarAnimHechizo(
+        int fila,
+        int col,
+        TipoAnimHechizo tipo,
+        float duracion = 0.5f
+    );
 
-    void iniciarAnimTeleport(Pieza* pieza, int fOri, int cOri, int fDest, int cDest);
-    bool teleportEnCurso()   const { return animTeleport.fase != FASE_NINGUNA; }
-    bool teleportTerminado() const { return animTeleport.fase == FASE_NINGUNA && animTeleport.pieza != nullptr; }
-    void resetAnimTeleport() { animTeleport.pieza = nullptr; animTeleport.fase = FASE_NINGUNA; }
+    // Animacion de teleport
+    void iniciarAnimTeleport(
+        Pieza* pieza,
+        int fOri,
+        int cOri,
+        int fDest,
+        int cDest
+    );
+
+    bool teleportEnCurso() const {
+        return animTeleport.fase != FASE_NINGUNA;
+    }
+
+    bool teleportTerminado() const {
+        return animTeleport.fase == FASE_NINGUNA && animTeleport.pieza != nullptr;
+    }
+
+    void resetAnimTeleport() {
+        animTeleport.pieza = nullptr;
+        animTeleport.fase = FASE_NINGUNA;
+    }
 
     bool ocultarMunecoCursor = false;
+
     void dibujarPiezaPixel(Pieza* p, float px, float py);
     void dibujarPiezaPixelEscala(Pieza* p, float px, float py, float escala);
+
     sf::Vector2f getCentroCasilla(int fila, int col) const;
 };

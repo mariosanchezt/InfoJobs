@@ -23,14 +23,21 @@ private:
     bool hechizosUsadosLuz[7];
     bool hechizosUsadosOscuridad[7];
 
+    // Efecto de ralentizar
     Pieza* piezaRalentizada;
     float velAtaqueOriginalRalentizada;
 
+    // Efecto de congelar
     Pieza* piezaCongelada;
     float velAtaqueOriginalCongelada;
 
+    // Efecto de fortalecer
     Pieza* piezaFortalecida;
     float fuerzaOriginalFortalecida;
+
+    // Efecto de escudo
+    Pieza* piezaEscudo;
+    float velAtaqueOriginalEscudo;
 
     IAJugador* ia;
     bool modoIA;
@@ -59,17 +66,18 @@ public:
 
     void registrarMuerte(Pieza* pieza);
 
-    Tablero* getTablero()        const { return tablero; }
-    Bando    getTurnoActual()    const { return turnoActual; }
-    Bando    getBandoGanador()   const { return ganadorPartida; }
+    Tablero* getTablero() const { return tablero; }
+    Bando getTurnoActual() const { return turnoActual; }
+    Bando getBandoGanador() const { return ganadorPartida; }
 
-    Pieza* getPiezaCongelada()   const { return piezaCongelada; }
+    Pieza* getPiezaCongelada() const { return piezaCongelada; }
     Pieza* getPiezaRalentizada() const { return piezaRalentizada; }
     Pieza* getPiezaFortalecida() const { return piezaFortalecida; }
+    Pieza* getPiezaEscudo() const { return piezaEscudo; }
 
     bool* getHechizosUsadosLuz() { return hechizosUsadosLuz; }
     bool* getHechizosUsadosOscuridad() { return hechizosUsadosOscuridad; }
 
-    const std::map<std::string, int>& getCementerioLuz()        const { return cementerioLuz; }
-    const std::map<std::string, int>& getCementerioOscuridad()  const { return cementerioOscuridad; }
+    const std::map<std::string, int>& getCementerioLuz() const { return cementerioLuz; }
+    const std::map<std::string, int>& getCementerioOscuridad() const { return cementerioOscuridad; }
 };
