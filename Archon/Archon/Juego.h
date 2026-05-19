@@ -10,6 +10,13 @@ class Tablero;
 class Arena;
 class Pieza;
 
+// Tipo de victoria para mostrarlo luego en la pantalla final
+enum TipoVictoria {
+    SIN_VICTORIA,
+    VICTORIA_ELIMINACION,
+    VICTORIA_PUNTOS_PODER
+};
+
 class Juego {
 private:
     Tablero* tablero;
@@ -17,6 +24,9 @@ private:
 
     Bando turnoActual;
     Bando ganadorPartida;
+
+    // Guardamos tambien como se ha ganado la partida
+    TipoVictoria tipoVictoria;
 
     int hechizosRestantesLuz;
     int hechizosRestantesOscuridad;
@@ -66,18 +76,28 @@ public:
 
     void registrarMuerte(Pieza* pieza);
 
+    // Getters principales
     Tablero* getTablero() const { return tablero; }
     Bando getTurnoActual() const { return turnoActual; }
     Bando getBandoGanador() const { return ganadorPartida; }
+    TipoVictoria getTipoVictoria() const { return tipoVictoria; }
 
+    // Getters de efectos activos
     Pieza* getPiezaCongelada() const { return piezaCongelada; }
     Pieza* getPiezaRalentizada() const { return piezaRalentizada; }
     Pieza* getPiezaFortalecida() const { return piezaFortalecida; }
     Pieza* getPiezaEscudo() const { return piezaEscudo; }
 
+    // Getters de hechizos
     bool* getHechizosUsadosLuz() { return hechizosUsadosLuz; }
     bool* getHechizosUsadosOscuridad() { return hechizosUsadosOscuridad; }
 
+    // Getters de cementerio
     const std::map<std::string, int>& getCementerioLuz() const { return cementerioLuz; }
     const std::map<std::string, int>& getCementerioOscuridad() const { return cementerioOscuridad; }
+
+    // Numero de piezas eliminadas de cada bando
+    int getBajasLuz() const;
+    int getBajasOscuridad() const;
+    int getBajasTotales() const;
 };

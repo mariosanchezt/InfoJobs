@@ -145,7 +145,15 @@ int main() {
             }
 
             ventana.clear(sf::Color(10, 10, 20));
-            renderer->dibujarPantallaVictoria(juego->getBandoGanador());
+
+            renderer->dibujarPantallaVictoria(
+                juego->getBandoGanador(),
+                juego->getTipoVictoria(),
+                juego->getBajasLuz(),
+                juego->getBajasOscuridad(),
+                juego->getBajasTotales()
+            );
+
             ventana.display();
 
             continue;

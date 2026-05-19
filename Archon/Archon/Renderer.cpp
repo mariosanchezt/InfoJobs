@@ -69,7 +69,11 @@ void Renderer::cargarSprites(const std::string& carpeta) {
 
         // Recursos visuales de la arena
         "patio.png",
-        "Nuez.png"
+        "Nuez.png",
+
+        // Fondos de victoria
+        "Plantas_Victoria.png",
+        "Zombies_Victoria.png"
     };
 
     int cargados = 0;
@@ -150,7 +154,6 @@ void Renderer::dibujarBordeEfecto(int fila, int col, sf::Color color, float t) {
     float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
     color.a = static_cast<uint8_t>(150 + static_cast<int>(105 * pulso));
 
-    // Borde exterior parpadeante
     sf::RectangleShape borde(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
     borde.setPosition(sf::Vector2f(
         OFFSET_X + col * TAM_CASILLA + 2.f,
@@ -161,7 +164,6 @@ void Renderer::dibujarBordeEfecto(int fila, int col, sf::Color color, float t) {
     borde.setOutlineThickness(3.f);
     ventana.draw(borde);
 
-    // Borde interior para que el efecto destaque más
     sf::Color colorInterior = color;
     colorInterior.a = static_cast<uint8_t>(80 + static_cast<int>(80 * pulso));
 
@@ -175,7 +177,6 @@ void Renderer::dibujarBordeEfecto(int fila, int col, sf::Color color, float t) {
     bordeInterior.setOutlineThickness(2.f);
     ventana.draw(bordeInterior);
 
-    // Pequeño icono/círculo en la esquina para marcar que tiene estado activo
     float radio = 7.f + 2.f * pulso;
 
     sf::CircleShape marca(radio);
@@ -227,7 +228,6 @@ void Renderer::dibujarAnimaciones() {
             continue;
         }
 
-        // Círculo exterior expansivo
         sf::CircleShape circulo(radio);
         circulo.setFillColor(sf::Color::Transparent);
         circulo.setOutlineColor(colorFlash);
@@ -236,7 +236,6 @@ void Renderer::dibujarAnimaciones() {
         circulo.setPosition(sf::Vector2f(cx, cy));
         ventana.draw(circulo);
 
-        // Flash central
         float radio2 = radio * 0.55f;
 
         sf::CircleShape circulo2(radio2);
@@ -245,7 +244,6 @@ void Renderer::dibujarAnimaciones() {
         circulo2.setPosition(sf::Vector2f(cx, cy));
         ventana.draw(circulo2);
 
-        // Partículas simples alrededor
         const int numParticulas = 8;
         const float PI2 = 6.28318f;
 
@@ -316,7 +314,6 @@ void Renderer::dibujarEstadoTablero(
     if (filaSeleccionada >= 0 && colSeleccionada >= 0)
         dibujarCasillaResaltada(filaSeleccionada, colSeleccionada);
 
-    // Bordes persistentes de efectos activos
     float t = relojAnimacion.getElapsedTime().asSeconds();
 
     if (piezaCongelada != nullptr)
@@ -702,7 +699,6 @@ void Renderer::dibujarCementerio(
 // ARENA INTERACTIVA
 
 void Renderer::dibujarEstadoArena(const Arena& arena) {
-    // Fondo de arena tipo Plants vs Zombies
     bool tienePatio = texturas.count("patio.png") > 0;
 
     if (tienePatio) {
@@ -727,7 +723,6 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
         ventana.draw(fondo);
     }
 
-    // Borde de la arena
     sf::RectangleShape borde(sf::Vector2f(Arena::getAncho(), Arena::getAlto()));
     borde.setPosition(sf::Vector2f(Arena::getOffsetX(), Arena::getOffsetY()));
     borde.setFillColor(sf::Color::Transparent);
@@ -735,7 +730,6 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
     borde.setOutlineThickness(3.f);
     ventana.draw(borde);
 
-    // Obstáculos: nueces
     bool tieneNuez = texturas.count("Nuez.png") > 0;
 
     for (const auto& obs : arena.getObstaculos()) {
@@ -765,7 +759,6 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
         }
     }
 
-    // Proyectiles
     for (const auto& p : arena.getProyectiles()) {
         if (!p.activo) continue;
 
@@ -1075,66 +1068,146 @@ void Renderer::dibujarPuntosDePoder(Tablero* tablero) {
     }
 }
 
-void Renderer::dibujarPantallaVictoria(Bando ganador) {
-    sf::RectangleShape overlay(sf::Vector2f(1000.f, 900.f));
-    overlay.setFillColor(sf::Color(0u, 0u, 0u, 210u));
-    ventana.draw(overlay);
-
+void Renderer::dibujarPantallaVictoria(
+    Bando ganador,
+    TipoVictoria tipoVictoria,
+    int bajasLuz,
+    int bajasOscuridad,
+    int bajasTotales
+) {
     bool esLuz = (ganador == LUZ);
 
+    std::string fondoVictoria = esLuz ? "Plantas_Victoria.png" : "Zombies_Victoria.png";
+
+    if (texturas.count(fondoVictoria) > 0) {
+        const sf::Texture& tex = texturas.at(fondoVictoria);
+
+        sf::Sprite fondo(tex);
+        sf::Vector2u texSize = tex.getSize();
+
+        float escalaX = 1000.f / (float)texSize.x;
+        float escalaY = 900.f / (float)texSize.y;
+
+        fondo.setScale(sf::Vector2f(escalaX, escalaY));
+        fondo.setPosition(sf::Vector2f(0.f, 0.f));
+
+        ventana.draw(fondo);
+    }
+    else {
+        sf::RectangleShape fondo(sf::Vector2f(1000.f, 900.f));
+        fondo.setFillColor(esLuz ? sf::Color(10, 45, 20) : sf::Color(45, 10, 20));
+        ventana.draw(fondo);
+    }
+
+    sf::RectangleShape overlay(sf::Vector2f(1000.f, 900.f));
+    overlay.setFillColor(sf::Color(0u, 0u, 0u, 120u));
+    ventana.draw(overlay);
+
     sf::Color colorGanador = esLuz
-        ? sf::Color(80u, 220u, 120u)
-        : sf::Color(220u, 80u, 80u);
+        ? sf::Color(80u, 230u, 120u)
+        : sf::Color(230u, 70u, 70u);
+
+    sf::Color colorPanel = esLuz
+        ? sf::Color(10u, 55u, 25u, 220u)
+        : sf::Color(55u, 10u, 20u, 220u);
 
     float t = relojAnimacion.getElapsedTime().asSeconds();
     float pulso = 0.5f + 0.5f * std::sin(t * 2.5f);
 
-    uint8_t alphaTexto = static_cast<uint8_t>(180 + static_cast<int>(75 * pulso));
+    uint8_t alphaBorde = static_cast<uint8_t>(170 + static_cast<int>(85 * pulso));
+    uint8_t alphaTexto = static_cast<uint8_t>(190 + static_cast<int>(65 * pulso));
 
-    float panelW = 580.f;
-    float panelH = 280.f;
+    float panelW = 670.f;
+    float panelH = 390.f;
     float panelX = (1000.f - panelW) / 2.f;
-    float panelY = (900.f - panelH) / 2.f;
+    float panelY = (900.f - panelH) / 2.f + 35.f;
+
+    sf::RectangleShape sombra(sf::Vector2f(panelW + 18.f, panelH + 18.f));
+    sombra.setPosition(sf::Vector2f(panelX - 9.f, panelY + 9.f));
+    sombra.setFillColor(sf::Color(0u, 0u, 0u, 150u));
+    ventana.draw(sombra);
 
     sf::RectangleShape panel(sf::Vector2f(panelW, panelH));
     panel.setPosition(sf::Vector2f(panelX, panelY));
-    panel.setFillColor(esLuz ? sf::Color(15u, 50u, 25u) : sf::Color(50u, 15u, 15u));
-    panel.setOutlineColor(colorGanador);
-    panel.setOutlineThickness(4.f);
-
+    panel.setFillColor(colorPanel);
+    panel.setOutlineColor(sf::Color(colorGanador.r, colorGanador.g, colorGanador.b, alphaBorde));
+    panel.setOutlineThickness(5.f);
     ventana.draw(panel);
+
+    sf::RectangleShape lineaSuperior(sf::Vector2f(panelW - 70.f, 3.f));
+    lineaSuperior.setPosition(sf::Vector2f(panelX + 35.f, panelY + 82.f));
+    lineaSuperior.setFillColor(sf::Color(colorGanador.r, colorGanador.g, colorGanador.b, 190u));
+    ventana.draw(lineaSuperior);
 
     if (!fuenteCargada) return;
 
     std::string txtVictoria = esLuz ? "PLANTAS GANAN!" : "ZOMBIES GANAN!";
+    std::string txtSub = esLuz
+        ? "El jardin ha sido defendido"
+        : "Los zombies han tomado el jardin";
 
-    sf::Text textoVictoria(fuente, txtVictoria, 50);
+    std::string txtTipoVictoria;
+
+    if (tipoVictoria == VICTORIA_ELIMINACION) {
+        txtTipoVictoria = "Victoria por eliminacion total";
+    }
+    else if (tipoVictoria == VICTORIA_PUNTOS_PODER) {
+        txtTipoVictoria = "Victoria por control de puntos de poder";
+    }
+    else {
+        txtTipoVictoria = "Partida finalizada";
+    }
+
+    sf::Text textoVictoria(fuente, txtVictoria, 54);
     textoVictoria.setFillColor(sf::Color(colorGanador.r, colorGanador.g, colorGanador.b, alphaTexto));
     textoVictoria.setStyle(sf::Text::Bold);
 
     sf::FloatRect b1 = textoVictoria.getLocalBounds();
-    textoVictoria.setPosition(sf::Vector2f(500.f - b1.size.x / 2.f, panelY + 60.f));
-
+    textoVictoria.setPosition(sf::Vector2f(500.f - b1.size.x / 2.f, panelY + 25.f));
     ventana.draw(textoVictoria);
 
-    std::string txtSub = esLuz
-        ? "Las plantas han tomado el control"
-        : "Los zombies han tomado el control";
-
-    sf::Text textoSub(fuente, txtSub, 22);
-    textoSub.setFillColor(sf::Color(200u, 200u, 200u));
+    sf::Text textoSub(fuente, txtSub, 24);
+    textoSub.setFillColor(sf::Color(230u, 230u, 230u));
+    textoSub.setStyle(sf::Text::Bold);
 
     sf::FloatRect b2 = textoSub.getLocalBounds();
-    textoSub.setPosition(sf::Vector2f(500.f - b2.size.x / 2.f, panelY + 140.f));
-
+    textoSub.setPosition(sf::Vector2f(500.f - b2.size.x / 2.f, panelY + 103.f));
     ventana.draw(textoSub);
 
+    sf::Text textoTipo(fuente, txtTipoVictoria, 23);
+    textoTipo.setFillColor(sf::Color::White);
+
+    sf::FloatRect b3 = textoTipo.getLocalBounds();
+    textoTipo.setPosition(sf::Vector2f(500.f - b3.size.x / 2.f, panelY + 158.f));
+    ventana.draw(textoTipo);
+
+    std::string txtBajasTotal = "Piezas eliminadas: " + std::to_string(bajasTotales);
+    std::string txtBajasPlantas = "Bajas plantas: " + std::to_string(bajasLuz);
+    std::string txtBajasZombies = "Bajas zombies: " + std::to_string(bajasOscuridad);
+
+    sf::Text textoBajasTotal(fuente, txtBajasTotal, 21);
+    textoBajasTotal.setFillColor(sf::Color(220u, 220u, 220u));
+    sf::FloatRect bt = textoBajasTotal.getLocalBounds();
+    textoBajasTotal.setPosition(sf::Vector2f(500.f - bt.size.x / 2.f, panelY + 205.f));
+    ventana.draw(textoBajasTotal);
+
+    sf::Text textoBajasPlantas(fuente, txtBajasPlantas, 18);
+    textoBajasPlantas.setFillColor(sf::Color(120u, 240u, 150u));
+    sf::FloatRect bp = textoBajasPlantas.getLocalBounds();
+    textoBajasPlantas.setPosition(sf::Vector2f(500.f - bp.size.x / 2.f, panelY + 245.f));
+    ventana.draw(textoBajasPlantas);
+
+    sf::Text textoBajasZombies(fuente, txtBajasZombies, 18);
+    textoBajasZombies.setFillColor(sf::Color(240u, 120u, 120u));
+    sf::FloatRect bz = textoBajasZombies.getLocalBounds();
+    textoBajasZombies.setPosition(sf::Vector2f(500.f - bz.size.x / 2.f, panelY + 275.f));
+    ventana.draw(textoBajasZombies);
+
     sf::Text textoVolver(fuente, "Pulsa ENTER o haz click para volver al menu", 18);
-    textoVolver.setFillColor(sf::Color(160u, 160u, 160u));
+    textoVolver.setFillColor(sf::Color(190u, 190u, 190u));
 
-    sf::FloatRect b3 = textoVolver.getLocalBounds();
-    textoVolver.setPosition(sf::Vector2f(500.f - b3.size.x / 2.f, panelY + 210.f));
-
+    sf::FloatRect bv = textoVolver.getLocalBounds();
+    textoVolver.setPosition(sf::Vector2f(500.f - bv.size.x / 2.f, panelY + 335.f));
     ventana.draw(textoVolver);
 }
 

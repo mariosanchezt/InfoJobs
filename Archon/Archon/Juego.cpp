@@ -17,6 +17,9 @@ Juego::Juego() {
     turnoActual = LUZ;
     ganadorPartida = LUZ;
 
+    // Al empezar la partida, todavía no hay victoria
+    tipoVictoria = SIN_VICTORIA;
+
     hechizosRestantesLuz = 7;
     hechizosRestantesOscuridad = 7;
 
@@ -338,27 +341,58 @@ bool Juego::verificarVictoria() {
         }
     }
 
+    // Victoria por eliminacion total
     if (piezasOscuridad == 0) {
         ganadorPartida = LUZ;
+        tipoVictoria = VICTORIA_ELIMINACION;
         return true;
     }
 
     if (piezasLuz == 0) {
         ganadorPartida = OSCURIDAD;
+        tipoVictoria = VICTORIA_ELIMINACION;
         return true;
     }
 
+    // Victoria por controlar los 5 puntos de poder
     if (puntosPoderLuz == 5) {
         ganadorPartida = LUZ;
+        tipoVictoria = VICTORIA_PUNTOS_PODER;
         return true;
     }
 
     if (puntosPoderOscuridad == 5) {
         ganadorPartida = OSCURIDAD;
+        tipoVictoria = VICTORIA_PUNTOS_PODER;
         return true;
     }
 
+    tipoVictoria = SIN_VICTORIA;
     return false;
+}
+
+int Juego::getBajasLuz() const {
+    int total = 0;
+
+    for (const auto& par : cementerioLuz) {
+        total += par.second;
+    }
+
+    return total;
+}
+
+int Juego::getBajasOscuridad() const {
+    int total = 0;
+
+    for (const auto& par : cementerioOscuridad) {
+        total += par.second;
+    }
+
+    return total;
+}
+
+int Juego::getBajasTotales() const {
+    return getBajasLuz() + getBajasOscuridad();
 }
 
 void Juego::activarIA(Dificultad d) {

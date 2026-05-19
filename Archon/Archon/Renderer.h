@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "Tablero.h"
 #include "Pieza.h"
+#include "Juego.h"
+
 #include <string>
 #include <vector>
 #include <map>
@@ -165,7 +167,18 @@ public:
     );
 
     void dibujarEstadoArena(const Arena& arena);
-    void dibujarPantallaVictoria(Bando ganador);
+
+    // Pantalla final mejorada:
+    // ganador -> plantas o zombies
+    // tipoVictoria -> eliminacion total o puntos de poder
+    // bajas -> resumen de piezas eliminadas
+    void dibujarPantallaVictoria(
+        Bando ganador,
+        TipoVictoria tipoVictoria,
+        int bajasLuz,
+        int bajasOscuridad,
+        int bajasTotales
+    );
 
     void dibujarPanelHechizos(
         Bando turno,
