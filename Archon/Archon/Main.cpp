@@ -24,10 +24,11 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
             sf::Sprite sprite(texCarga);
             sf::Vector2u texSize = texCarga.getSize();
 
-            sprite.setScale(sf::Vector2f(1000.f / texSize.x, 900.f / texSize.y));
+            // Adaptado a la nueva ventana 1200x900
+            sprite.setScale(sf::Vector2f(1200.f / texSize.x, 900.f / texSize.y));
             ventana.draw(sprite);
 
-            sf::RectangleShape overlay(sf::Vector2f(1000.f, 900.f));
+            sf::RectangleShape overlay(sf::Vector2f(1200.f, 900.f));
             overlay.setFillColor(sf::Color(0, 0, 0, 60));
             ventana.draw(overlay);
         }
@@ -37,7 +38,7 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
         texto.setStyle(sf::Text::Bold);
 
         sf::FloatRect b = texto.getLocalBounds();
-        texto.setPosition(sf::Vector2f(500.f - b.size.x / 2.f, 830.f));
+        texto.setPosition(sf::Vector2f(600.f - b.size.x / 2.f, 830.f));
 
         ventana.draw(texto);
         ventana.display();
@@ -70,7 +71,8 @@ TipoAnimHechizo animParaHechizo(int indice) {
 }
 
 int main() {
-    sf::RenderWindow ventana(sf::VideoMode({ 1000, 900 }), "Archon PvZ");
+    // Ventana ampliada para dejar espacio a cementerios laterales
+    sf::RenderWindow ventana(sf::VideoMode({ 1200, 900 }), "Archon PvZ");
     ventana.setFramerateLimit(60);
 
     sf::Font fuente;

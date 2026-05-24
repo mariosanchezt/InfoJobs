@@ -26,21 +26,24 @@ struct CombatienteArena {
 
 class Arena {
 private:
-    static constexpr float ANCHO = 760.f;
-    static constexpr float ALTO = 700.f;
-    static constexpr float OFFSET_X = 20.f;
+    // Arena grande y cuadrada para ventana 1200x900
+    // Ocupa casi todo el alto disponible sin deformar el fondo del patio
+    static constexpr float ANCHO = 860.f;
+    static constexpr float ALTO = 860.f;
+    static constexpr float OFFSET_X = 170.f;
     static constexpr float OFFSET_Y = 20.f;
+
     static constexpr float VEL_PROYECTIL = 280.f;
     static constexpr float TAM_PIEZA = 24.f;
     static constexpr float TAM_PROYECTIL = 12.f;
 
-    CombatienteArena combatiente1; // LUZ      — WASD + Espacio
-    CombatienteArena combatiente2; // OSCURIDAD — Flechas + Enter
+    CombatienteArena combatiente1; // LUZ / PLANTAS — izquierda — WASD + Espacio
+    CombatienteArena combatiente2; // OSCURIDAD / ZOMBIES — derecha — Flechas + Enter
 
-    std::vector<Proyectil>  proyectiles;
-    std::vector<Obstaculo>  obstaculos;
+    std::vector<Proyectil> proyectiles;
+    std::vector<Obstaculo> obstaculos;
 
-    bool   combateTerminado;
+    bool combateTerminado;
     Pieza* ganador;
 
     void generarObstaculos();
@@ -54,12 +57,12 @@ private:
 public:
     Arena();
 
-    void   iniciarCombate(Pieza* p1, Pieza* p2);
-    void   update(float dt);
+    void iniciarCombate(Pieza* p1, Pieza* p2);
+    void update(float dt);
     void setMultiplicadorVelocidad(Pieza* p, float n);
 
-    bool   haTerminado() const { return combateTerminado; }
-    Pieza* getGanador()  const { return ganador; }
+    bool haTerminado() const { return combateTerminado; }
+    Pieza* getGanador() const { return ganador; }
 
     void limpiar() {
         combatiente1.pieza = nullptr;
@@ -67,10 +70,10 @@ public:
         proyectiles.clear();
     }
 
-    const CombatienteArena& getCombatiente1()  const { return combatiente1; }
-    const CombatienteArena& getCombatiente2()  const { return combatiente2; }
-    const std::vector<Proyectil>& getProyectiles()   const { return proyectiles; }
-    const std::vector<Obstaculo>& getObstaculos()    const { return obstaculos; }
+    const CombatienteArena& getCombatiente1() const { return combatiente1; }
+    const CombatienteArena& getCombatiente2() const { return combatiente2; }
+    const std::vector<Proyectil>& getProyectiles() const { return proyectiles; }
+    const std::vector<Obstaculo>& getObstaculos() const { return obstaculos; }
 
     static constexpr float getAncho() { return ANCHO; }
     static constexpr float getAlto() { return ALTO; }

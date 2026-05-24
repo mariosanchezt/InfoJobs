@@ -25,8 +25,8 @@ private:
 
     // Imagen de fondo del menu
     sf::Texture texFondo;
-    sf::Sprite  spriteFondo;
-    bool        fondoCargado;
+    sf::Sprite spriteFondo;
+    bool fondoCargado;
 
     sf::Color colorBotonActivo;
     sf::Color colorBotonDeshabilitado;
@@ -43,7 +43,9 @@ public:
 
     EstadoJuego procesarEvento(const sf::Event& event);
     void dibujar();
+
     EstadoJuego procesarEventoDificultad(const sf::Event& event);
     void dibujarDificultad();
+
     Dificultad dificultadSeleccionada;
 };

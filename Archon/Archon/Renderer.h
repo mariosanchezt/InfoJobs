@@ -62,9 +62,32 @@ private:
     sf::Font fuente;
     bool fuenteCargada;
 
+    // Tamaño general pensado para ventana 1200x900
+    static constexpr float VENTANA_ANCHO = 1200.f;
+    static constexpr float VENTANA_ALTO = 900.f;
+
+    // Tablero
     static constexpr float TAM_CASILLA = 80.f;
-    static constexpr float OFFSET_X = 140.f; // espacio para cementerios
+
+    // Tablero centrado dejando espacio a cementerios laterales
+    static constexpr float OFFSET_X = 240.f;
     static constexpr float OFFSET_Y = 20.f;
+
+    // Cementerios laterales
+    static constexpr float CEMENTERIO_ANCHO = 210.f;
+    static constexpr float CEMENTERIO_ALTO = 500.f;
+    static constexpr float CEMENTERIO_X_LUZ = 15.f;
+    static constexpr float CEMENTERIO_X_OSCURIDAD = 975.f;
+    static constexpr float CEMENTERIO_Y = 20.f;
+
+    // Paneles de puntos de poder debajo de cada cementerio
+    static constexpr float PODER_PANEL_ALTO = 125.f;
+    static constexpr float PODER_PANEL_Y = CEMENTERIO_Y + CEMENTERIO_ALTO + 18.f;
+
+    // HUD inferior principal del tablero
+    static constexpr float HUD_Y = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
+    static constexpr float HUD_ANCHO = 720.f;
+    static constexpr float HUD_ALTO = 50.f;
 
     EstadoPantalla estado;
 
@@ -134,12 +157,40 @@ private:
 
     void dibujarPuntosDePoder(Tablero* tablero);
 
+    // Conteo de puntos de poder controlados por cada bando
+    int contarPuntosPoder(Tablero* tablero, Bando bando) const;
+
+    // Panel de puntos de poder lateral, debajo de cada cementerio
+    void dibujarPanelPoderBando(
+        Tablero* tablero,
+        Bando bando,
+        float x,
+        float y,
+        sf::Color colorTitulo,
+        const std::string& titulo
+    );
+
+    void dibujarCirculosPoder(
+        int puntosControlados,
+        float x,
+        float y,
+        sf::Color colorActivo
+    );
+
+    // Cementerio visual con sprites grandes + contador x1, x2...
     void dibujarCementerio(
         const std::map<std::string, int>& cementerio,
         float x,
         float y,
         sf::Color colorTitulo,
         const std::string& titulo
+    );
+
+    void dibujarSpriteCementerio(
+        const std::string& nombrePieza,
+        float x,
+        float y,
+        float tam
     );
 
     // Metodos internos arena
