@@ -8,6 +8,7 @@
 #include "PiezaTanque.h"
 #include "PiezaVoladora.h"
 #include "PiezaLider.h"
+#include "IAJugador.h"
 #include <iostream>
 
 Juego::Juego() {
@@ -407,6 +408,23 @@ MovimientoIA Juego::obtenerMovimientoIA() {
     }
 
     return ia->decidirMovimiento(tablero);
+}
+
+bool Juego::iaLanzarHechizo() {
+    if (ia == nullptr || ia->getDificultad() != DIFICIL) return false;
+    
+    ia->setHechizosUsados(hechizosUsadosOscuridad);
+
+    if (!ia->deberiaLanzarHechizo(tablero)) return false;
+
+    int fObj = -1, cObj = -1;
+    int hechizo = ia->elegirHechizo(tablero, fObj, cObj);
+
+    if (hechizo == -1)return false;
+
+    Pieza* objetivo = tablero->getPieza(fObj, cObj);
+    lanzarHechizo(hechizo, objetivo, fObj, cObj);
+    return true;
 }
 
 Juego::~Juego() {

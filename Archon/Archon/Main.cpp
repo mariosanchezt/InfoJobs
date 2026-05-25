@@ -444,43 +444,28 @@ int main() {
         }
 
         // TURNO DE LA IA
-        if (juego->esModoIA() &&
-            juego->getTurnoActual() == OSCURIDAD &&
-            !enCombate &&
-            !animando) {
+        if (juego->esModoIA() && juego->getTurnoActual() == OSCURIDAD && !enCombate && !animando) {
 
             tiempoEsperaIA += dt;
 
             if (tiempoEsperaIA > 0.8f) {
                 tiempoEsperaIA = 0.f;
 
-                MovimientoIA mov = juego->obtenerMovimientoIA();
+                if (!juego->iaLanzarHechizo()) {
+                    MovimientoIA mov = juego->obtenerMovimientoIA();
 
-                if (mov.fOrigen != -1) {
-                    animando = true;
-
-                    targetFila = mov.fDestino;
-                    targetCol = mov.cDestino;
-
-                    renderer->seleccionarCasilla(
-                        mov.fOrigen,
-                        mov.cOrigen,
-                        juego->getTablero()
-                    );
-
-                    posPixelMuneco = renderer->getCentroCasilla(
-                        mov.fOrigen,
-                        mov.cOrigen
-                    );
-
-                    posPixelDestino = renderer->getCentroCasilla(
-                        mov.fDestino,
-                        mov.cDestino
-                    );
+                    if (mov.fOrigen != -1) {
+                        animando = true;
+                        targetFila = mov.fDestino;
+                        targetCol = mov.cDestino;
+                        renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
+                        posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
+                        posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cDestino);
+                    }
                 }
             }
         }
-
+       
         // MODO TABLERO - EVENTOS
         while (auto event = ventana.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {

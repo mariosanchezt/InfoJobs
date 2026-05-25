@@ -7,6 +7,7 @@
 IAJugador::IAJugador(Bando b, Dificultad d) {
 	bando = b;
 	dificultad = d;
+	hechizosUsados = nullptr;
 }
 
 MovimientoIA IAJugador::decidirMovimiento(Tablero* tablero) {
@@ -105,5 +106,72 @@ float IAJugador::evaluarMovimiento(Tablero* tablero, int fOri, int cOri, int fDe
 		}
 	}
 
+	//5. Penalizar atacar a piezas mas fuertes que la propia
+	Pieza* piezaAtacante = tablero->getPieza(fOri, cOri);
+	if (objetivo != nullptr && piezaAtacante != nullptr) {
+		if (objetivo->fuerza > piezaAtacante->fuerza * 1.2f) {
+			puntos -= 35.f; // El enemigo es bastante mas fuerte, evitar atacar
+		}
+	}
+
 	return puntos;
+}
+
+bool IAJugador::deberiaLanzarHechizo(Tablero* tablero) {
+	if (hechizosUsados == nullptr) return false;
+	if (dificultad != DIFICIL) return false;
+
+	//Comprueba si hay algun hechizo disponible
+	for (int i = 0; i < 7; i++) {
+		if (!hechizosUsados[i]) return true;
+	}
+	return false;
+}
+
+int IAJugador::elegirHechizo(Tablero* tablero, int& fObjetivo, int& cObjetivo) {
+	//Busca pieza aliada con menos vida para curarla
+	if (!hechizosUsados[0]) { //Curacion
+		for (int f = 0; f < 9; f++) {
+			for (int c = 0; c < 9; c++) {
+				Pieza* p = tablero->getPieza(f, c);
+				if (p != nullptr && p->getBando() == bando && p->vida < p->vidaMaxima * 0.4f) {
+					fObjetivo = f; cObjetivo = c;
+					return 1;
+				}
+			}
+		}
+	}
+
+	//Busca enemigo con poca vida para daño directo
+	if (!hechizosUsados[2]) { //Daño directo
+		for (int f = 0; f < 9; f++) {
+			for (int c = 0; c < 9; c++) {
+				Pieza* p = tablero->getPieza(f, c);
+				if (p != nullptr && p->getBando() != bando && p->vida < p->vidaMaxima * 0.5f) {
+					fObjetivo = f; cObjetivo = c;
+					return 3;
+				}
+			}
+		}
+	}
+	//Congela la pieza enemiga mas fuerte
+	if (!hechizosUsados[6]) { //Congelar
+		Pieza* masFuerte = nullptr;
+		int mf = -1, mc = -1;
+		for (int f = 0; f < 9; f++) {
+			for (int c = 0; c < 9; c++) {
+				Pieza* p = tablero->getPieza(f, c);
+				if (p != nullptr && p->getBando() != bando) {
+					if (masFuerte == nullptr || p->fuerza > masFuerte->fuerza) {
+						masFuerte = p; mf = f; mc = c;
+					}
+				}
+			}
+		}
+		if (masFuerte != nullptr) {
+			fObjetivo = mf; cObjetivo = mc;
+			return 7;
+		}
+	}
+	return -1;
 }

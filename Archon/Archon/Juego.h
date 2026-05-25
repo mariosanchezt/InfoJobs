@@ -73,6 +73,7 @@ public:
     void activarIA(Dificultad d);
     bool esModoIA() const { return modoIA; }
     MovimientoIA obtenerMovimientoIA();
+    bool iaLanzarHechizo();
 
     void registrarMuerte(Pieza* pieza);
 
