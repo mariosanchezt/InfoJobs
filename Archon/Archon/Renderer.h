@@ -55,6 +55,19 @@ struct AnimTeleport {
     float duracionFase = 0.3f;
 };
 
+// Info de un sprite sheet: textura + dimensiones de cada frame
+// Info de un sprite sheet de animacion
+struct InfoSheet {
+    sf::Texture textura;
+    int numFrames = 1;
+    int anchoFrame = 0; // ancho del frame mas grande (pa escalar)
+    int altoFrame = 0;
+    bool cargada = false;
+    // Offset X de cada frame dentro de la textura (pa frames de ancho variable)
+    std::vector<int> offsetsX;
+    std::vector<int> anchosFrame;
+};
+
 class Renderer {
 private:
     sf::RenderWindow& ventana;
@@ -62,29 +75,22 @@ private:
     sf::Font fuente;
     bool fuenteCargada;
 
-    // Tamaño general pensado para ventana 1200x900
     static constexpr float VENTANA_ANCHO = 1200.f;
     static constexpr float VENTANA_ALTO = 900.f;
 
-    // Tablero
     static constexpr float TAM_CASILLA = 80.f;
-
-    // Tablero centrado dejando espacio a cementerios laterales
     static constexpr float OFFSET_X = 240.f;
     static constexpr float OFFSET_Y = 20.f;
 
-    // Cementerios laterales
     static constexpr float CEMENTERIO_ANCHO = 210.f;
     static constexpr float CEMENTERIO_ALTO = 500.f;
     static constexpr float CEMENTERIO_X_LUZ = 15.f;
     static constexpr float CEMENTERIO_X_OSCURIDAD = 975.f;
     static constexpr float CEMENTERIO_Y = 20.f;
 
-    // Paneles de puntos de poder debajo de cada cementerio
     static constexpr float PODER_PANEL_ALTO = 125.f;
     static constexpr float PODER_PANEL_Y = CEMENTERIO_Y + CEMENTERIO_ALTO + 18.f;
 
-    // HUD inferior principal del tablero
     static constexpr float HUD_Y = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
     static constexpr float HUD_ANCHO = 720.f;
     static constexpr float HUD_ALTO = 50.f;
@@ -110,6 +116,13 @@ private:
 
     std::map<std::string, sf::Texture> texturas;
     bool texturasCargadas;
+
+    // Sheets de animacion pa la arena
+    std::map<std::string, InfoSheet> sheetsIdle;
+    std::map<std::string, InfoSheet> sheetsAttack;
+
+    // Proyectiles personalizados por nombre de pieza
+    std::map<std::string, sf::Texture> texturasProyectil;
 
     sf::Color colorBlanco;
     sf::Color colorNegro;
@@ -177,7 +190,6 @@ private:
         sf::Color colorActivo
     );
 
-    // Cementerio visual con sprites grandes + contador x1, x2...
     void dibujarCementerio(
         const std::map<std::string, int>& cementerio,
         float x,
@@ -199,6 +211,10 @@ private:
 
     std::string nombreArchivoSprite(const std::string& nombrePieza) const;
 
+    // Helpers de animacion por sheet
+    std::string claveAnimacion(const std::string& nombrePieza) const;
+    void cargarSheetSiNecesario(const std::string& clave, const std::string& carpeta);
+
 public:
     Renderer(sf::RenderWindow& vent);
 
@@ -219,10 +235,6 @@ public:
 
     void dibujarEstadoArena(const Arena& arena);
 
-    // Pantalla final mejorada:
-    // ganador -> plantas o zombies
-    // tipoVictoria -> eliminacion total o puntos de poder
-    // bajas -> resumen de piezas eliminadas
     void dibujarPantallaVictoria(
         Bando ganador,
         TipoVictoria tipoVictoria,
@@ -247,12 +259,12 @@ public:
     void setEstado(EstadoPantalla e) { estado = e; }
 
     int getFilaSeleccionada() const { return filaSeleccionada; }
-    int getColSeleccionada() const { return colSeleccionada; }
+    int getColSeleccionada()  const { return colSeleccionada; }
 
     void moverCursor(int dFila, int dCol);
 
     int getCursorFila() const { return cursorFila; }
-    int getCursorCol() const { return cursorCol; }
+    int getCursorCol()  const { return cursorCol; }
 
     void setModoHechizo(ModoHechizo modo) { modoHechizo = modo; }
     ModoHechizo getModoHechizo() const { return modoHechizo; }
@@ -273,7 +285,6 @@ public:
         return panelHechizosVisible;
     }
 
-    // Piezas con efectos activos para pintar bordes permanentes
     void setPiezasConEfecto(
         Pieza* congelada,
         Pieza* ralentizada,
@@ -286,7 +297,6 @@ public:
         piezaEscudo = escudo;
     }
 
-    // Animacion puntual sobre una casilla
     void lanzarAnimHechizo(
         int fila,
         int col,
@@ -294,7 +304,6 @@ public:
         float duracion = 0.5f
     );
 
-    // Animacion de teleport
     void iniciarAnimTeleport(
         Pieza* pieza,
         int fOri,

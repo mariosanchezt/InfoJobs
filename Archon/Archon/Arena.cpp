@@ -4,8 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-// Margenes internos para que los personajes solo se muevan por el cesped.
-// Estan ajustados al nuevo tamaño 860x860 del fondo del patio.
 static constexpr float MARGEN_PATIO_IZQ = 190.f;
 static constexpr float MARGEN_PATIO_DER = 40.f;
 static constexpr float MARGEN_PATIO_SUP = 110.f;
@@ -14,7 +12,6 @@ static constexpr float MARGEN_PATIO_INF = 105.f;
 Arena::Arena() {
     combateTerminado = false;
     ganador = nullptr;
-
     combatiente1.pieza = nullptr;
     combatiente2.pieza = nullptr;
 }
@@ -22,7 +19,6 @@ Arena::Arena() {
 void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
     combateTerminado = false;
     ganador = nullptr;
-
     proyectiles.clear();
     obstaculos.clear();
 
@@ -31,39 +27,32 @@ void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
     float patioMinY = OFFSET_Y + MARGEN_PATIO_SUP;
     float patioMaxY = OFFSET_Y + ALTO - MARGEN_PATIO_INF;
 
-    Pieza* piezaLuz = nullptr;
-    Pieza* piezaOscuridad = nullptr;
-
-    if (p1->getBando() == LUZ) {
-        piezaLuz = p1;
-        piezaOscuridad = p2;
-    }
-    else {
-        piezaLuz = p2;
-        piezaOscuridad = p1;
-    }
+    Pieza* piezaLuz = (p1->getBando() == LUZ) ? p1 : p2;
+    Pieza* piezaOscuridad = (p1->getBando() == LUZ) ? p2 : p1;
 
     // Combatiente 1 SIEMPRE es PLANTA / LUZ / IZQUIERDA
     combatiente1.pieza = piezaLuz;
-    combatiente1.pos = sf::Vector2f(
-        patioMinX + 75.f,
-        (patioMinY + patioMaxY) / 2.f
-    );
+    combatiente1.pos = sf::Vector2f(patioMinX + 75.f, (patioMinY + patioMaxY) / 2.f);
     combatiente1.vel = sf::Vector2f(0.f, 0.f);
     combatiente1.tiempoRecarga = 0.f;
     combatiente1.teclaDsparoPulsada = false;
     combatiente1.multiplicadorVelocidad = 1.f;
+    combatiente1.estadoAnim = ANIM_IDLE;
+    combatiente1.frameActual = 0;
+    combatiente1.timerFrame = 0.f;
+    combatiente1.tiempoAtaque = 0.f;
 
     // Combatiente 2 SIEMPRE es ZOMBIE / OSCURIDAD / DERECHA
     combatiente2.pieza = piezaOscuridad;
-    combatiente2.pos = sf::Vector2f(
-        patioMaxX - 75.f,
-        (patioMinY + patioMaxY) / 2.f
-    );
+    combatiente2.pos = sf::Vector2f(patioMaxX - 75.f, (patioMinY + patioMaxY) / 2.f);
     combatiente2.vel = sf::Vector2f(0.f, 0.f);
     combatiente2.tiempoRecarga = 0.f;
     combatiente2.teclaDsparoPulsada = false;
     combatiente2.multiplicadorVelocidad = 1.f;
+    combatiente2.estadoAnim = ANIM_IDLE;
+    combatiente2.frameActual = 0;
+    combatiente2.timerFrame = 0.f;
+    combatiente2.tiempoAtaque = 0.f;
 
     generarObstaculos();
 
@@ -94,70 +83,72 @@ void Arena::generarObstaculos() {
         float anchoUtil = (patioMaxX - patioMinX) - margen * 2.f;
         float altoUtil = (patioMaxY - patioMinY) - margen * 2.f;
 
-        if (anchoUtil <= 0.f || altoUtil <= 0.f) {
-            break;
-        }
+        if (anchoUtil <= 0.f || altoUtil <= 0.f) break;
 
         obs.pos.x = patioMinX + margen + (float)(rand() % (int)anchoUtil);
         obs.pos.y = patioMinY + margen + (float)(rand() % (int)altoUtil);
 
-        float d1 = std::sqrt(
-            std::pow(obs.pos.x - combatiente1.pos.x, 2) +
-            std::pow(obs.pos.y - combatiente1.pos.y, 2)
-        );
+        float d1 = std::sqrt(std::pow(obs.pos.x - combatiente1.pos.x, 2) +
+            std::pow(obs.pos.y - combatiente1.pos.y, 2));
+        float d2 = std::sqrt(std::pow(obs.pos.x - combatiente2.pos.x, 2) +
+            std::pow(obs.pos.y - combatiente2.pos.y, 2));
 
-        float d2 = std::sqrt(
-            std::pow(obs.pos.x - combatiente2.pos.x, 2) +
-            std::pow(obs.pos.y - combatiente2.pos.y, 2)
-        );
-
-        // Evitamos que las nueces aparezcan encima de los combatientes
-        if (d1 < 145.f || d2 < 145.f) {
-            continue;
-        }
+        if (d1 < 145.f || d2 < 145.f) continue;
 
         bool demasiadoCerca = false;
-
         for (const auto& otro : obstaculos) {
-            float dist = std::sqrt(
-                std::pow(obs.pos.x - otro.pos.x, 2) +
-                std::pow(obs.pos.y - otro.pos.y, 2)
-            );
-
+            float dist = std::sqrt(std::pow(obs.pos.x - otro.pos.x, 2) +
+                std::pow(obs.pos.y - otro.pos.y, 2));
             if (dist < (obs.tam / 2.f + otro.tam / 2.f + 65.f)) {
                 demasiadoCerca = true;
                 break;
             }
         }
 
-        if (!demasiadoCerca) {
-            obstaculos.push_back(obs);
-        }
+        if (!demasiadoCerca) obstaculos.push_back(obs);
     }
 }
 
 void Arena::moverCombatiente(CombatienteArena& c, sf::Vector2f dir, float dt) {
     if (c.pieza == nullptr) return;
-
     float velocidad = (160.f + c.pieza->velAtaque * 30.f) * c.multiplicadorVelocidad;
-
     sf::Vector2f nuevaPos = c.pos + dir * velocidad * dt;
-
-    if (dentroDeArena(nuevaPos) && !colisionaConObstaculo(nuevaPos, TAM_PIEZA)) {
+    if (dentroDeArena(nuevaPos) && !colisionaConObstaculo(nuevaPos, TAM_PIEZA))
         c.pos = nuevaPos;
-    }
+}
+
+void Arena::notificarDisparo(CombatienteArena& c) {
+    c.estadoAnim = ANIM_ATTACK;
+    c.frameActual = 0;
+    c.timerFrame = 0.f;
+    c.tiempoAtaque = 7 * c.duracionFrame;
+}
+
+static bool esMelee(const std::string& nombre) {
+    return nombre == "Carnivora" || nombre == "Supercerebroz";
 }
 
 void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo) {
     if (tirador.pieza == nullptr || objetivo.pieza == nullptr) return;
     if (tirador.tiempoRecarga > 0.f) return;
 
+    if (esMelee(tirador.pieza->getNombre())) {
+        sf::Vector2f diff = objetivo.pos - tirador.pos;
+        float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        if (dist > TAM_PIEZA * 2.5f) return;
+        objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f;
+        if (objetivo.pieza->vida < 0.f) objetivo.pieza->vida = 0.f;
+        tirador.tiempoRecarga = 0.6f;
+        notificarDisparo(tirador);
+        std::cout << tirador.pieza->getNombre() << " MUERDE a "
+            << objetivo.pieza->getNombre() << "! Vida: "
+            << objetivo.pieza->vida << std::endl;
+        return;
+    }
+
     sf::Vector2f dir = objetivo.pos - tirador.pos;
-
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-
     if (len < 1.f) return;
-
     dir /= len;
 
     Proyectil p;
@@ -167,8 +158,8 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
     p.esDeLuz = (tirador.pieza->getBando() == LUZ);
 
     proyectiles.push_back(p);
-
     tirador.tiempoRecarga = 0.5f;
+    notificarDisparo(tirador);
 
     std::cout << tirador.pieza->getNombre() << " DISPARA! Proyectiles activos: "
         << proyectiles.size() << std::endl;
@@ -177,27 +168,13 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
 void Arena::actualizarProyectiles(float dt) {
     for (auto& p : proyectiles) {
         if (!p.activo) continue;
-
         p.pos += p.vel * dt;
-
-        if (!dentroDeArena(p.pos)) {
-            p.activo = false;
-            continue;
-        }
-
-        if (colisionaConObstaculo(p.pos, TAM_PROYECTIL / 2.f)) {
-            p.activo = false;
-        }
+        if (!dentroDeArena(p.pos)) { p.activo = false; continue; }
+        if (colisionaConObstaculo(p.pos, TAM_PROYECTIL / 2.f)) p.activo = false;
     }
-
     proyectiles.erase(
-        std::remove_if(
-            proyectiles.begin(),
-            proyectiles.end(),
-            [](const Proyectil& p) {
-                return !p.activo;
-            }
-        ),
+        std::remove_if(proyectiles.begin(), proyectiles.end(),
+            [](const Proyectil& p) { return !p.activo; }),
         proyectiles.end()
     );
 }
@@ -213,36 +190,22 @@ void Arena::comprobarColisiones() {
 
         if (p.esDeLuz) {
             sf::Vector2f diff = p.pos - oscuridad.pos;
-
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-
             if (dist < TAM_PIEZA * 1.5f) {
                 oscuridad.pieza->vida -= luz.pieza->fuerza * 0.3f;
-
-                if (oscuridad.pieza->vida < 0.f) {
-                    oscuridad.pieza->vida = 0.f;
-                }
-
+                if (oscuridad.pieza->vida < 0.f) oscuridad.pieza->vida = 0.f;
                 p.activo = false;
-
                 std::cout << oscuridad.pieza->getNombre() << " golpeado! Vida: "
                     << oscuridad.pieza->vida << std::endl;
             }
         }
         else {
             sf::Vector2f diff = p.pos - luz.pos;
-
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-
             if (dist < TAM_PIEZA * 1.5f) {
                 luz.pieza->vida -= oscuridad.pieza->fuerza * 0.3f;
-
-                if (luz.pieza->vida < 0.f) {
-                    luz.pieza->vida = 0.f;
-                }
-
+                if (luz.pieza->vida < 0.f) luz.pieza->vida = 0.f;
                 p.activo = false;
-
                 std::cout << luz.pieza->getNombre() << " golpeado! Vida: "
                     << luz.pieza->vida << std::endl;
             }
@@ -254,31 +217,18 @@ void Arena::comprobarColisiones() {
 
     if (muere1 || muere2) {
         combateTerminado = true;
-
-        if (muere1 && muere2) {
-            ganador = nullptr;
-        }
-        else if (muere2) {
-            ganador = combatiente1.pieza;
-        }
-        else {
-            ganador = combatiente2.pieza;
-        }
+        if (muere1 && muere2) ganador = nullptr;
+        else if (muere2)      ganador = combatiente1.pieza;
+        else                  ganador = combatiente2.pieza;
     }
 }
 
 bool Arena::colisionaConObstaculo(sf::Vector2f pos, float radio) {
     for (const auto& obs : obstaculos) {
-        float dist = std::sqrt(
-            std::pow(pos.x - obs.pos.x, 2) +
-            std::pow(pos.y - obs.pos.y, 2)
-        );
-
-        if (dist < radio + obs.tam / 2.f) {
-            return true;
-        }
+        float dist = std::sqrt(std::pow(pos.x - obs.pos.x, 2) +
+            std::pow(pos.y - obs.pos.y, 2));
+        if (dist < radio + obs.tam / 2.f) return true;
     }
-
     return false;
 }
 
@@ -298,55 +248,60 @@ void Arena::update(float dt) {
     if (combateTerminado) return;
     if (combatiente1.pieza == nullptr || combatiente2.pieza == nullptr) return;
 
-    // Como combatiente1 siempre es LUZ y combatiente2 siempre es OSCURIDAD:
     CombatienteArena& luz = combatiente1;
     CombatienteArena& oscuridad = combatiente2;
 
     sf::Vector2f dirLuz(0.f, 0.f);
-
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dirLuz.y -= 1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) dirLuz.y += 1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) dirLuz.x -= 1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) dirLuz.x += 1.f;
 
     float lenLuz = std::sqrt(dirLuz.x * dirLuz.x + dirLuz.y * dirLuz.y);
-
-    if (lenLuz > 0.f) {
-        dirLuz /= lenLuz;
-    }
-
+    if (lenLuz > 0.f) dirLuz /= lenLuz;
     moverCombatiente(luz, dirLuz, dt);
 
     bool spaceAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
-
-    if (spaceAhora && !luz.teclaDsparoPulsada) {
+    if (spaceAhora && !luz.teclaDsparoPulsada)
         crearProyectil(luz, oscuridad);
-    }
-
+    else if (esMelee(luz.pieza->getNombre()))
+        crearProyectil(luz, oscuridad);
     luz.teclaDsparoPulsada = spaceAhora;
 
     sf::Vector2f dirOsc(0.f, 0.f);
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) dirOsc.y -= 1.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) dirOsc.y += 1.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) dirOsc.x -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    dirOsc.y -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  dirOsc.y += 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  dirOsc.x -= 1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) dirOsc.x += 1.f;
 
     float lenOsc = std::sqrt(dirOsc.x * dirOsc.x + dirOsc.y * dirOsc.y);
-
-    if (lenOsc > 0.f) {
-        dirOsc /= lenOsc;
-    }
-
+    if (lenOsc > 0.f) dirOsc /= lenOsc;
     moverCombatiente(oscuridad, dirOsc, dt);
 
     bool enterAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
-
-    if (enterAhora && !oscuridad.teclaDsparoPulsada) {
+    if (enterAhora && !oscuridad.teclaDsparoPulsada)
         crearProyectil(oscuridad, luz);
-    }
-
+    else if (esMelee(oscuridad.pieza->getNombre()))
+        crearProyectil(oscuridad, luz);
     oscuridad.teclaDsparoPulsada = enterAhora;
+
+    // Timer de animacion de ambos combatientes
+    for (CombatienteArena* c : { &combatiente1, &combatiente2 }) {
+        if (c->pieza == nullptr) continue;
+        if (c->estadoAnim == ANIM_ATTACK) {
+            c->tiempoAtaque -= dt;
+            if (c->tiempoAtaque <= 0.f) {
+                c->estadoAnim = ANIM_IDLE;
+                c->frameActual = 0;
+                c->timerFrame = 0.f;
+            }
+        }
+        c->timerFrame += dt;
+        if (c->timerFrame >= c->duracionFrame) {
+            c->timerFrame = 0.f;
+            c->frameActual++;
+        }
+    }
 
     if (combatiente1.tiempoRecarga > 0.f) combatiente1.tiempoRecarga -= dt;
     if (combatiente2.tiempoRecarga > 0.f) combatiente2.tiempoRecarga -= dt;
@@ -357,32 +312,16 @@ void Arena::update(float dt) {
 
 Pieza* Arena::iniciarCombateAutomatico(Pieza* p1, Pieza* p2) {
     std::cout << "COMBATE AUTOMATICO" << std::endl;
-
     while (p1->vida > 0 && p2->vida > 0) {
         p1->atacar(p2);
-
-        if (p2->vida > 0) {
-            p2->atacar(p1);
-        }
+        if (p2->vida > 0) p2->atacar(p1);
     }
-
-    if (p1->vida <= 0 && p2->vida <= 0) {
-        return nullptr;
-    }
-    else if (p1->vida > 0) {
-        return p1;
-    }
-    else {
-        return p2;
-    }
+    if (p1->vida <= 0 && p2->vida <= 0) return nullptr;
+    else if (p1->vida > 0)              return p1;
+    else                                return p2;
 }
 
 void Arena::setMultiplicadorVelocidad(Pieza* pieza, float multiplicador) {
-    if (combatiente1.pieza == pieza) {
-        combatiente1.multiplicadorVelocidad = multiplicador;
-    }
-
-    if (combatiente2.pieza == pieza) {
-        combatiente2.multiplicadorVelocidad = multiplicador;
-    }
+    if (combatiente1.pieza == pieza) combatiente1.multiplicadorVelocidad = multiplicador;
+    if (combatiente2.pieza == pieza) combatiente2.multiplicadorVelocidad = multiplicador;
 }

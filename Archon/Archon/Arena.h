@@ -15,6 +15,9 @@ struct Obstaculo {
     float tam;
 };
 
+// Estado de animacion del combatiente en la arena
+enum EstadoAnimArena { ANIM_IDLE, ANIM_ATTACK };
+
 struct CombatienteArena {
     sf::Vector2f pos;
     sf::Vector2f vel;
@@ -22,12 +25,18 @@ struct CombatienteArena {
     bool teclaDsparoPulsada;
     Pieza* pieza;
     float multiplicadorVelocidad;
+
+    // Campos de animacion por frames (inicializados en iniciarCombate)
+    EstadoAnimArena estadoAnim = ANIM_IDLE;
+    int   frameActual = 0;
+    float timerFrame = 0.f;
+    float duracionFrame = 0.1f;
+    float tiempoAtaque = 0.f;
 };
 
 class Arena {
 private:
     // Arena grande y cuadrada para ventana 1200x900
-    // Ocupa casi todo el alto disponible sin deformar el fondo del patio
     static constexpr float ANCHO = 860.f;
     static constexpr float ALTO = 860.f;
     static constexpr float OFFSET_X = 170.f;
@@ -40,10 +49,10 @@ private:
     CombatienteArena combatiente1; // LUZ / PLANTAS — izquierda — WASD + Espacio
     CombatienteArena combatiente2; // OSCURIDAD / ZOMBIES — derecha — Flechas + Enter
 
-    std::vector<Proyectil> proyectiles;
-    std::vector<Obstaculo> obstaculos;
+    std::vector<Proyectil>  proyectiles;
+    std::vector<Obstaculo>  obstaculos;
 
-    bool combateTerminado;
+    bool   combateTerminado;
     Pieza* ganador;
 
     void generarObstaculos();
@@ -61,8 +70,11 @@ public:
     void update(float dt);
     void setMultiplicadorVelocidad(Pieza* p, float n);
 
-    bool haTerminado() const { return combateTerminado; }
-    Pieza* getGanador() const { return ganador; }
+    // Activa la anim de ataque en un combatiente (se llama al disparar)
+    void notificarDisparo(CombatienteArena& c);
+
+    bool   haTerminado() const { return combateTerminado; }
+    Pieza* getGanador()  const { return ganador; }
 
     void limpiar() {
         combatiente1.pieza = nullptr;
@@ -70,10 +82,10 @@ public:
         proyectiles.clear();
     }
 
-    const CombatienteArena& getCombatiente1() const { return combatiente1; }
-    const CombatienteArena& getCombatiente2() const { return combatiente2; }
-    const std::vector<Proyectil>& getProyectiles() const { return proyectiles; }
-    const std::vector<Obstaculo>& getObstaculos() const { return obstaculos; }
+    const CombatienteArena& getCombatiente1()        const { return combatiente1; }
+    const CombatienteArena& getCombatiente2()        const { return combatiente2; }
+    const std::vector<Proyectil>& getProyectiles()   const { return proyectiles; }
+    const std::vector<Obstaculo>& getObstaculos()    const { return obstaculos; }
 
     static constexpr float getAncho() { return ANCHO; }
     static constexpr float getAlto() { return ALTO; }
@@ -82,6 +94,5 @@ public:
     static constexpr float getTamPieza() { return TAM_PIEZA; }
     static constexpr float getTamProyectil() { return TAM_PROYECTIL; }
 
-    // Combate automatico para hechizos u otras situaciones sin interfaz
     Pieza* iniciarCombateAutomatico(Pieza* p1, Pieza* p2);
 };
