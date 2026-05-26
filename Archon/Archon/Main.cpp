@@ -75,6 +75,58 @@ int main() {
     sf::RenderWindow ventana(sf::VideoMode({ 1200, 900 }), "Archon PvZ");
     ventana.setFramerateLimit(60);
 
+    bool pantallaCompleta = false;
+    sf::View vistaJuego(sf::FloatRect({ 0.f, 0.f }, { 1200.f, 900.f }));
+
+    auto manejarRedimension = [&](sf::Vector2u tam) {
+        float windowRatio = (float)tam.x / (float)tam.y;
+        float viewRatio = 1200.f / 900.f;
+        float sizeX = 1.f, sizeY = 1.f, posX = 0.f, posY = 0.f;
+
+        if (windowRatio > viewRatio) {
+            // Monitor más ancho que el juego
+            sizeX = viewRatio / windowRatio;
+            posX = (1.f - sizeX) / 2.f;
+        }
+        else {
+            // Monitor más alto que el juego
+            sizeY = windowRatio / viewRatio;
+            posY = (1.f - sizeY) / 2.f;
+        }
+
+        vistaJuego.setViewport(sf::FloatRect({ posX, posY }, { sizeX, sizeY }));
+        ventana.setView(vistaJuego);
+        };
+
+    // Ajuste inicial de la vista
+    manejarRedimension(ventana.getSize());
+
+    auto alternarPantallaCompleta = [&]() {
+        pantallaCompleta = !pantallaCompleta;
+        if (pantallaCompleta) {
+            ventana.create(sf::VideoMode::getDesktopMode(), "Archon PvZ", sf::State::Fullscreen);
+        }
+        else {
+            ventana.create(sf::VideoMode({ 1200, 900 }), "Archon PvZ", sf::State::Windowed);
+        }
+        ventana.setFramerateLimit(60);
+        manejarRedimension(ventana.getSize());
+        };
+
+    auto eventosGlobalesVentana = [&](const sf::Event& event) {
+        if (event.is<sf::Event::Closed>()) {
+            ventana.close();
+        }
+        else if (const auto* res = event.getIf<sf::Event::Resized>()) {
+            manejarRedimension(res->size);
+        }
+        else if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+            if (key->code == sf::Keyboard::Key::F11) {
+                alternarPantallaCompleta();
+            }
+        }
+        };
+
     sf::Font fuente;
 
     if (!fuente.openFromFile("assets/SamdanEvil.ttf")) {
@@ -130,9 +182,7 @@ int main() {
         // PANTALLA DE VICTORIA
         if (estadoJuego == EstadoJuego::VICTORIA) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) {
-                    ventana.close();
-                }
+                eventosGlobalesVentana(*event);
 
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     if (key->code == sf::Keyboard::Key::Enter ||
@@ -158,14 +208,13 @@ int main() {
             );
 
             ventana.display();
-
             continue;
         }
 
         // MENU PAUSA
         if (estadoJuego == EstadoJuego::PAUSA) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) ventana.close();
+                eventosGlobalesVentana(*event);
 
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     // Reanudar
@@ -212,7 +261,8 @@ int main() {
         // COMO JUGAR
         if (estadoJuego == EstadoJuego::COMO_JUGAR) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) ventana.close();
+                eventosGlobalesVentana(*event);
+
                 EstadoJuego resultado = menu.procesarEventoComoJugar(*event);
                 if (resultado == EstadoJuego::MENU) estadoJuego = EstadoJuego::MENU;
             }
@@ -225,9 +275,7 @@ int main() {
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) {
-                    ventana.close();
-                }
+                eventosGlobalesVentana(*event);
 
                 EstadoJuego resultado = menu.procesarEvento(*event);
 
@@ -278,9 +326,7 @@ int main() {
         // SELECCION DE DIFICULTAD
         if (estadoJuego == EstadoJuego::SELECCION_DIFICULTAD) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) {
-                    ventana.close();
-                }
+                eventosGlobalesVentana(*event);
 
                 EstadoJuego resultado = menu.procesarEventoDificultad(*event);
 
@@ -420,9 +466,7 @@ int main() {
         // MODO ARENA
         if (enCombate) {
             while (auto event = ventana.pollEvent()) {
-                if (event->is<sf::Event::Closed>()) {
-                    ventana.close();
-                }
+                eventosGlobalesVentana(*event);
             }
 
             arena->update(dt);
@@ -529,12 +573,10 @@ int main() {
                 }
             }
         }
-       
+
         // MODO TABLERO - EVENTOS
         while (auto event = ventana.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                ventana.close();
-            }
+            eventosGlobalesVentana(*event);
 
             if (animando || renderer->teleportEnCurso()) {
                 continue;
@@ -542,16 +584,17 @@ int main() {
 
             // CLICS CON EL RATON
             if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
+                sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y));
+
                 if (click->button == sf::Mouse::Button::Left) {
                     int fila;
                     int col;
 
-                    if (renderer->pixelACasilla(click->position.x, click->position.y, fila, col)) {
+                    // Pasamos las coordenadas traducidas
+                    if (renderer->pixelACasilla((int)posMundo.x, (int)posMundo.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
-
                         ModoHechizo modo = renderer->getModoHechizo();
-
                         Bando turno = juego->getTurnoActual();
 
                         // MODO HECHIZO
@@ -560,50 +603,22 @@ int main() {
 
                             if (modo == HECHIZO_ALIADO) {
                                 if (objetivo != nullptr && objetivo->getBando() == turno) {
-                                    juego->lanzarHechizo(
-                                        hechizoSeleccionado + 1,
-                                        objetivo,
-                                        fila,
-                                        col
-                                    );
-
-                                    renderer->lanzarAnimHechizo(
-                                        fila,
-                                        col,
-                                        animParaHechizo(hechizoSeleccionado)
-                                    );
-
+                                    juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                                    renderer->lanzarAnimHechizo(fila, col, animParaHechizo(hechizoSeleccionado));
                                     cancelarHechizo();
-
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) {
-                                        estadoJuego = EstadoJuego::VICTORIA;
-                                    }
+                                    if (juego->verificarVictoria()) estadoJuego = EstadoJuego::VICTORIA;
                                 }
                             }
                             else if (modo == HECHIZO_ENEMIGO) {
                                 if (objetivo != nullptr && objetivo->getBando() != turno) {
-                                    juego->lanzarHechizo(
-                                        hechizoSeleccionado + 1,
-                                        objetivo,
-                                        fila,
-                                        col
-                                    );
-
-                                    renderer->lanzarAnimHechizo(
-                                        fila,
-                                        col,
-                                        animParaHechizo(hechizoSeleccionado)
-                                    );
-
+                                    juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                                    renderer->lanzarAnimHechizo(fila, col, animParaHechizo(hechizoSeleccionado));
                                     cancelarHechizo();
-
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) {
-                                        estadoJuego = EstadoJuego::VICTORIA;
-                                    }
+                                    if (juego->verificarVictoria()) estadoJuego = EstadoJuego::VICTORIA;
                                 }
                             }
                             else if (modo == HECHIZO_CASILLA) {
@@ -611,7 +626,6 @@ int main() {
                                     if (objetivo != nullptr && objetivo->getBando() == turno) {
                                         piezaTeleport = objetivo;
                                         teleportPiezaElegida = true;
-
                                         renderer->setNombrePiezaTeleport(objetivo->getNombre());
                                     }
                                 }
@@ -619,62 +633,40 @@ int main() {
                                     if (objetivo == nullptr) {
                                         teleportDestFila = fila;
                                         teleportDestCol = col;
-
-                                        renderer->iniciarAnimTeleport(
-                                            piezaTeleport,
-                                            piezaTeleport->filaInicial,
-                                            piezaTeleport->colInicial,
-                                            fila,
-                                            col
-                                        );
-
+                                        renderer->iniciarAnimTeleport(piezaTeleport, piezaTeleport->filaInicial, piezaTeleport->colInicial, fila, col);
                                         renderer->deseleccionar();
                                     }
                                 }
                             }
-
                             continue;
                         }
 
                         // MODO NORMAL
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
-
                             if (p && p->getBando() == juego->getTurnoActual()) {
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
-
                                 arrastrando = true;
                                 moverConTeclado = false;
-
-                                posPixelMuneco = sf::Vector2f(
-                                    (float)click->position.x,
-                                    (float)click->position.y
-                                );
+                                posPixelMuneco = posMundo; // Usamos posMundo
                             }
                         }
                         else if (fila == fSel && col == cSel) {
                             arrastrando = true;
                             moverConTeclado = false;
-
-                            posPixelMuneco = sf::Vector2f(
-                                (float)click->position.x,
-                                (float)click->position.y
-                            );
+                            posPixelMuneco = posMundo; // Usamos posMundo
                         }
                         else {
                             if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                                 moverConTeclado = false;
                                 animando = true;
-
                                 targetFila = fila;
                                 targetCol = col;
-
                                 posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
                                 posPixelDestino = renderer->getCentroCasilla(fila, col);
                             }
                             else {
                                 renderer->deseleccionar();
-
                                 moverConTeclado = false;
                             }
                         }
@@ -682,32 +674,28 @@ int main() {
                 }
 
                 if (click->button == sf::Mouse::Button::Right) {
-                    if (renderer->getModoHechizo() != SIN_HECHIZO) {
-                        cancelarHechizo();
-                    }
-                    else {
-                        renderer->deseleccionar();
-
-                        moverConTeclado = false;
-                    }
+                    if (renderer->getModoHechizo() != SIN_HECHIZO) cancelarHechizo();
+                    else { renderer->deseleccionar(); moverConTeclado = false; }
                 }
             }
+            // MOVER RATON (ARRASTRAR)
             else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
                 if (arrastrando) {
-                    posPixelMuneco = sf::Vector2f(
-                        (float)move->position.x,
-                        (float)move->position.y
-                    );
+                    // Traductor también al mover
+                    sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(move->position.x, move->position.y));
+                    posPixelMuneco = posMundo;
                 }
             }
+            // SOLTAR RATON
             else if (const auto* release = event->getIf<sf::Event::MouseButtonReleased>()) {
                 if (release->button == sf::Mouse::Button::Left && arrastrando) {
                     arrastrando = false;
+                    int fila, col;
 
-                    int fila;
-                    int col;
+                    // Traductor también al soltar
+                    sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(release->position.x, release->position.y));
 
-                    if (renderer->pixelACasilla(release->position.x, release->position.y, fila, col)) {
+                    if (renderer->pixelACasilla((int)posMundo.x, (int)posMundo.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
 
@@ -719,7 +707,6 @@ int main() {
                     }
                 }
             }
-
             // TECLADO
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 // P: pausar

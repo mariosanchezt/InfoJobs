@@ -110,7 +110,7 @@ EstadoJuego Menu::confirmarBoton(int indice) {
 EstadoJuego Menu::procesarEvento(const sf::Event& event) {
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            sf::Vector2f pos((float)click->position.x, (float)click->position.y);
+            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
 
             for (int i = 0; i < (int)botones.size(); i++) {
                 if (botones[i].habilitado &&
@@ -154,7 +154,7 @@ void Menu::dibujar() {
     dibujarTitulo();
 
     sf::Vector2i mousePx = sf::Mouse::getPosition(ventana);
-    sf::Vector2f mouse((float)mousePx.x, (float)mousePx.y);
+    sf::Vector2f mouse = ventana.mapPixelToCoords(mousePx, ventana.getView());
 
     for (int i = 0; i < (int)botones.size(); i++) {
         bool hover = botones[i].habilitado &&
@@ -216,7 +216,7 @@ void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
 EstadoJuego Menu::procesarEventoDificultad(const sf::Event& event) {
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            sf::Vector2f pos((float)click->position.x, (float)click->position.y);
+            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
 
             for (int i = 0; i < (int)botonesDificultad.size(); i++) {
                 if (botonesDificultad[i].habilitado &&
@@ -288,7 +288,7 @@ void Menu::dibujarDificultad() {
     }
 
     sf::Vector2i mousePx = sf::Mouse::getPosition(ventana);
-    sf::Vector2f mouse((float)mousePx.x, (float)mousePx.y);
+    sf::Vector2f mouse = ventana.mapPixelToCoords(mousePx, ventana.getView());
 
     for (int i = 0; i < (int)botonesDificultad.size(); i++) {
         bool hover = botonesDificultad[i].forma.getGlobalBounds().contains(mouse);
@@ -317,10 +317,12 @@ EstadoJuego Menu::procesarEventoComoJugar(const sf::Event& event) {
     }
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            float x = (float)click->position.x;
+            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
+            float x = pos.x;
+
             // Click en mitad izquierda → pagina anterior, mitad derecha → siguiente
             if (x < VENTANA_ANCHO / 2.f) { if (paginaComoJugar > 0) paginaComoJugar--; }
-            else                          { if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++; }
+            else { if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++; }
         }
     }
     return EstadoJuego::COMO_JUGAR;
@@ -361,7 +363,7 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
         "  periodicamente. El color de la casilla puede dar ventaja\n"
         "  o desventaja en el combate segun el bando.\n\n"
         "CONTROLES TABLERO:\n"
-        "  Raton:   click en pieza para seleccionar, click en destino para mover.\n"
+        "  Raton:    click en pieza para seleccionar, click en destino para mover.\n"
         "  Teclado: WASD / Flechas para mover cursor  |  Espacio / Enter para confirmar.\n"
         "  P: pausar  |  H: abrir panel de hechizos  |  Esc: deseleccionar / cancelar.",
 
@@ -418,7 +420,7 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
     // Panel central — alto ampliado para que quepa todo el texto
     float pw = 880.f, ph = 720.f;
     float px = (VENTANA_ANCHO - pw) / 2.f;
-    float py = (VENTANA_ALTO  - ph) / 2.f;
+    float py = (VENTANA_ALTO - ph) / 2.f;
 
     sf::RectangleShape panel(sf::Vector2f(pw, ph));
     panel.setPosition(sf::Vector2f(px, py));
