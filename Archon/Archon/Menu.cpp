@@ -415,8 +415,8 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
         "  Dorado = fortalecida    |  Azul oscuro = escudo"
     };
 
-    // Panel central
-    float pw = 860.f, ph = 600.f;
+    // Panel central — alto ampliado para que quepa todo el texto
+    float pw = 880.f, ph = 720.f;
     float px = (VENTANA_ANCHO - pw) / 2.f;
     float py = (VENTANA_ALTO  - ph) / 2.f;
 
@@ -428,60 +428,71 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
     ventana.draw(panel);
 
     // Titulo de pagina
-    sf::Text txtTitulo(fuente, titulos[pagina], 34);
+    sf::Text txtTitulo(fuente, titulos[pagina], 32);
     txtTitulo.setFillColor(sf::Color(180, 200, 255));
     txtTitulo.setStyle(sf::Text::Bold);
     sf::FloatRect tb = txtTitulo.getLocalBounds();
-    txtTitulo.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - tb.size.x / 2.f, py + 20.f));
+    txtTitulo.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - tb.size.x / 2.f, py + 18.f));
     ventana.draw(txtTitulo);
 
     // Separador
     sf::RectangleShape sep(sf::Vector2f(pw - 60.f, 2.f));
-    sep.setPosition(sf::Vector2f(px + 30.f, py + 70.f));
+    sep.setPosition(sf::Vector2f(px + 30.f, py + 62.f));
     sep.setFillColor(sf::Color(100, 100, 180, 180));
     ventana.draw(sep);
 
-    // Contenido (linea a linea)
-    float yTexto = py + 85.f;
+    // Contenido: lineas normales 22px, lineas vacias solo 8px
+    float yTexto = py + 74.f;
     std::string linea;
     std::istringstream stream(contenidos[pagina]);
     while (std::getline(stream, linea)) {
         if (!linea.empty()) {
-            sf::Text t(fuente, linea, 20);
+            sf::Text t(fuente, linea, 17);
             t.setFillColor(sf::Color(220, 220, 220));
-            t.setPosition(sf::Vector2f(px + 30.f, yTexto));
+            t.setPosition(sf::Vector2f(px + 28.f, yTexto));
             ventana.draw(t);
+            yTexto += 23.f;
         }
-        yTexto += 28.f;
+        else {
+            yTexto += 8.f;
+        }
     }
 
-    // Indicador de pagina
-    std::string indicador = std::to_string(pagina + 1) + " / " + std::to_string(TOTAL_PAGINAS);
-    sf::Text txtPag(fuente, indicador, 22);
-    txtPag.setFillColor(sf::Color(160, 160, 200));
-    sf::FloatRect pb2 = txtPag.getLocalBounds();
-    txtPag.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - pb2.size.x / 2.f, py + ph - 60.f));
-    ventana.draw(txtPag);
+    // Separador inferior
+    sf::RectangleShape sep2(sf::Vector2f(pw - 60.f, 1.f));
+    sep2.setPosition(sf::Vector2f(px + 30.f, py + ph - 68.f));
+    sep2.setFillColor(sf::Color(80, 80, 140, 140));
+    ventana.draw(sep2);
 
-    // Flechas de navegacion
+    // Fila inferior: ANTERIOR  |  pagina X/4  |  SIGUIENTE  +  ESC
+    float yNav = py + ph - 52.f;
+
     if (pagina > 0) {
-        sf::Text fIzq(fuente, "< ANTERIOR", 20);
-        fIzq.setFillColor(sf::Color(180, 180, 255));
-        fIzq.setPosition(sf::Vector2f(px + 20.f, py + ph - 60.f));
+        sf::Text fIzq(fuente, "< ANTERIOR", 19);
+        fIzq.setFillColor(sf::Color(160, 160, 255));
+        fIzq.setPosition(sf::Vector2f(px + 20.f, yNav));
         ventana.draw(fIzq);
     }
+
+    std::string indicador = std::to_string(pagina + 1) + " / " + std::to_string(TOTAL_PAGINAS);
+    sf::Text txtPag(fuente, indicador, 19);
+    txtPag.setFillColor(sf::Color(140, 140, 190));
+    sf::FloatRect pb2 = txtPag.getLocalBounds();
+    txtPag.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - pb2.size.x / 2.f, yNav));
+    ventana.draw(txtPag);
+
     if (pagina < TOTAL_PAGINAS - 1) {
-        sf::Text fDer(fuente, "SIGUIENTE >", 20);
-        fDer.setFillColor(sf::Color(180, 180, 255));
+        sf::Text fDer(fuente, "SIGUIENTE >", 19);
+        fDer.setFillColor(sf::Color(160, 160, 255));
         sf::FloatRect fd = fDer.getLocalBounds();
-        fDer.setPosition(sf::Vector2f(px + pw - fd.size.x - 20.f, py + ph - 60.f));
+        fDer.setPosition(sf::Vector2f(px + pw - fd.size.x - 20.f, yNav));
         ventana.draw(fDer);
     }
 
-    // Esc para volver
-    sf::Text txtEsc(fuente, "ESC: Volver al menu", 18);
-    txtEsc.setFillColor(sf::Color(130, 130, 150));
+    // ESC para volver — dentro del panel, debajo de la navegacion
+    sf::Text txtEsc(fuente, "[ ESC ]  Volver al menu", 17);
+    txtEsc.setFillColor(sf::Color(110, 110, 150));
     sf::FloatRect eb = txtEsc.getLocalBounds();
-    txtEsc.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - eb.size.x / 2.f, py + ph + 10.f));
+    txtEsc.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - eb.size.x / 2.f, py + ph - 26.f));
     ventana.draw(txtEsc);
 }
