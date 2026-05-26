@@ -41,6 +41,8 @@ Juego::Juego() {
 
     ia = nullptr;
     modoIA = false;
+
+    turnosJugados = 0;
 }
 
 void Juego::inicializarPartida() {
@@ -77,6 +79,7 @@ void Juego::inicializarPartida() {
 
 void Juego::cambiarTurno() {
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
+    turnosJugados++;
 
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;

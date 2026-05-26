@@ -1391,7 +1391,8 @@ void Renderer::dibujarPantallaVictoria(
     TipoVictoria tipoVictoria,
     int bajasLuz,
     int bajasOscuridad,
-    int bajasTotales
+    int bajasTotales,
+    int turnosJugados
 ) {
     bool esLuz = (ganador == LUZ);
     std::string fondoVictoria = esLuz ? "Plantas_Victoria.png" : "Zombies_Victoria.png";
@@ -1471,10 +1472,11 @@ void Renderer::dibujarPantallaVictoria(
         ? "Victoria por control de puntos de poder"
         : "Partida finalizada";
     textoC(txtTipo, 23, sf::Color::White, panelY + 158.f);
-    textoC("Piezas eliminadas: " + std::to_string(bajasTotales), 21, sf::Color(220u, 220u, 220u), panelY + 205.f);
-    textoC("Bajas plantas: " + std::to_string(bajasLuz), 18, sf::Color(120u, 240u, 150u), panelY + 245.f);
-    textoC("Bajas zombies: " + std::to_string(bajasOscuridad), 18, sf::Color(240u, 120u, 120u), panelY + 275.f);
-    textoC("Pulsa ENTER o haz click para volver al menu", 18, sf::Color(190u, 190u, 190u), panelY + 335.f);
+    textoC("Turnos jugados: " + std::to_string(turnosJugados), 21, sf::Color(220u, 220u, 220u), panelY + 205.f);
+    textoC("Piezas eliminadas: " + std::to_string(bajasTotales), 21, sf::Color(220u, 220u, 220u), panelY + 235.f);
+    textoC("Bajas plantas: " + std::to_string(bajasLuz), 18, sf::Color(120u, 240u, 150u), panelY + 265.f);
+    textoC("Bajas zombies: " + std::to_string(bajasOscuridad), 18, sf::Color(240u, 120u, 120u), panelY + 293.f);
+    textoC("Pulsa ENTER o haz click para volver al menu", 18, sf::Color(190u, 190u, 190u), panelY + 345.f);
 }
 
 void Renderer::dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* hechizosUsadosOscuridad, int hechizoSeleccionado) {
@@ -1513,5 +1515,63 @@ void Renderer::dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* 
         texto.setFillColor(listaUsados[i] ? sf::Color(120, 120, 120) : sf::Color::White);
         texto.setPosition(sf::Vector2f(x + 4.f, y + 16.f));
         ventana.draw(texto);
+    }
+}
+
+void Renderer::dibujarMenuPausa() {
+    // Overlay oscuro sobre el juego pausado
+    sf::RectangleShape overlay(sf::Vector2f(VENTANA_ANCHO, VENTANA_ALTO));
+    overlay.setFillColor(sf::Color(0u, 0u, 0u, 170u));
+    ventana.draw(overlay);
+
+    // Panel central
+    float panelW = 500.f, panelH = 360.f;
+    float panelX = (VENTANA_ANCHO - panelW) / 2.f;
+    float panelY = (VENTANA_ALTO  - panelH) / 2.f;
+
+    sf::RectangleShape panel(sf::Vector2f(panelW, panelH));
+    panel.setPosition(sf::Vector2f(panelX, panelY));
+    panel.setFillColor(sf::Color(18u, 18u, 30u, 230u));
+    panel.setOutlineColor(sf::Color(120u, 120u, 200u));
+    panel.setOutlineThickness(3.f);
+    ventana.draw(panel);
+
+    if (!fuenteCargada) return;
+
+    // Titulo
+    sf::Text titulo(fuente, "PAUSA", 48);
+    titulo.setFillColor(sf::Color(180u, 180u, 255u));
+    titulo.setStyle(sf::Text::Bold);
+    sf::FloatRect tb = titulo.getLocalBounds();
+    titulo.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - tb.size.x / 2.f, panelY + 20.f));
+    ventana.draw(titulo);
+
+    sf::RectangleShape sep(sf::Vector2f(panelW - 60.f, 2.f));
+    sep.setPosition(sf::Vector2f(panelX + 30.f, panelY + 80.f));
+    sep.setFillColor(sf::Color(100u, 100u, 180u, 160u));
+    ventana.draw(sep);
+
+    // Opciones con teclas
+    struct Opcion { std::string tecla; std::string texto; };
+    Opcion opciones[] = {
+        { "P / ESC", "Reanudar partida" },
+        { "R",       "Reiniciar partida" },
+        { "M",       "Volver al menu principal" }
+    };
+
+    float yBase = panelY + 100.f;
+    for (const auto& op : opciones) {
+        sf::Text tTecla(fuente, "[" + op.tecla + "]", 22);
+        tTecla.setFillColor(sf::Color(140u, 200u, 255u));
+        tTecla.setStyle(sf::Text::Bold);
+        tTecla.setPosition(sf::Vector2f(panelX + 35.f, yBase));
+        ventana.draw(tTecla);
+
+        sf::Text tOpc(fuente, op.texto, 22);
+        tOpc.setFillColor(sf::Color(220u, 220u, 220u));
+        tOpc.setPosition(sf::Vector2f(panelX + 200.f, yBase));
+        ventana.draw(tOpc);
+
+        yBase += 70.f;
     }
 }

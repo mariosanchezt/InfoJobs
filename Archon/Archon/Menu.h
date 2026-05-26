@@ -4,7 +4,7 @@
 #include <vector>
 #include "IAJugador.h"
 
-enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, SELECCION_DIFICULTAD, VICTORIA };
+enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, SELECCION_DIFICULTAD, VICTORIA, PAUSA, COMO_JUGAR };
 
 struct Boton {
     sf::RectangleShape forma;
@@ -38,11 +38,18 @@ private:
     void dibujarBoton(const Boton& b, bool seleccionado);
     EstadoJuego confirmarBoton(int indice);
 
+    int paginaComoJugar;
+    static constexpr int TOTAL_PAGINAS = 4;
+    void dibujarPaginaComoJugar(int pagina);
+
 public:
     Menu(sf::RenderWindow& vent, sf::Font& f);
 
     EstadoJuego procesarEvento(const sf::Event& event);
     void dibujar();
+
+    EstadoJuego procesarEventoComoJugar(const sf::Event& event);
+    void dibujarComoJugar();
 
     EstadoJuego procesarEventoDificultad(const sf::Event& event);
     void dibujarDificultad();

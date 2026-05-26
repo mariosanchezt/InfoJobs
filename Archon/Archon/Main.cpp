@@ -153,11 +153,72 @@ int main() {
                 juego->getTipoVictoria(),
                 juego->getBajasLuz(),
                 juego->getBajasOscuridad(),
-                juego->getBajasTotales()
+                juego->getBajasTotales(),
+                juego->getTurnosJugados()
             );
 
             ventana.display();
 
+            continue;
+        }
+
+        // MENU PAUSA
+        if (estadoJuego == EstadoJuego::PAUSA) {
+            while (auto event = ventana.pollEvent()) {
+                if (event->is<sf::Event::Closed>()) ventana.close();
+
+                if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                    // Reanudar
+                    if (key->code == sf::Keyboard::Key::P ||
+                        key->code == sf::Keyboard::Key::Escape) {
+                        estadoJuego = EstadoJuego::JUGANDO_LOCAL;
+                    }
+                    // Reiniciar
+                    if (key->code == sf::Keyboard::Key::R) {
+                        delete juego;   juego = new Juego();
+                        delete renderer; renderer = new Renderer(ventana);
+                        delete arena;    arena = new Arena();
+                        renderer->cargarFuente("assets/SamdanEvil.ttf");
+                        renderer->cargarSprites("assets");
+                        juego->inicializarPartida();
+                        arrastrando = animando = moverConTeclado = enCombate = false;
+                        hechizoSeleccionado = -1;
+                        piezaTeleport = nullptr; teleportPiezaElegida = false;
+                        estadoJuego = EstadoJuego::JUGANDO_LOCAL;
+                    }
+                    // Volver al menu
+                    if (key->code == sf::Keyboard::Key::M) {
+                        estadoJuego = EstadoJuego::MENU;
+                    }
+                }
+            }
+
+            // Dibujamos el juego de fondo + overlay de pausa encima
+            ventana.clear(sf::Color(20, 20, 20));
+            renderer->dibujarEstadoTablero(
+                juego->getTablero(),
+                juego->getTurnoActual(),
+                juego->getHechizosUsadosLuz(),
+                juego->getHechizosUsadosOscuridad(),
+                hechizoSeleccionado,
+                juego->getCementerioLuz(),
+                juego->getCementerioOscuridad()
+            );
+            renderer->dibujarMenuPausa();
+            ventana.display();
+            continue;
+        }
+
+        // COMO JUGAR
+        if (estadoJuego == EstadoJuego::COMO_JUGAR) {
+            while (auto event = ventana.pollEvent()) {
+                if (event->is<sf::Event::Closed>()) ventana.close();
+                EstadoJuego resultado = menu.procesarEventoComoJugar(*event);
+                if (resultado == EstadoJuego::MENU) estadoJuego = EstadoJuego::MENU;
+            }
+            ventana.clear(sf::Color(15, 15, 25));
+            menu.dibujarComoJugar();
+            ventana.display();
             continue;
         }
 
@@ -658,6 +719,12 @@ int main() {
 
             // TECLADO
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                // P: pausar
+                if (key->code == sf::Keyboard::Key::P) {
+                    estadoJuego = EstadoJuego::PAUSA;
+                    continue;
+                }
+
                 // Escape: cancela hechizo o deselecciona
                 if (key->code == sf::Keyboard::Key::Escape) {
                     if (renderer->getModoHechizo() != SIN_HECHIZO) {

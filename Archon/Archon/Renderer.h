@@ -240,8 +240,11 @@ public:
         TipoVictoria tipoVictoria,
         int bajasLuz,
         int bajasOscuridad,
-        int bajasTotales
+        int bajasTotales,
+        int turnosJugados
     );
+
+    void dibujarMenuPausa();
 
     void dibujarPanelHechizos(
         Bando turno,

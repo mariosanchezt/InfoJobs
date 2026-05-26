@@ -52,6 +52,8 @@ private:
     IAJugador* ia;
     bool modoIA;
 
+    int turnosJugados;
+
     // Cementerio de piezas eliminadas
     std::map<std::string, int> cementerioLuz;
     std::map<std::string, int> cementerioOscuridad;
@@ -101,4 +103,5 @@ public:
     int getBajasLuz() const;
     int getBajasOscuridad() const;
     int getBajasTotales() const;
+    int getTurnosJugados() const { return turnosJugados; }
 };
