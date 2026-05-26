@@ -156,6 +156,7 @@ private:
     void dibujarMovimientosDisponibles();
 
     void dibujarBarraVida(float vida, float vidaMax, float x, float y, float ancho);
+    void dibujarBarraCooldown(float tiempoRecarga, float tiempoRecargaMax, float x, float y, float ancho);
 
     void dibujarIndicadorTurno(
         Bando turno,

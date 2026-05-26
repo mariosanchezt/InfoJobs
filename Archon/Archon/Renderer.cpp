@@ -678,6 +678,31 @@ void Renderer::dibujarBarraVida(float vida, float vidaMax, float x, float y, flo
     relleno.setFillColor(colorVida);
     ventana.draw(relleno);
 }
+void Renderer::dibujarBarraCooldown(float tiempoRecarga, float tiempoRecargaMax, float x, float y, float ancho) {
+    if (tiempoRecargaMax <= 0.f) return;
+
+    // Si ya puede atacar, dibujamos una rayita fina color Cyan
+    if (tiempoRecarga <= 0.f) {
+        sf::RectangleShape lista(sf::Vector2f(ancho, 3.f));
+        lista.setPosition(sf::Vector2f(x, y));
+        lista.setFillColor(sf::Color(100, 255, 255, 200));
+        ventana.draw(lista);
+        return;
+    }
+
+    // Si está recargando, barra naranja que se va llenando
+    float porcentaje = 1.f - (tiempoRecarga / tiempoRecargaMax);
+
+    sf::RectangleShape fondo(sf::Vector2f(ancho, 3.f));
+    fondo.setPosition(sf::Vector2f(x, y));
+    fondo.setFillColor(sf::Color(30, 30, 30, 180));
+    ventana.draw(fondo);
+
+    sf::RectangleShape relleno(sf::Vector2f(ancho * porcentaje, 3.f));
+    relleno.setPosition(sf::Vector2f(x, y));
+    relleno.setFillColor(sf::Color(255, 150, 50));
+    ventana.draw(relleno);
+}
 
 void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada, Tablero* tablero, int hechizoSeleccionado) {
     float yFranja = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
@@ -1067,6 +1092,22 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
     borde.setOutlineThickness(3.f);
     ventana.draw(borde);
 
+    for (const auto& onda : arena.getOndasMelee()) {
+        float progreso = 1.f - (onda.tiempoVida / onda.duracionMax);
+        float radioActual = onda.radioMax * progreso;
+
+        uint8_t alpha = static_cast<uint8_t>(200 * (1.f - progreso)); // Se va desvaneciendo
+        sf::Color colorOnda = onda.esDeLuz ? sf::Color(150, 255, 150, alpha) : sf::Color(255, 150, 150, alpha);
+
+        sf::CircleShape circ(radioActual);
+        circ.setFillColor(sf::Color::Transparent);
+        circ.setOutlineColor(colorOnda);
+        circ.setOutlineThickness(3.f + 4.f * (1.f - progreso));
+        circ.setOrigin(sf::Vector2f(radioActual, radioActual));
+        circ.setPosition(onda.pos);
+
+        ventana.draw(circ);
+    }
     bool tieneNuez = texturas.count("Nuez.png") > 0;
     for (const auto& obs : arena.getObstaculos()) {
         if (tieneNuez) {
@@ -1214,6 +1255,8 @@ void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
     float anchoVida = 60.f;
     dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima,
         c.pos.x - anchoVida / 2.f, c.pos.y - radio - 14.f, anchoVida);
+    dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax,
+        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 7.f, anchoVida);
 }
 
 void Renderer::dibujarHUDArena(Pieza* p1, Pieza* p2) {

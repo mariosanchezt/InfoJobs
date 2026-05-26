@@ -32,6 +32,14 @@ struct CombatienteArena {
     float timerFrame = 0.f;
     float duracionFrame = 0.1f;
     float tiempoAtaque = 0.f;
+    float tiempoRecargaMax = 0.5f;
+};
+struct OndaMelee {
+    sf::Vector2f pos;
+    float radioMax;
+    float tiempoVida;
+    float duracionMax;
+    bool esDeLuz;
 };
 
 class Arena {
@@ -51,6 +59,7 @@ private:
 
     std::vector<Proyectil>  proyectiles;
     std::vector<Obstaculo>  obstaculos;
+    std::vector<OndaMelee>  ondasMelee;
 
     bool   combateTerminado;
     Pieza* ganador;
@@ -86,6 +95,7 @@ public:
     const CombatienteArena& getCombatiente2()        const { return combatiente2; }
     const std::vector<Proyectil>& getProyectiles()   const { return proyectiles; }
     const std::vector<Obstaculo>& getObstaculos()    const { return obstaculos; }
+    const std::vector<OndaMelee>& getOndasMelee()    const { return ondasMelee; }
 
     static constexpr float getAncho() { return ANCHO; }
     static constexpr float getAlto() { return ALTO; }

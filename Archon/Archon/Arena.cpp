@@ -133,18 +133,33 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
     if (tirador.tiempoRecarga > 0.f) return;
 
     if (esMelee(tirador.pieza->getNombre())) {
+        float rango = TAM_PIEZA * 2.8f; // Radio de la onda expansiva
+
+        tirador.tiempoRecarga = 0.8f; // Cooldown más largo para golpes cuerpo a cuerpo
+        tirador.tiempoRecargaMax = 0.8f;
+        notificarDisparo(tirador);
+
+        // Generar la onda visual SIEMPRE (incluso si ataca al aire)
+        OndaMelee onda;
+        onda.pos = tirador.pos;
+        onda.radioMax = rango;
+        onda.duracionMax = 0.25f; // Tiempo que tarda la onda en expandirse y desaparecer
+        onda.tiempoVida = onda.duracionMax;
+        onda.esDeLuz = (tirador.pieza->getBando() == LUZ);
+        ondasMelee.push_back(onda);
+
+        // Comprobar si hay un enemigo dentro de la onda
         sf::Vector2f diff = objetivo.pos - tirador.pos;
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-        if (dist > TAM_PIEZA * 2.5f) return;
-        objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f;
-        if (objetivo.pieza->vida < 0.f) objetivo.pieza->vida = 0.f;
-        tirador.tiempoRecarga = 0.6f;
-        notificarDisparo(tirador);
-        std::cout << tirador.pieza->getNombre() << " MUERDE a "
-            << objetivo.pieza->getNombre() << "! Vida: "
-            << objetivo.pieza->vida << std::endl;
+
+        if (dist <= rango) {
+            objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f;
+            if (objetivo.pieza->vida < 0.f) objetivo.pieza->vida = 0.f;
+            std::cout << tirador.pieza->getNombre() << " Muerde a " << objetivo.pieza->getNombre() << "!" << std::endl;
+        }
         return;
     }
+    tirador.tiempoRecargaMax = 0.5f;
 
     sf::Vector2f dir = objetivo.pos - tirador.pos;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -264,8 +279,8 @@ void Arena::update(float dt) {
     bool spaceAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
     if (spaceAhora && !luz.teclaDsparoPulsada)
         crearProyectil(luz, oscuridad);
-    else if (esMelee(luz.pieza->getNombre()))
-        crearProyectil(luz, oscuridad);
+    
+       
     luz.teclaDsparoPulsada = spaceAhora;
 
     sf::Vector2f dirOsc(0.f, 0.f);
@@ -281,8 +296,8 @@ void Arena::update(float dt) {
     bool enterAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
     if (enterAhora && !oscuridad.teclaDsparoPulsada)
         crearProyectil(oscuridad, luz);
-    else if (esMelee(oscuridad.pieza->getNombre()))
-        crearProyectil(oscuridad, luz);
+  
+       
     oscuridad.teclaDsparoPulsada = enterAhora;
 
     // Timer de animacion de ambos combatientes
@@ -305,6 +320,14 @@ void Arena::update(float dt) {
 
     if (combatiente1.tiempoRecarga > 0.f) combatiente1.tiempoRecarga -= dt;
     if (combatiente2.tiempoRecarga > 0.f) combatiente2.tiempoRecarga -= dt;
+    for (auto& onda : ondasMelee) {
+        onda.tiempoVida -= dt;
+    }
+    ondasMelee.erase(
+        std::remove_if(ondasMelee.begin(), ondasMelee.end(),
+            [](const OndaMelee& o) { return o.tiempoVida <= 0.f; }),
+        ondasMelee.end()
+    );
 
     actualizarProyectiles(dt);
     comprobarColisiones();
