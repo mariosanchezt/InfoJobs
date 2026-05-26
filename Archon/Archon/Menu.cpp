@@ -341,52 +341,78 @@ void Menu::dibujarComoJugar() {
 
 void Menu::dibujarPaginaComoJugar(int pagina) {
     static const std::string titulos[4] = {
-        "MECANICAS BASICAS",
-        "LAS PIEZAS",
-        "LA ARENA DE COMBATE",
-        "LOS HECHIZOS"
+        "TABLERO Y REGLAS",
+        "PIEZAS Y MOVIMIENTO",
+        "ARENA DE COMBATE",
+        "HECHIZOS"
     };
 
     static const std::string contenidos[4] = {
-        "El tablero es una cuadricula de 9x9 casillas.\n"
-        "Cada turno, un jugador mueve una pieza.\n"
-        "LUZ (plantas) empieza a la izquierda, OSCURIDAD (zombies) a la derecha.\n\n"
-        "Hay 5 PUNTOS DE PODER marcados con diamantes dorados:\n"
-        "el centro y los 4 centros de los bordes.\n\n"
-        "Se gana de dos formas:\n"
-        "- Eliminar todas las piezas del enemigo.\n"
-        "- Ocupar los 5 puntos de poder a la vez.\n\n"
-        "Las casillas grises cambian de color periodicamente\n"
-        "(ciclo de oscilacion) afectando a las bonificaciones.",
+        // Pagina 1 - Tablero y reglas
+        "OBJETIVO: gana el primero que cumpla una de estas dos condiciones:\n"
+        "  - Eliminar todas las piezas enemigas.\n"
+        "  - Ocupar los 5 Puntos de Poder al mismo tiempo.\n\n"
+        "PUNTOS DE PODER: las 5 casillas con diamante dorado\n"
+        "  (centro del tablero + centros de los 4 bordes).\n"
+        "  Los paneles laterales muestran cuantos controla cada bando.\n\n"
+        "TURNOS: LUZ (plantas) siempre empieza. Se alternan.\n"
+        "  Solo puedes mover tus propias piezas.\n\n"
+        "CICLO DE OSCILACION: las casillas grises cambian de color\n"
+        "  periodicamente. El color de la casilla puede dar ventaja\n"
+        "  o desventaja en el combate segun el bando.\n\n"
+        "CONTROLES TABLERO:\n"
+        "  Raton:   click en pieza para seleccionar, click en destino para mover.\n"
+        "  Teclado: WASD / Flechas para mover cursor  |  Espacio / Enter para confirmar.\n"
+        "  P: pausar  |  H: abrir panel de hechizos  |  Esc: deseleccionar / cancelar.",
 
-        "Hay 6 tipos de piezas por bando (+ 1 lider):\n\n"
-        "TANQUE  (Pomelo / All-Star)     Vida alta, movimiento lento.\n"
-        "MELEE   (Carnivora / Supercerebroz)  Daño alto, rango corto.\n"
-        "DISTANCIA (Lanzaguisantes / Soldado)  Dispara lejos.\n"
-        "RAPIDA  (Frutaestrella / Zombidito)  Velocidad alta.\n"
-        "VOLADORA (Mazorca / Ingeniero)  Puede saltar piezas.\n"
-        "LIDER   (Dave el Loco / Dr. Zomboss) Teletransporte.\n\n"
-        "Al seleccionar una pieza se muestran sus casillas\n"
-        "de movimiento disponibles en verde.",
+        // Pagina 2 - Piezas y movimiento
+        "Hay 6 tipos de pieza por bando mas un lider especial:\n\n"
+        "  TANQUE    Pomelo / All-Star\n"
+        "            Vida muy alta. Lento (radio 2). Aguanta bien en puntos de poder.\n\n"
+        "  MELEE     Carnivora / Supercerebroz\n"
+        "            Daño muy alto. Radio 3-4. Ideal para eliminar piezas.\n\n"
+        "  DISTANCIA Lanzaguisantes / Soldado\n"
+        "            Dispara lejos. Radio de movimiento 4. Bueno para cubrir zona.\n\n"
+        "  RAPIDA    Frutaestrella / Zombidito\n"
+        "            Velocidad de ataque alta. Util para hostigar al enemigo.\n\n"
+        "  VOLADORA  Mazorca / Ingeniero\n"
+        "            Puede saltar por encima de otras piezas al moverse.\n\n"
+        "  LIDER     Dave el Loco / Dr. Zomboss\n"
+        "            Se teletransporta a cualquier casilla libre del tablero.\n\n"
+        "Al seleccionar una pieza, los cuadros VERDES indican a donde puede ir.",
 
-        "Cuando dos piezas enemigas chocan en una casilla\n"
-        "se abre una ARENA de combate en tiempo real.\n\n"
-        "PLANTAS (LUZ):   WASD para moverse  |  ESPACIO para disparar.\n"
-        "ZOMBIES (OSC):   Flechas para moverse  |  ENTER para disparar.\n\n"
-        "Gana quien reduzca la vida del rival a 0 primero.\n"
-        "Si ambos mueren a la vez, la casilla queda libre.\n\n"
-        "Los obstaculos del escenario se generan al azar.\n"
-        "Puedes esquivarlos o usarlos como cover.",
+        // Pagina 3 - Arena
+        "Cuando mueves una pieza a una casilla ocupada por el enemigo\n"
+        "se abre la ARENA: un combate en tiempo real entre ambas piezas.\n\n"
+        "CONTROLES EN LA ARENA:\n"
+        "  PLANTAS (LUZ)     Moverse: W A S D        Disparar: ESPACIO\n"
+        "  ZOMBIES (OSC)     Moverse: flechas         Disparar: ENTER\n\n"
+        "MECANICAS:\n"
+        "  - Cada disparo tiene tiempo de recarga, no puedes spamear.\n"
+        "  - Los proyectiles se destruyen al chocar con obstaculos.\n"
+        "  - Los obstaculos del escenario se generan al azar cada combate.\n"
+        "  - La vida de las piezas que entran al combate es la que tienen\n"
+        "    en ese momento (puede estar reducida por hechizos previos).\n\n"
+        "RESULTADO:\n"
+        "  - Gana quien deje al rival sin vida.\n"
+        "  - Si los dos mueren a la vez, la casilla queda vacia.\n"
+        "  - El ganador ocupa la casilla del perdedor.",
 
-        "Pulsa H durante la partida para abrir el panel de hechizos.\n"
-        "Cada bando tiene 7 hechizos de un solo uso (teclas 1-7).\n\n"
-        "1 - CURACION:    Recupera vida de una pieza aliada.\n"
-        "2 - TELEPORTE:   Mueve una pieza aliada a cualquier casilla.\n"
-        "3 - DANO:        Reduce la vida de una pieza enemiga.\n"
-        "4 - RALENTIZAR:  Reduce la velocidad de ataque enemiga.\n"
-        "5 - FORTALECER:  Aumenta la fuerza de una pieza aliada.\n"
-        "6 - ESCUDO:      Da resistencia extra a una pieza aliada.\n"
-        "7 - CONGELAR:    Inmoviliza completamente a un enemigo."
+        // Pagina 4 - Hechizos
+        "Pulsa H para abrir el panel de hechizos durante tu turno.\n"
+        "Cada bando tiene 7 hechizos, cada uno de UN SOLO USO (teclas 1-7).\n"
+        "Usar un hechizo consume el turno igual que mover una pieza.\n\n"
+        "  1 - CURACION      Recupera vida de una pieza aliada.\n"
+        "  2 - TELEPORTE     Mueve una pieza aliada a cualquier casilla libre.\n"
+        "                    Primero seleccionas la pieza, luego el destino.\n"
+        "  3 - DANO          Reduce directamente la vida de una pieza enemiga.\n"
+        "  4 - RALENTIZAR    Reduce la velocidad de ataque de una pieza enemiga.\n"
+        "  5 - FORTALECER    Aumenta la fuerza de ataque de una pieza aliada.\n"
+        "  6 - ESCUDO        Aumenta la resistencia de una pieza aliada.\n"
+        "  7 - CONGELAR      Inmoviliza una pieza enemiga durante un turno.\n\n"
+        "Los efectos activos se muestran con un borde de color sobre la pieza:\n"
+        "  Azul claro = congelada  |  Amarillo = ralentizada\n"
+        "  Dorado = fortalecida    |  Azul oscuro = escudo"
     };
 
     // Panel central

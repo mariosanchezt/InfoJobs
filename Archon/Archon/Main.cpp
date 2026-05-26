@@ -234,6 +234,9 @@ int main() {
                 if (resultado == EstadoJuego::SELECCION_DIFICULTAD) {
                     estadoJuego = EstadoJuego::SELECCION_DIFICULTAD;
                 }
+                else if (resultado == EstadoJuego::COMO_JUGAR) {
+                    estadoJuego = EstadoJuego::COMO_JUGAR;
+                }
                 else if (resultado != EstadoJuego::MENU) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
 
