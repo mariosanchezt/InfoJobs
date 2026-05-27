@@ -4,7 +4,17 @@
 #include <vector>
 #include "IAJugador.h"
 
-enum class EstadoJuego { MENU, CARGANDO, JUGANDO_LOCAL, JUGANDO_IA, SELECCION_DIFICULTAD, VICTORIA, PAUSA, COMO_JUGAR };
+enum class EstadoJuego {
+    MENU,
+    CARGANDO,
+    JUGANDO_LOCAL,
+    JUGANDO_IA,
+    SELECCION_DIFICULTAD,
+    VICTORIA,
+    PAUSA,
+    COMO_JUGAR,
+    CONFIGURACION
+};
 
 struct Boton {
     sf::RectangleShape forma;
@@ -28,6 +38,12 @@ private:
     sf::Sprite spriteFondo;
     bool fondoCargado;
 
+    // Icono de configuracion
+    sf::Texture texConfiguracion;
+    sf::Sprite spriteConfiguracion;
+    bool configuracionCargada;
+    sf::RectangleShape zonaConfiguracion;
+
     sf::Color colorBotonActivo;
     sf::Color colorBotonDeshabilitado;
     sf::Color colorBotonHover;
@@ -42,6 +58,36 @@ private:
     static constexpr int TOTAL_PAGINAS = 4;
     void dibujarPaginaComoJugar(int pagina);
 
+    // Configuracion
+    int opcionConfiguracionSeleccionada;
+
+    float volumenGeneral;
+    float volumenMusica;
+    float volumenEfectos;
+
+    bool sonidoSilenciado;
+    bool pantallaCompletaActivada;
+    bool solicitudCambiarPantallaCompleta;
+
+    static constexpr int TOTAL_OPCIONES_CONFIG = 7;
+
+    void dibujarFilaConfiguracion(
+        const std::string& nombre,
+        const std::string& valor,
+        float x,
+        float y,
+        bool seleccionada
+    );
+
+    void dibujarBarraVolumen(
+        float valor,
+        float x,
+        float y,
+        bool seleccionada
+    );
+
+    void restablecerConfiguracion();
+
 public:
     Menu(sf::RenderWindow& vent, sf::Font& f);
 
@@ -53,6 +99,40 @@ public:
 
     EstadoJuego procesarEventoDificultad(const sf::Event& event);
     void dibujarDificultad();
+
+    EstadoJuego procesarEventoConfiguracion(const sf::Event& event);
+    void dibujarConfiguracion();
+
+    // Volumen aplicado al AudioManager
+    float getVolumenGeneral() const { return volumenGeneral; }
+
+    float getVolumenMusicaAplicado() const {
+        if (sonidoSilenciado) return 0.f;
+        return volumenMusica * volumenGeneral / 100.f;
+    }
+
+    float getVolumenEfectosAplicado() const {
+        if (sonidoSilenciado) return 0.f;
+        return volumenEfectos * volumenGeneral / 100.f;
+    }
+
+    bool getSonidoSilenciado() const { return sonidoSilenciado; }
+
+    bool getPantallaCompletaActivada() const {
+        return pantallaCompletaActivada;
+    }
+
+    void setPantallaCompletaActivada(bool activa) {
+        pantallaCompletaActivada = activa;
+    }
+
+    bool consumirSolicitudPantallaCompleta() {
+        if (solicitudCambiarPantallaCompleta) {
+            solicitudCambiarPantallaCompleta = false;
+            return true;
+        }
+        return false;
+    }
 
     Dificultad dificultadSeleccionada;
 };

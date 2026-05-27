@@ -179,6 +179,19 @@ int main() {
     audio.cargar();
     audio.playMenuMusic();
 
+    auto aplicarConfiguracion = [&]() {
+        audio.setVolumenMusica(menu.getVolumenMusicaAplicado());
+        audio.setVolumenEfectos(menu.getVolumenEfectosAplicado());
+
+        if (menu.consumirSolicitudPantallaCompleta()) {
+            if (menu.getPantallaCompletaActivada() != pantallaCompleta) {
+                alternarPantallaCompleta();
+            }
+        }
+        };
+
+    aplicarConfiguracion();
+
     while (ventana.isOpen()) {
         float dt = reloj.restart().asSeconds();
 
@@ -228,8 +241,8 @@ int main() {
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     // Reanudar
                     if (key->code == sf::Keyboard::Key::P ||
-                        key->code == sf::Keyboard::Key::Escape)
-                        audio.playGameMusic(); {
+                        key->code == sf::Keyboard::Key::Escape) {
+                        audio.playGameMusic();
                         estadoJuego = EstadoJuego::JUGANDO_LOCAL;
                     }
                     // Reiniciar
@@ -240,6 +253,7 @@ int main() {
                         renderer->cargarFuente("assets/SamdanEvil.ttf");
                         renderer->cargarSprites("assets");
                         juego->inicializarPartida();
+                        aplicarConfiguracion();
                         audio.playGameMusic();
                         arrastrando = animando = moverConTeclado = enCombate = false;
                         hechizoSeleccionado = -1;
@@ -284,6 +298,28 @@ int main() {
             continue;
         }
 
+        // CONFIGURACION
+        if (estadoJuego == EstadoJuego::CONFIGURACION) {
+            while (auto event = ventana.pollEvent()) {
+                eventosGlobalesVentana(*event);
+
+                EstadoJuego resultado = menu.procesarEventoConfiguracion(*event);
+
+                aplicarConfiguracion();
+
+                if (resultado == EstadoJuego::MENU) {
+                    estadoJuego = EstadoJuego::MENU;
+                }
+            }
+
+            aplicarConfiguracion();
+
+            ventana.clear(sf::Color(15, 15, 25));
+            menu.dibujarConfiguracion();
+            ventana.display();
+            continue;
+        }
+
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
@@ -297,7 +333,10 @@ int main() {
                 else if (resultado == EstadoJuego::COMO_JUGAR) {
                     estadoJuego = EstadoJuego::COMO_JUGAR;
                 }
-                else if (resultado != EstadoJuego::MENU) {
+                else if (resultado == EstadoJuego::CONFIGURACION) {
+                    estadoJuego = EstadoJuego::CONFIGURACION;
+                }
+                else if (resultado == EstadoJuego::CARGANDO) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
 
                     estadoJuego = EstadoJuego::JUGANDO_LOCAL;
@@ -326,6 +365,7 @@ int main() {
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
+                    aplicarConfiguracion();
                     audio.playGameMusic();
                 }
             }
@@ -375,6 +415,7 @@ int main() {
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
+                    aplicarConfiguracion();
                     audio.playGameMusic();
                 }
                 else if (resultado == EstadoJuego::MENU) {
@@ -439,6 +480,7 @@ int main() {
                         arena->setMultiplicadorVelocidad(ocupante, 0.f);
                     }
 
+                    aplicarConfiguracion();
                     audio.playArenaMusic();
                     enCombate = true;
 
@@ -543,6 +585,7 @@ int main() {
                     delete atacante;
                 }
 
+                aplicarConfiguracion();
                 audio.playGameMusic();
                 juego->cambiarTurno();
 
@@ -644,12 +687,13 @@ int main() {
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) { 
+                                    if (juego->verificarVictoria()) {
                                         if (juego->getBandoGanador() == LUZ)
                                             audio.playVictoria();
                                         else
                                             audio.playDerrota();
-                                        estadoJuego = EstadoJuego::VICTORIA; }
+                                        estadoJuego = EstadoJuego::VICTORIA;
+                                    }
                                 }
                             }
                             else if (modo == HECHIZO_ENEMIGO) {
@@ -659,12 +703,13 @@ int main() {
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) { 
+                                    if (juego->verificarVictoria()) {
                                         if (juego->getBandoGanador() == LUZ)
                                             audio.playVictoria();
                                         else
                                             audio.playDerrota();
-                                        estadoJuego = EstadoJuego::VICTORIA; }
+                                        estadoJuego = EstadoJuego::VICTORIA;
+                                    }
                                 }
                             }
                             else if (modo == HECHIZO_CASILLA) {
@@ -757,6 +802,7 @@ int main() {
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 // P: pausar
                 if (key->code == sf::Keyboard::Key::P) {
+                    aplicarConfiguracion();
                     audio.playPausa();
                     estadoJuego = EstadoJuego::PAUSA;
                     continue;
