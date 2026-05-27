@@ -124,10 +124,13 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Arena.h" />
+    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="IAJugador.h" />
     <ClInclude Include="Juego.h" />
     <ClInclude Include="Menu.h" />
@@ -143,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Arena.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="IAJugador.cpp" />
     <ClCompile Include="Juego.cpp" />
     <ClCompile Include="Main.cpp" />

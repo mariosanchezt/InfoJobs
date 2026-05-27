@@ -1,8 +1,10 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Juego.h"
 #include "Renderer.h"
 #include "Arena.h"
 #include "Menu.h"
+#include "AudioManager.h"
 #include <iostream>
 #include <cmath>
 
@@ -172,6 +174,11 @@ int main() {
 
     sf::Clock reloj;
 
+    //AUDIO
+    AudioManager audio;
+    audio.cargar();
+    audio.playMenuMusic();
+
     while (ventana.isOpen()) {
         float dt = reloj.restart().asSeconds();
 
@@ -187,11 +194,13 @@ int main() {
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     if (key->code == sf::Keyboard::Key::Enter ||
                         key->code == sf::Keyboard::Key::Escape) {
+                        audio.playMenuMusic();
                         estadoJuego = EstadoJuego::MENU;
                     }
                 }
 
                 if (event->is<sf::Event::MouseButtonPressed>()) {
+                    audio.playMenuMusic();
                     estadoJuego = EstadoJuego::MENU;
                 }
             }
@@ -237,6 +246,7 @@ int main() {
                     }
                     // Volver al menu
                     if (key->code == sf::Keyboard::Key::M) {
+                        audio.playMenuMusic();
                         estadoJuego = EstadoJuego::MENU;
                     }
                 }
@@ -313,6 +323,7 @@ int main() {
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
+                    audio.playGameMusic();
                 }
             }
 
@@ -360,6 +371,7 @@ int main() {
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
+                    audio.playGameMusic();
                 }
                 else if (resultado == EstadoJuego::MENU) {
                     estadoJuego = EstadoJuego::MENU;

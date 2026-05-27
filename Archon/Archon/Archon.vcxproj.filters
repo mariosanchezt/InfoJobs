@@ -54,6 +54,9 @@
     <ClInclude Include="IAJugador.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PiezaMelee.cpp">
@@ -93,6 +96,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="IAJugador.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
