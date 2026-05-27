@@ -228,7 +228,8 @@ int main() {
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                     // Reanudar
                     if (key->code == sf::Keyboard::Key::P ||
-                        key->code == sf::Keyboard::Key::Escape) {
+                        key->code == sf::Keyboard::Key::Escape)
+                        audio.playGameMusic(); {
                         estadoJuego = EstadoJuego::JUGANDO_LOCAL;
                     }
                     // Reiniciar
@@ -239,6 +240,7 @@ int main() {
                         renderer->cargarFuente("assets/SamdanEvil.ttf");
                         renderer->cargarSprites("assets");
                         juego->inicializarPartida();
+                        audio.playGameMusic();
                         arrastrando = animando = moverConTeclado = enCombate = false;
                         hechizoSeleccionado = -1;
                         piezaTeleport = nullptr; teleportPiezaElegida = false;
@@ -414,6 +416,10 @@ int main() {
                     juego->cambiarTurno();
 
                     if (juego->verificarVictoria()) {
+                        if (juego->getBandoGanador() == LUZ)
+                            audio.playVictoria();
+                        else
+                            audio.playDerrota();
                         estadoJuego = EstadoJuego::VICTORIA;
                     }
                 }
@@ -433,6 +439,7 @@ int main() {
                         arena->setMultiplicadorVelocidad(ocupante, 0.f);
                     }
 
+                    audio.playArenaMusic();
                     enCombate = true;
 
                     renderer->setEstado(ARENA);
@@ -442,6 +449,10 @@ int main() {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
 
                 if (juego->verificarVictoria()) {
+                    if (juego->getBandoGanador() == LUZ)
+                        audio.playVictoria();
+                    else
+                        audio.playDerrota();
                     estadoJuego = EstadoJuego::VICTORIA;
                 }
             }
@@ -463,6 +474,10 @@ int main() {
             cancelarHechizo();
 
             if (juego->verificarVictoria()) {
+                if (juego->getBandoGanador() == LUZ)
+                    audio.playVictoria();
+                else
+                    audio.playDerrota();
                 estadoJuego = EstadoJuego::VICTORIA;
             }
         }
@@ -528,11 +543,16 @@ int main() {
                     delete atacante;
                 }
 
+                audio.playGameMusic();
                 juego->cambiarTurno();
 
                 tiempoEsperaIA = 0.f;
 
                 if (juego->verificarVictoria()) {
+                    if (juego->getBandoGanador() == LUZ)
+                        audio.playVictoria();
+                    else
+                        audio.playDerrota();
                     estadoJuego = EstadoJuego::VICTORIA;
                 }
             }
@@ -624,7 +644,12 @@ int main() {
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) estadoJuego = EstadoJuego::VICTORIA;
+                                    if (juego->verificarVictoria()) { 
+                                        if (juego->getBandoGanador() == LUZ)
+                                            audio.playVictoria();
+                                        else
+                                            audio.playDerrota();
+                                        estadoJuego = EstadoJuego::VICTORIA; }
                                 }
                             }
                             else if (modo == HECHIZO_ENEMIGO) {
@@ -634,7 +659,12 @@ int main() {
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    if (juego->verificarVictoria()) estadoJuego = EstadoJuego::VICTORIA;
+                                    if (juego->verificarVictoria()) { 
+                                        if (juego->getBandoGanador() == LUZ)
+                                            audio.playVictoria();
+                                        else
+                                            audio.playDerrota();
+                                        estadoJuego = EstadoJuego::VICTORIA; }
                                 }
                             }
                             else if (modo == HECHIZO_CASILLA) {
@@ -727,6 +757,7 @@ int main() {
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 // P: pausar
                 if (key->code == sf::Keyboard::Key::P) {
+                    audio.playPausa();
                     estadoJuego = EstadoJuego::PAUSA;
                     continue;
                 }
@@ -908,6 +939,10 @@ int main() {
                         }
 
                         if (juego->verificarVictoria()) {
+                            if (juego->getBandoGanador() == LUZ)
+                                audio.playVictoria();
+                            else
+                                audio.playDerrota();
                             estadoJuego = EstadoJuego::VICTORIA;
                         }
                     }
