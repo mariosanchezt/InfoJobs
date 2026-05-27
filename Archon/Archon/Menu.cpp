@@ -110,7 +110,10 @@ EstadoJuego Menu::confirmarBoton(int indice) {
 EstadoJuego Menu::procesarEvento(const sf::Event& event) {
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
+            sf::Vector2f pos = ventana.mapPixelToCoords(
+                sf::Vector2i(click->position.x, click->position.y),
+                ventana.getView()
+            );
 
             for (int i = 0; i < (int)botones.size(); i++) {
                 if (botones[i].habilitado &&
@@ -216,7 +219,10 @@ void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
 EstadoJuego Menu::procesarEventoDificultad(const sf::Event& event) {
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
+            sf::Vector2f pos = ventana.mapPixelToCoords(
+                sf::Vector2i(click->position.x, click->position.y),
+                ventana.getView()
+            );
 
             for (int i = 0; i < (int)botonesDificultad.size(); i++) {
                 if (botonesDificultad[i].habilitado &&
@@ -308,34 +314,52 @@ EstadoJuego Menu::procesarEventoComoJugar(const sf::Event& event) {
     if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
         if (key->code == sf::Keyboard::Key::Escape)
             return EstadoJuego::MENU;
-        if (key->code == sf::Keyboard::Key::Left || key->code == sf::Keyboard::Key::A) {
+
+        if (key->code == sf::Keyboard::Key::Left ||
+            key->code == sf::Keyboard::Key::A) {
             if (paginaComoJugar > 0) paginaComoJugar--;
         }
-        if (key->code == sf::Keyboard::Key::Right || key->code == sf::Keyboard::Key::D) {
+
+        if (key->code == sf::Keyboard::Key::Right ||
+            key->code == sf::Keyboard::Key::D) {
             if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++;
         }
     }
+
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
-            sf::Vector2f pos = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y), ventana.getView());
+            sf::Vector2f pos = ventana.mapPixelToCoords(
+                sf::Vector2i(click->position.x, click->position.y),
+                ventana.getView()
+            );
+
             float x = pos.x;
 
-            // Click en mitad izquierda → pagina anterior, mitad derecha → siguiente
-            if (x < VENTANA_ANCHO / 2.f) { if (paginaComoJugar > 0) paginaComoJugar--; }
-            else { if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++; }
+            // Click en mitad izquierda -> pagina anterior, mitad derecha -> siguiente
+            if (x < VENTANA_ANCHO / 2.f) {
+                if (paginaComoJugar > 0) paginaComoJugar--;
+            }
+            else {
+                if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++;
+            }
         }
     }
+
     return EstadoJuego::COMO_JUGAR;
 }
 
 void Menu::dibujarComoJugar() {
     // Fondo
-    if (fondoCargado) ventana.draw(spriteFondo);
-    else              ventana.clear(sf::Color(15, 15, 25));
+    if (fondoCargado) {
+        ventana.draw(spriteFondo);
+    }
+    else {
+        ventana.clear(sf::Color(15, 15, 25));
+    }
 
-    // Overlay semitransparente para mejorar legibilidad
+    // Overlay mas oscuro para mejorar la lectura del texto
     sf::RectangleShape overlay(sf::Vector2f(VENTANA_ANCHO, VENTANA_ALTO));
-    overlay.setFillColor(sf::Color(0, 0, 0, 160));
+    overlay.setFillColor(sf::Color(0, 0, 0, 190));
     ventana.draw(overlay);
 
     dibujarPaginaComoJugar(paginaComoJugar);
@@ -351,150 +375,238 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
 
     static const std::string contenidos[4] = {
         // Pagina 1 - Tablero y reglas
-        "OBJETIVO: gana el primero que cumpla una de estas dos condiciones:\n"
-        "  - Eliminar todas las piezas enemigas.\n"
-        "  - Ocupar los 5 Puntos de Poder al mismo tiempo.\n\n"
-        "PUNTOS DE PODER: las 5 casillas con diamante dorado\n"
-        "  (centro del tablero + centros de los 4 bordes).\n"
-        "  Los paneles laterales muestran cuantos controla cada bando.\n\n"
-        "TURNOS: LUZ (plantas) siempre empieza. Se alternan.\n"
-        "  Solo puedes mover tus propias piezas.\n\n"
-        "CICLO DE OSCILACION: las casillas grises cambian de color\n"
-        "  periodicamente. El color de la casilla puede dar ventaja\n"
-        "  o desventaja en el combate segun el bando.\n\n"
-        "CONTROLES TABLERO:\n"
-        "  Raton:    click en pieza para seleccionar, click en destino para mover.\n"
-        "  Teclado: WASD / Flechas para mover cursor  |  Espacio / Enter para confirmar.\n"
-        "  P: pausar  |  H: abrir panel de hechizos  |  Esc: deseleccionar / cancelar.",
+        "#OBJETIVO\n"
+        "Gana el primer bando que cumpla una condicion:\n"
+        "- Eliminar todas las piezas enemigas.\n"
+        "- Controlar los 5 puntos de poder a la vez.\n\n"
+
+        "#PUNTOS DE PODER\n"
+        "Son las casillas con diamante dorado.\n"
+        "Hay uno en el centro y cuatro en los bordes.\n"
+        "Los paneles laterales indican cuantos controla cada bando.\n\n"
+
+        "#TURNOS\n"
+        "Las plantas empiezan la partida.\n"
+        "Despues, los turnos se alternan.\n"
+        "Solo puedes mover tus propias piezas.\n\n"
+
+        "#CONTROLES DEL TABLERO\n"
+        "Raton: click en una pieza y click en el destino.\n"
+        "Teclado: WASD / flechas para mover el cursor.\n"
+        "Espacio / Enter: seleccionar o confirmar.\n"
+        "P: pausar   H: hechizos   Esc: cancelar.",
 
         // Pagina 2 - Piezas y movimiento
-        "Hay 6 tipos de pieza por bando mas un lider especial:\n\n"
-        "  TANQUE    Pomelo / All-Star\n"
-        "            Vida muy alta. Lento (radio 2). Aguanta bien en puntos de poder.\n\n"
-        "  MELEE     Carnivora / Supercerebroz\n"
-        "            Daño muy alto. Radio 3-4. Ideal para eliminar piezas.\n\n"
-        "  DISTANCIA Lanzaguisantes / Soldado\n"
-        "            Dispara lejos. Radio de movimiento 4. Bueno para cubrir zona.\n\n"
-        "  RAPIDA    Frutaestrella / Zombidito\n"
-        "            Velocidad de ataque alta. Util para hostigar al enemigo.\n\n"
-        "  VOLADORA  Mazorca / Ingeniero\n"
-        "            Puede saltar por encima de otras piezas al moverse.\n\n"
-        "  LIDER     Dave el Loco / Dr. Zomboss\n"
-        "            Se teletransporta a cualquier casilla libre del tablero.\n\n"
-        "Al seleccionar una pieza, los cuadros VERDES indican a donde puede ir.",
+        "#TIPOS DE PIEZA\n"
+        "Cada bando tiene piezas con funciones distintas.\n"
+        "- Tanque: mucha vida y buena defensa.\n"
+        "- Melee: mucho dano en combate directo.\n"
+        "- Distancia: buena para atacar desde lejos.\n"
+        "- Rapida: mas agilidad y velocidad de ataque.\n"
+        "- Voladora: puede saltar por encima de piezas.\n"
+        "- Lider: puede teletransportarse.\n\n"
+
+        "#PERSONAJES\n"
+        "Plantas: Pomelo, Carnivora, Lanzaguisantes,\n"
+        "Girasol, Mazorca y Dave el Loco.\n"
+        "Zombies: All-Star, Supercerebroz, Soldado,\n"
+        "Zombidito, Ingeniero y Dr. Zomboss.\n\n"
+
+        "#MOVIMIENTO\n"
+        "Al seleccionar una pieza se muestran casillas validas.\n"
+        "Las piezas GROUND no pueden saltar otras piezas.\n"
+        "Las piezas FLYING si pueden saltarlas.\n"
+        "Las piezas TELEPORT pueden ir a cualquier casilla libre.",
 
         // Pagina 3 - Arena
-        "Cuando mueves una pieza a una casilla ocupada por el enemigo\n"
-        "se abre la ARENA: un combate en tiempo real entre ambas piezas.\n\n"
-        "CONTROLES EN LA ARENA:\n"
-        "  PLANTAS (LUZ)     Moverse: W A S D        Disparar: ESPACIO\n"
-        "  ZOMBIES (OSC)     Moverse: flechas         Disparar: ENTER\n\n"
-        "MECANICAS:\n"
-        "  - Cada disparo tiene tiempo de recarga, no puedes spamear.\n"
-        "  - Los proyectiles se destruyen al chocar con obstaculos.\n"
-        "  - Los obstaculos del escenario se generan al azar cada combate.\n"
-        "  - La vida de las piezas que entran al combate es la que tienen\n"
-        "    en ese momento (puede estar reducida por hechizos previos).\n\n"
-        "RESULTADO:\n"
-        "  - Gana quien deje al rival sin vida.\n"
-        "  - Si los dos mueren a la vez, la casilla queda vacia.\n"
-        "  - El ganador ocupa la casilla del perdedor.",
+        "#ARENA DE COMBATE\n"
+        "Si atacas una casilla con una pieza enemiga,\n"
+        "se abre la arena de combate en tiempo real.\n\n"
+
+        "#CONTROLES EN LA ARENA\n"
+        "Plantas: W A S D para moverse y Espacio para disparar.\n"
+        "Zombies: flechas para moverse y Enter para disparar.\n\n"
+
+        "#MECANICAS\n"
+        "Cada disparo tiene tiempo de recarga.\n"
+        "Los proyectiles se destruyen al chocar con obstaculos.\n"
+        "Las nueces bloquean disparos y movimiento.\n"
+        "La vida al entrar en combate es la vida real de la pieza.\n\n"
+
+        "#RESULTADO DEL COMBATE\n"
+        "Gana quien deje al rival sin vida.\n"
+        "Si los dos mueren, la casilla queda vacia.\n"
+        "El ganador ocupa la casilla del perdedor.",
 
         // Pagina 4 - Hechizos
-        "Pulsa H para abrir el panel de hechizos durante tu turno.\n"
-        "Cada bando tiene 7 hechizos, cada uno de UN SOLO USO (teclas 1-7).\n"
-        "Usar un hechizo consume el turno igual que mover una pieza.\n\n"
-        "  1 - CURACION      Recupera vida de una pieza aliada.\n"
-        "  2 - TELEPORTE     Mueve una pieza aliada a cualquier casilla libre.\n"
-        "                    Primero seleccionas la pieza, luego el destino.\n"
-        "  3 - DANO          Reduce directamente la vida de una pieza enemiga.\n"
-        "  4 - RALENTIZAR    Reduce la velocidad de ataque de una pieza enemiga.\n"
-        "  5 - FORTALECER    Aumenta la fuerza de ataque de una pieza aliada.\n"
-        "  6 - ESCUDO        Aumenta la resistencia de una pieza aliada.\n"
-        "  7 - CONGELAR      Inmoviliza una pieza enemiga durante un turno.\n\n"
-        "Los efectos activos se muestran con un borde de color sobre la pieza:\n"
-        "  Azul claro = congelada  |  Amarillo = ralentizada\n"
-        "  Dorado = fortalecida    |  Azul oscuro = escudo"
+        "#HECHIZOS\n"
+        "Pulsa H para abrir el panel de hechizos.\n"
+        "Cada bando tiene 7 hechizos de un solo uso.\n"
+        "Usar un hechizo tambien consume el turno.\n\n"
+
+        "#LISTA DE HECHIZOS\n"
+        "1 - Curacion: recupera vida de una pieza aliada.\n"
+        "2 - Teleporte: mueve una pieza aliada a una casilla libre.\n"
+        "3 - Dano: reduce vida de una pieza enemiga.\n"
+        "4 - Ralentizar: reduce velocidad de ataque enemiga.\n"
+        "5 - Fortalecer: aumenta la fuerza de una pieza aliada.\n"
+        "6 - Escudo: protege a una pieza aliada.\n"
+        "7 - Congelar: bloquea a una pieza enemiga.\n\n"
+
+        "#EFECTOS VISUALES\n"
+        "Los efectos se muestran con bordes de color:\n"
+        "Azul claro = congelada    Amarillo = ralentizada\n"
+        "Dorado = fortalecida      Azul oscuro = escudo"
     };
 
-    // Panel central — alto ampliado para que quepa todo el texto
-    float pw = 880.f, ph = 720.f;
+    // Panel mas grande para aprovechar mejor la pantalla
+    float pw = 1060.f;
+    float ph = 800.f;
     float px = (VENTANA_ANCHO - pw) / 2.f;
     float py = (VENTANA_ALTO - ph) / 2.f;
 
+    // Sombra exterior
+    sf::RectangleShape sombra(sf::Vector2f(pw + 12.f, ph + 12.f));
+    sombra.setPosition(sf::Vector2f(px - 6.f, py + 6.f));
+    sombra.setFillColor(sf::Color(0, 0, 0, 160));
+    ventana.draw(sombra);
+
+    // Panel central
     sf::RectangleShape panel(sf::Vector2f(pw, ph));
     panel.setPosition(sf::Vector2f(px, py));
-    panel.setFillColor(sf::Color(20, 20, 35, 230));
-    panel.setOutlineColor(sf::Color(100, 100, 180));
+    panel.setFillColor(sf::Color(18, 18, 34, 245));
+    panel.setOutlineColor(sf::Color(125, 125, 220));
     panel.setOutlineThickness(3.f);
     ventana.draw(panel);
 
     // Titulo de pagina
-    sf::Text txtTitulo(fuente, titulos[pagina], 32);
-    txtTitulo.setFillColor(sf::Color(180, 200, 255));
+    sf::Text txtTitulo(fuente, titulos[pagina], 38);
+    txtTitulo.setFillColor(sf::Color(200, 215, 255));
+    txtTitulo.setOutlineColor(sf::Color(10, 10, 25));
+    txtTitulo.setOutlineThickness(1.5f);
     txtTitulo.setStyle(sf::Text::Bold);
+
     sf::FloatRect tb = txtTitulo.getLocalBounds();
-    txtTitulo.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - tb.size.x / 2.f, py + 18.f));
+    txtTitulo.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - tb.size.x / 2.f,
+        py + 22.f
+    ));
     ventana.draw(txtTitulo);
 
-    // Separador
-    sf::RectangleShape sep(sf::Vector2f(pw - 60.f, 2.f));
-    sep.setPosition(sf::Vector2f(px + 30.f, py + 62.f));
-    sep.setFillColor(sf::Color(100, 100, 180, 180));
+    // Separador superior
+    sf::RectangleShape sep(sf::Vector2f(pw - 80.f, 2.f));
+    sep.setPosition(sf::Vector2f(px + 40.f, py + 78.f));
+    sep.setFillColor(sf::Color(120, 120, 210, 200));
     ventana.draw(sep);
 
-    // Contenido: lineas normales 22px, lineas vacias solo 8px
-    float yTexto = py + 74.f;
+    // Contenido
+    float yTexto = py + 102.f;
+    float xTexto = px + 55.f;
+
     std::string linea;
     std::istringstream stream(contenidos[pagina]);
+
     while (std::getline(stream, linea)) {
-        if (!linea.empty()) {
-            sf::Text t(fuente, linea, 17);
-            t.setFillColor(sf::Color(220, 220, 220));
-            t.setPosition(sf::Vector2f(px + 28.f, yTexto));
-            ventana.draw(t);
-            yTexto += 23.f;
+        if (linea.empty()) {
+            yTexto += 10.f;
+            continue;
+        }
+
+        bool esTituloSeccion = false;
+
+        // Las lineas que empiezan por # son titulos internos.
+        // El # no se dibuja, solo sirve para saber que esa linea va destacada.
+        if (linea[0] == '#') {
+            esTituloSeccion = true;
+            linea = linea.substr(1);
+        }
+
+        unsigned int tamTexto = esTituloSeccion ? 29 : 24;
+
+        sf::Text texto(fuente, linea, tamTexto);
+
+        if (esTituloSeccion) {
+            texto.setFillColor(sf::Color(190, 205, 255));
+            texto.setStyle(sf::Text::Bold);
+            texto.setOutlineColor(sf::Color(5, 5, 20));
+            texto.setOutlineThickness(1.f);
         }
         else {
-            yTexto += 8.f;
+            texto.setFillColor(sf::Color(240, 240, 245));
+            texto.setOutlineColor(sf::Color(5, 5, 20));
+            texto.setOutlineThickness(0.8f);
+        }
+
+        texto.setPosition(sf::Vector2f(xTexto, yTexto));
+        ventana.draw(texto);
+
+        if (esTituloSeccion) {
+            yTexto += 36.f;
+        }
+        else {
+            yTexto += 30.f;
         }
     }
 
     // Separador inferior
-    sf::RectangleShape sep2(sf::Vector2f(pw - 60.f, 1.f));
-    sep2.setPosition(sf::Vector2f(px + 30.f, py + ph - 68.f));
-    sep2.setFillColor(sf::Color(80, 80, 140, 140));
+    sf::RectangleShape sep2(sf::Vector2f(pw - 80.f, 1.f));
+    sep2.setPosition(sf::Vector2f(px + 40.f, py + ph - 76.f));
+    sep2.setFillColor(sf::Color(90, 90, 160, 160));
     ventana.draw(sep2);
 
-    // Fila inferior: ANTERIOR  |  pagina X/4  |  SIGUIENTE  +  ESC
-    float yNav = py + ph - 52.f;
+    // Navegacion inferior
+    float yNav = py + ph - 57.f;
 
     if (pagina > 0) {
-        sf::Text fIzq(fuente, "< ANTERIOR", 19);
-        fIzq.setFillColor(sf::Color(160, 160, 255));
-        fIzq.setPosition(sf::Vector2f(px + 20.f, yNav));
+        sf::Text fIzq(fuente, "< ANTERIOR", 22);
+        fIzq.setFillColor(sf::Color(180, 180, 255));
+        fIzq.setOutlineColor(sf::Color(5, 5, 20));
+        fIzq.setOutlineThickness(1.f);
+        fIzq.setStyle(sf::Text::Bold);
+        fIzq.setPosition(sf::Vector2f(px + 35.f, yNav));
         ventana.draw(fIzq);
     }
 
     std::string indicador = std::to_string(pagina + 1) + " / " + std::to_string(TOTAL_PAGINAS);
-    sf::Text txtPag(fuente, indicador, 19);
-    txtPag.setFillColor(sf::Color(140, 140, 190));
+
+    sf::Text txtPag(fuente, indicador, 22);
+    txtPag.setFillColor(sf::Color(180, 180, 220));
+    txtPag.setOutlineColor(sf::Color(5, 5, 20));
+    txtPag.setOutlineThickness(1.f);
+    txtPag.setStyle(sf::Text::Bold);
+
     sf::FloatRect pb2 = txtPag.getLocalBounds();
-    txtPag.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - pb2.size.x / 2.f, yNav));
+    txtPag.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - pb2.size.x / 2.f,
+        yNav
+    ));
     ventana.draw(txtPag);
 
     if (pagina < TOTAL_PAGINAS - 1) {
-        sf::Text fDer(fuente, "SIGUIENTE >", 19);
-        fDer.setFillColor(sf::Color(160, 160, 255));
+        sf::Text fDer(fuente, "SIGUIENTE >", 22);
+        fDer.setFillColor(sf::Color(180, 180, 255));
+        fDer.setOutlineColor(sf::Color(5, 5, 20));
+        fDer.setOutlineThickness(1.f);
+        fDer.setStyle(sf::Text::Bold);
+
         sf::FloatRect fd = fDer.getLocalBounds();
-        fDer.setPosition(sf::Vector2f(px + pw - fd.size.x - 20.f, yNav));
+        fDer.setPosition(sf::Vector2f(
+            px + pw - fd.size.x - 35.f,
+            yNav
+        ));
         ventana.draw(fDer);
     }
 
-    // ESC para volver — dentro del panel, debajo de la navegacion
-    sf::Text txtEsc(fuente, "[ ESC ]  Volver al menu", 17);
-    txtEsc.setFillColor(sf::Color(110, 110, 150));
+    // ESC para volver
+    sf::Text txtEsc(fuente, "[ ESC ]  Volver al menu", 18);
+    txtEsc.setFillColor(sf::Color(150, 150, 190));
+    txtEsc.setOutlineColor(sf::Color(5, 5, 20));
+    txtEsc.setOutlineThickness(0.8f);
+
     sf::FloatRect eb = txtEsc.getLocalBounds();
-    txtEsc.setPosition(sf::Vector2f(VENTANA_ANCHO / 2.f - eb.size.x / 2.f, py + ph - 26.f));
+    txtEsc.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - eb.size.x / 2.f,
+        py + ph - 28.f
+    ));
     ventana.draw(txtEsc);
 }
