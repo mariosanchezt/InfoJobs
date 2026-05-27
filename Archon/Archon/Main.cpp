@@ -307,6 +307,7 @@ int main() {
                     juego = new Juego();
                     renderer = new Renderer(ventana);
                     arena = new Arena();
+                    arena->setAudio(&audio);
 
                     arrastrando = false;
                     animando = false;
@@ -355,6 +356,7 @@ int main() {
 
                     renderer = new Renderer(ventana);
                     arena = new Arena();
+                    arena->setAudio(&audio);
 
                     arrastrando = false;
                     animando = false;
@@ -485,6 +487,8 @@ int main() {
             ventana.clear(sf::Color(20, 20, 20));
 
             if (arena->haTerminado()) {
+                sf::sleep(sf::milliseconds(500));
+
                 enCombate = false;
 
                 renderer->setEstado(TABLERO);

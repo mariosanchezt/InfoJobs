@@ -3,6 +3,8 @@
 #include "Pieza.h"
 #include <vector>
 
+class AudioManager;
+
 struct Proyectil {
     sf::Vector2f pos;
     sf::Vector2f vel;
@@ -64,6 +66,8 @@ private:
     bool   combateTerminado;
     Pieza* ganador;
 
+    AudioManager* audio;
+
     void generarObstaculos();
     void moverCombatiente(CombatienteArena& c, sf::Vector2f dir, float dt);
     void crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo);
@@ -103,6 +107,7 @@ public:
     static constexpr float getOffsetY() { return OFFSET_Y; }
     static constexpr float getTamPieza() { return TAM_PIEZA; }
     static constexpr float getTamProyectil() { return TAM_PROYECTIL; }
+    void setAudio(AudioManager* a) { audio = a; }
 
     Pieza* iniciarCombateAutomatico(Pieza* p1, Pieza* p2);
 };

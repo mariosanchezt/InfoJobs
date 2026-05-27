@@ -1,4 +1,5 @@
 #include "Arena.h"
+#include "AudioManager.h"
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
@@ -14,6 +15,7 @@ Arena::Arena() {
     ganador = nullptr;
     combatiente1.pieza = nullptr;
     combatiente2.pieza = nullptr;
+    audio = nullptr;
 }
 
 void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
@@ -173,6 +175,7 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
     p.esDeLuz = (tirador.pieza->getBando() == LUZ);
 
     proyectiles.push_back(p);
+    if (audio != nullptr) audio->playDisparo();
     tirador.tiempoRecarga = 0.5f;
     notificarDisparo(tirador);
 
@@ -208,6 +211,7 @@ void Arena::comprobarColisiones() {
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
             if (dist < TAM_PIEZA * 1.5f) {
                 oscuridad.pieza->vida -= luz.pieza->fuerza * 0.3f;
+                if (audio != nullptr)audio->playGolpe();
                 if (oscuridad.pieza->vida < 0.f) oscuridad.pieza->vida = 0.f;
                 p.activo = false;
                 std::cout << oscuridad.pieza->getNombre() << " golpeado! Vida: "
@@ -219,6 +223,7 @@ void Arena::comprobarColisiones() {
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
             if (dist < TAM_PIEZA * 1.5f) {
                 luz.pieza->vida -= oscuridad.pieza->fuerza * 0.3f;
+                if (audio != nullptr) audio->playGolpe();
                 if (luz.pieza->vida < 0.f) luz.pieza->vida = 0.f;
                 p.activo = false;
                 std::cout << luz.pieza->getNombre() << " golpeado! Vida: "
@@ -235,6 +240,7 @@ void Arena::comprobarColisiones() {
         if (muere1 && muere2) ganador = nullptr;
         else if (muere2)      ganador = combatiente1.pieza;
         else                  ganador = combatiente2.pieza;
+        if (audio != nullptr) audio->playMuerte();
     }
 }
 
