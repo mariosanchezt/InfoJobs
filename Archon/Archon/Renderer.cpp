@@ -56,7 +56,7 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
     if (nombrePieza == "Zombidito")      return "Catapult.png";
     if (nombrePieza == "All-Star")       return "Football.png";
     if (nombrePieza == "Ingeniero")      return "Digger.png";
-    if (nombrePieza == "Dave el Loco")   return "Dave el Loco.png";
+    if (nombrePieza == "Dave el Loco")   return "Cob_Cannon.png";
     if (nombrePieza == "Dr. Zomboss")    return "Dr. Zomboss.png";
     return "";
 }
@@ -72,7 +72,7 @@ std::string Renderer::claveAnimacion(const std::string& nombrePieza) const {
     if (nombrePieza == "Zombidito")      return "Catapult";
     if (nombrePieza == "All-Star")       return "Football";
     if (nombrePieza == "Ingeniero")      return "Digger";
-    if (nombrePieza == "Dave el Loco")   return "Dave el Loco";
+    if (nombrePieza == "Dave el Loco")   return "Cob_Cannon";
     if (nombrePieza == "Dr. Zomboss")    return "Dr. Zomboss";
     return "";
 }
@@ -82,12 +82,12 @@ void Renderer::cargarSheetSiNecesario(const std::string& clave, const std::strin
         { "Peashooter",   8 }, { "Chomper",     9 }, { "Starfruit",   4 },
         { "Cactus",       4 }, { "Cabbage",     6 }, { "Yeti",        9 },
         { "Balloon",      6 }, { "Catapult",    4 }, { "Football",    4 },
-        { "Digger",       4 }, { "Dave el Loco",6 }, { "Dr. Zomboss", 5 }
+        { "Digger",       4 }, { "Cob_Cannon",4 }, { "Dr. Zomboss", 5 }
     };
     static const std::map<std::string, int> framesAttack = {
         { "Chomper",   6 }, { "Cabbage",  8 }, { "Cactus",    2 },
         { "Starfruit", 3 }, { "Yeti",     4 }, { "Catapult",  4 },
-        { "Football",  5 }, { "Digger",   5 }, { "Dr. Zomboss",5 }
+        { "Football",  5 }, { "Digger",   5 }, { "Dr. Zomboss",5 }, { "Cob_Cannon",   5 }
     };
 
     auto getNumFrames = [&](bool esAttack) -> int {
@@ -225,7 +225,7 @@ void Renderer::cargarSprites(const std::string& carpeta) {
     std::vector<std::string> archivos = {
         "Chomper.png", "Peashooter.png", "Starfruit.png", "Cactus.png", "Cabbage.png",
         "Yeti.png", "Balloon.png", "Catapult.png", "Football.png", "Digger.png",
-        "Dave el Loco.png", "Dr. Zomboss.png",
+        "Cob_Cannon.png", "Dr. Zomboss.png","Cob_Cannon_proyectil.png",
         "patio.png",
         "Nuez.png",
         "Plantas_Victoria.png",
@@ -286,7 +286,13 @@ void Renderer::cargarSprites(const std::string& carpeta) {
         { "Lanzaguisantes", "pea.png" },
         { "Mazorca",        "Cabbage_proyectil.png" },
         { "Pomelo",         "Cactus_proyectil.png" },
-        { "Frutaestrella",  "Starfruit_proyectil.png" }
+        { "Frutaestrella",  "Starfruit_proyectil.png" },
+         { "Soldado",        "Balloon_proyectil.png" },      
+        { "Zombidito",      "Catapult_proyectil.png" },     
+        { "Ingeniero",      "Digger_proyectil.png" },       
+        { "All-Star",       "Football_proyectil.png" },
+        { "Dave el Loco",   "Cob_Cannon_proyectil.png" },
+        {"Dr. Zomboss", "Dr. Zomboss_proyectil.png"}
     };
     for (auto& [nombre, archivo] : proyectiles) {
         sf::Image imgProj;
@@ -306,7 +312,7 @@ void Renderer::cargarSprites(const std::string& carpeta) {
     std::vector<std::string> claves = {
         "Chomper", "Peashooter", "Starfruit", "Cactus", "Cabbage",
         "Yeti", "Balloon", "Catapult", "Football", "Digger",
-        "Dave el Loco", "Dr. Zomboss"
+        "Cob_Cannon", "Dr. Zomboss"
     };
     for (const auto& clave : claves)
         cargarSheetSiNecesario(clave, carpeta);
@@ -681,7 +687,7 @@ void Renderer::dibujarBarraVida(float vida, float vidaMax, float x, float y, flo
 void Renderer::dibujarBarraCooldown(float tiempoRecarga, float tiempoRecargaMax, float x, float y, float ancho) {
     if (tiempoRecargaMax <= 0.f) return;
 
-    // Si ya puede atacar, dibujamos una rayita fina color Cyan
+    // Si ya puede atacar, dibujamos una rayita fina color azul
     if (tiempoRecarga <= 0.f) {
         sf::RectangleShape lista(sf::Vector2f(ancho, 3.f));
         lista.setPosition(sf::Vector2f(x, y));
@@ -1151,6 +1157,10 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
             sp.setScale(sf::Vector2f(esc, esc));
             sp.setOrigin(sf::Vector2f(ts.x / 2.f, ts.y / 2.f));
             sp.setPosition(p.pos);
+            if (nombreTirador == "Ingeniero" || nombreTirador == "Dave el Loco") {
+                float angulo = relojAnimacion.getElapsedTime().asSeconds() * 360.f;
+                sp.setRotation(sf::degrees(angulo));
+            }
             ventana.draw(sp);
             dibujado = true;
         }
@@ -1208,8 +1218,8 @@ void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
             sprite.setPosition(sf::Vector2f(c.pos.x, c.pos.y));
 
             static const std::vector<std::string> miranaIzq = {
-                "Yeti", "Balloon", "Catapult", "Football", "Digger",
-                "Dr. Zomboss", "Dave el Loco"
+                 "Yeti", "Balloon", "Catapult", "Football", "Digger",
+                "Dr. Zomboss"
             };
             bool yaIzq = std::find(miranaIzq.begin(), miranaIzq.end(), clave) != miranaIzq.end();
 
