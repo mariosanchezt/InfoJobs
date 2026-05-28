@@ -46,8 +46,8 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
         float spriteH = texSize.y * escala;
 
         // Posicion del icono sobre la etiqueta blanca
-        float iconoX = 690.f;
-        float iconoY = 760.f;
+        float iconoX = 680.f;
+        float iconoY = 730.f;
 
         spriteConfiguracion.setPosition(sf::Vector2f(
             iconoX + (82.f - spriteW) / 2.f,
