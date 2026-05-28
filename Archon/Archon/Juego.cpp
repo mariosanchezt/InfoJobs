@@ -232,8 +232,14 @@ void Juego::iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAta
 
         registrarMuerte(defensor);
         delete defensor;
+        defensor = nullptr;
 
-        tablero->moverPieza(fAtac, cAtac, fDef, cDef);
+        //tablero->moverPieza(fAtac, cAtac, fDef, cDef);
+
+        tablero->colocarPieza(fDef, cDef, atacante);
+        tablero->colocarPieza(fAtac, cAtac, nullptr);
+        atacante->filaInicial = fDef;
+        atacante->colInicial = cDef;
     }
     else if (ganador == defensor) {
         std::cout << "El defensor (" << defensor->getNombre() << ") se ha mantenido firme." << std::endl;
