@@ -8,11 +8,13 @@ static constexpr float VENTANA_ANCHO = 1200.f;
 static constexpr float VENTANA_ALTO = 900.f;
 
 Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
-    : ventana(vent), fuente(f), spriteFondo(texFondo), spriteConfiguracion(texConfiguracion)
+    : ventana(vent), fuente(f), spriteFondo(texFondo), spriteConfiguracion(texConfiguracion), spritePlantaTriste(texPlantaTriste)
 {
     botonSeleccionado = 0;
     fondoCargado = false;
     configuracionCargada = false;
+    plantaTristeCargada = false;
+    opcionSalidaSeleccionada = 1; // Por defecto seleccionamos NO
 
     // Intentamos cargar el fondo del menu
     if (texFondo.loadFromFile("assets/menu_bg.png")) {
@@ -20,6 +22,7 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
         texFondo.setSmooth(true);
         spriteFondo = sf::Sprite(texFondo);
 
+        // Escalamos la imagen para que cubra la ventana 1200x900
         sf::Vector2u texSize = texFondo.getSize();
 
         float escalaX = VENTANA_ANCHO / texSize.x;
@@ -45,7 +48,8 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
         float spriteW = texSize.x * escala;
         float spriteH = texSize.y * escala;
 
-        // Posicion del icono sobre la etiqueta blanca
+        // Posicion aproximada sobre la etiqueta blanca de las llaves.
+        // Si lo quieres mover, cambia estos valores.
         float iconoX = 680.f;
         float iconoY = 730.f;
 
@@ -58,8 +62,31 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
         zonaConfiguracion.setPosition(sf::Vector2f(iconoX, iconoY));
     }
     else {
+        // Zona clicable aunque no cargue el PNG
         zonaConfiguracion.setSize(sf::Vector2f(82.f, 82.f));
         zonaConfiguracion.setPosition(sf::Vector2f(690.f, 760.f));
+    }
+
+    // Imagen de planta triste para confirmar salida
+    if (texPlantaTriste.loadFromFile("assets/PlantaTriste.png")) {
+        plantaTristeCargada = true;
+        texPlantaTriste.setSmooth(true);
+        spritePlantaTriste = sf::Sprite(texPlantaTriste);
+
+        sf::Vector2u texSize = texPlantaTriste.getSize();
+
+        float tamPlanta = 150.f;
+        float escala = tamPlanta / std::max((float)texSize.x, (float)texSize.y);
+
+        spritePlantaTriste.setScale(sf::Vector2f(escala, escala));
+
+        float spriteW = texSize.x * escala;
+        float spriteH = texSize.y * escala;
+
+        spritePlantaTriste.setPosition(sf::Vector2f(
+            VENTANA_ANCHO / 2.f - spriteW / 2.f,
+            405.f - spriteH / 2.f
+        ));
     }
 
     colorTexto = sf::Color(30, 30, 30);
@@ -71,6 +98,8 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
 
     float anchoBoton = 300.f;
     float altoBoton = 65.f;
+
+    // Botones dentro de la lapida
     float xBoton = 635.f;
 
     Boton b1;
@@ -89,14 +118,7 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     b2.habilitado = true;
     botones.push_back(b2);
 
-    Boton b3;
-    b3.forma.setSize(sf::Vector2f(anchoBoton, altoBoton));
-    b3.forma.setPosition(sf::Vector2f(xBoton, 430.f));
-    b3.forma.setRotation(sf::degrees(2.0f));
-    b3.texto = "COMO JUGAR";
-    b3.habilitado = true;
-    botones.push_back(b3);
-
+    // Botones del submenu de dificultad
     float anchoBotonDif = 300.f;
     float altoBotonDif = 65.f;
     float xBotonDif = 635.f;
@@ -126,8 +148,19 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     botonesDificultad.push_back(d3);
 
     dificultadSeleccionada = MEDIO;
+
+    // Boton COMO JUGAR
+    Boton b3;
+    b3.forma.setSize(sf::Vector2f(anchoBoton, altoBoton));
+    b3.forma.setPosition(sf::Vector2f(xBoton, 430.f));
+    b3.forma.setRotation(sf::degrees(2.0f));
+    b3.texto = "COMO JUGAR";
+    b3.habilitado = true;
+    botones.push_back(b3);
+
     paginaComoJugar = 0;
 
+    // Valores iniciales de configuracion
     opcionConfiguracionSeleccionada = 0;
     volumenGeneral = 100.f;
     volumenMusica = 25.f;
@@ -139,15 +172,8 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
 
 EstadoJuego Menu::confirmarBoton(int indice) {
     if (indice == 0) return EstadoJuego::CARGANDO;
-    if (indice == 1) {
-        botonSeleccionado = 1;
-        return EstadoJuego::SELECCION_DIFICULTAD;
-    }
-    if (indice == 2) {
-        paginaComoJugar = 0;
-        return EstadoJuego::COMO_JUGAR;
-    }
-
+    if (indice == 1) { botonSeleccionado = 1; return EstadoJuego::SELECCION_DIFICULTAD; }
+    if (indice == 2) { paginaComoJugar = 0; return EstadoJuego::COMO_JUGAR; }
     return EstadoJuego::MENU;
 }
 
@@ -159,6 +185,7 @@ EstadoJuego Menu::procesarEvento(const sf::Event& event) {
                 ventana.getView()
             );
 
+            // Click en el icono de configuracion
             if (zonaConfiguracion.getGlobalBounds().contains(pos)) {
                 opcionConfiguracionSeleccionada = 0;
                 return EstadoJuego::CONFIGURACION;
@@ -175,6 +202,11 @@ EstadoJuego Menu::procesarEvento(const sf::Event& event) {
     }
 
     if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->code == sf::Keyboard::Key::Escape) {
+            opcionSalidaSeleccionada = 1;
+            return EstadoJuego::CONFIRMAR_SALIDA;
+        }
+
         if (key->code == sf::Keyboard::Key::Up && botonSeleccionado > 0) {
             botonSeleccionado--;
         }
@@ -184,6 +216,7 @@ EstadoJuego Menu::procesarEvento(const sf::Event& event) {
             botonSeleccionado++;
         }
 
+        // Tecla C como acceso rapido a configuracion
         if (key->code == sf::Keyboard::Key::C) {
             opcionConfiguracionSeleccionada = 0;
             return EstadoJuego::CONFIGURACION;
@@ -222,6 +255,7 @@ void Menu::dibujar() {
         dibujarBoton(botones[i], hover || sel);
     }
 
+    // Dibujar icono de configuracion encima de la etiqueta blanca
     bool hoverConfig = zonaConfiguracion.getGlobalBounds().contains(mouse);
 
     if (hoverConfig) {
@@ -245,23 +279,22 @@ void Menu::dibujar() {
         fallback.setStyle(sf::Text::Bold);
 
         sf::FloatRect b = fallback.getLocalBounds();
-
         fallback.setPosition(sf::Vector2f(
             zonaConfiguracion.getPosition().x + zonaConfiguracion.getSize().x / 2.f - b.size.x / 2.f,
             zonaConfiguracion.getPosition().y + zonaConfiguracion.getSize().y / 2.f - b.size.y / 2.f
         ));
-
         ventana.draw(fallback);
     }
 }
 
 void Menu::dibujarTitulo() {
-    // El titulo ya forma parte del fondo del menu.
+    // De momento se deja vacio porque el titulo ya forma parte del fondo del menu.
 }
 
 void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
     sf::RectangleShape forma = b.forma;
 
+    // Boton transparente, solo sirve como zona clicable
     forma.setFillColor(sf::Color::Transparent);
     forma.setOutlineThickness(0.f);
     ventana.draw(forma);
@@ -300,6 +333,7 @@ void Menu::dibujarBoton(const Boton& b, bool seleccionado) {
 
     ventana.draw(texto);
 }
+
 EstadoJuego Menu::procesarEventoDificultad(const sf::Event& event) {
     if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (click->button == sf::Mouse::Button::Left) {
@@ -396,22 +430,17 @@ void Menu::dibujarSubmenuDificultad() {
 
 EstadoJuego Menu::procesarEventoComoJugar(const sf::Event& event) {
     if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
-        if (key->code == sf::Keyboard::Key::Escape) {
+        if (key->code == sf::Keyboard::Key::Escape)
             return EstadoJuego::MENU;
-        }
 
         if (key->code == sf::Keyboard::Key::Left ||
             key->code == sf::Keyboard::Key::A) {
-            if (paginaComoJugar > 0) {
-                paginaComoJugar--;
-            }
+            if (paginaComoJugar > 0) paginaComoJugar--;
         }
 
         if (key->code == sf::Keyboard::Key::Right ||
             key->code == sf::Keyboard::Key::D) {
-            if (paginaComoJugar < TOTAL_PAGINAS - 1) {
-                paginaComoJugar++;
-            }
+            if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++;
         }
     }
 
@@ -422,15 +451,14 @@ EstadoJuego Menu::procesarEventoComoJugar(const sf::Event& event) {
                 ventana.getView()
             );
 
-            if (pos.x < VENTANA_ANCHO / 2.f) {
-                if (paginaComoJugar > 0) {
-                    paginaComoJugar--;
-                }
+            float x = pos.x;
+
+            // Click en mitad izquierda -> pagina anterior, mitad derecha -> siguiente
+            if (x < VENTANA_ANCHO / 2.f) {
+                if (paginaComoJugar > 0) paginaComoJugar--;
             }
             else {
-                if (paginaComoJugar < TOTAL_PAGINAS - 1) {
-                    paginaComoJugar++;
-                }
+                if (paginaComoJugar < TOTAL_PAGINAS - 1) paginaComoJugar++;
             }
         }
     }
@@ -616,12 +644,8 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
         texto.setPosition(sf::Vector2f(xTexto, yTexto));
         ventana.draw(texto);
 
-        if (esTituloSeccion) {
-            yTexto += 36.f;
-        }
-        else {
-            yTexto += 30.f;
-        }
+        if (esTituloSeccion) yTexto += 36.f;
+        else yTexto += 30.f;
     }
 
     sf::RectangleShape sep2(sf::Vector2f(pw - 80.f, 1.f));
@@ -683,6 +707,7 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
     ));
     ventana.draw(txtEsc);
 }
+
 // CONFIGURACION
 
 void Menu::restablecerConfiguracion() {
@@ -697,14 +722,8 @@ void Menu::restablecerConfiguracion() {
 EstadoJuego Menu::procesarEventoConfiguracion(const sf::Event& event) {
     auto cambiarVolumen = [&](float& valor, float cambio) {
         valor += cambio;
-
-        if (valor < 0.f) {
-            valor = 0.f;
-        }
-
-        if (valor > 100.f) {
-            valor = 100.f;
-        }
+        if (valor < 0.f) valor = 0.f;
+        if (valor > 100.f) valor = 100.f;
         };
 
     auto activarOpcion = [&]() {
@@ -757,32 +776,16 @@ EstadoJuego Menu::procesarEventoConfiguracion(const sf::Event& event) {
 
         if (key->code == sf::Keyboard::Key::Left ||
             key->code == sf::Keyboard::Key::A) {
-            if (opcionConfiguracionSeleccionada == 0) {
-                cambiarVolumen(volumenGeneral, -5.f);
-            }
-
-            if (opcionConfiguracionSeleccionada == 1) {
-                cambiarVolumen(volumenMusica, -5.f);
-            }
-
-            if (opcionConfiguracionSeleccionada == 2) {
-                cambiarVolumen(volumenEfectos, -5.f);
-            }
+            if (opcionConfiguracionSeleccionada == 0) cambiarVolumen(volumenGeneral, -5.f);
+            if (opcionConfiguracionSeleccionada == 1) cambiarVolumen(volumenMusica, -5.f);
+            if (opcionConfiguracionSeleccionada == 2) cambiarVolumen(volumenEfectos, -5.f);
         }
 
         if (key->code == sf::Keyboard::Key::Right ||
             key->code == sf::Keyboard::Key::D) {
-            if (opcionConfiguracionSeleccionada == 0) {
-                cambiarVolumen(volumenGeneral, 5.f);
-            }
-
-            if (opcionConfiguracionSeleccionada == 1) {
-                cambiarVolumen(volumenMusica, 5.f);
-            }
-
-            if (opcionConfiguracionSeleccionada == 2) {
-                cambiarVolumen(volumenEfectos, 5.f);
-            }
+            if (opcionConfiguracionSeleccionada == 0) cambiarVolumen(volumenGeneral, 5.f);
+            if (opcionConfiguracionSeleccionada == 1) cambiarVolumen(volumenMusica, 5.f);
+            if (opcionConfiguracionSeleccionada == 2) cambiarVolumen(volumenEfectos, 5.f);
         }
 
         if (key->code == sf::Keyboard::Key::Enter ||
@@ -814,30 +817,14 @@ EstadoJuego Menu::procesarEventoConfiguracion(const sf::Event& event) {
 
                     if (i == 0 || i == 1 || i == 2) {
                         if (pos.x < 665.f) {
-                            if (i == 0) {
-                                cambiarVolumen(volumenGeneral, -5.f);
-                            }
-
-                            if (i == 1) {
-                                cambiarVolumen(volumenMusica, -5.f);
-                            }
-
-                            if (i == 2) {
-                                cambiarVolumen(volumenEfectos, -5.f);
-                            }
+                            if (i == 0) cambiarVolumen(volumenGeneral, -5.f);
+                            if (i == 1) cambiarVolumen(volumenMusica, -5.f);
+                            if (i == 2) cambiarVolumen(volumenEfectos, -5.f);
                         }
                         else {
-                            if (i == 0) {
-                                cambiarVolumen(volumenGeneral, 5.f);
-                            }
-
-                            if (i == 1) {
-                                cambiarVolumen(volumenMusica, 5.f);
-                            }
-
-                            if (i == 2) {
-                                cambiarVolumen(volumenEfectos, 5.f);
-                            }
+                            if (i == 0) cambiarVolumen(volumenGeneral, 5.f);
+                            if (i == 1) cambiarVolumen(volumenMusica, 5.f);
+                            if (i == 2) cambiarVolumen(volumenEfectos, 5.f);
                         }
                     }
                     else {
@@ -888,12 +875,7 @@ void Menu::dibujarFilaConfiguracion(
     txtValor.setStyle(sf::Text::Bold);
 
     sf::FloatRect bv = txtValor.getLocalBounds();
-
-    txtValor.setPosition(sf::Vector2f(
-        x + 650.f - bv.size.x,
-        y + 13.f
-    ));
-
+    txtValor.setPosition(sf::Vector2f(x + 650.f - bv.size.x, y + 13.f));
     ventana.draw(txtValor);
 }
 
@@ -926,12 +908,10 @@ void Menu::dibujarBarraVolumen(
     texto.setOutlineThickness(0.8f);
 
     sf::FloatRect b = texto.getLocalBounds();
-
     texto.setPosition(sf::Vector2f(
         x + ancho / 2.f - b.size.x / 2.f,
         y - 5.f
     ));
-
     ventana.draw(texto);
 }
 
@@ -971,12 +951,10 @@ void Menu::dibujarConfiguracion() {
     titulo.setStyle(sf::Text::Bold);
 
     sf::FloatRect bt = titulo.getLocalBounds();
-
     titulo.setPosition(sf::Vector2f(
         VENTANA_ANCHO / 2.f - bt.size.x / 2.f,
         py + 28.f
     ));
-
     ventana.draw(titulo);
 
     sf::RectangleShape sep(sf::Vector2f(pw - 80.f, 2.f));
@@ -984,23 +962,16 @@ void Menu::dibujarConfiguracion() {
     sep.setFillColor(sf::Color(120, 120, 210, 200));
     ventana.draw(sep);
 
-    sf::Text ayuda(
-        fuente,
-        "Usa ARRIBA/ABAJO para elegir  |  IZQ/DER para cambiar valores  |  ENTER para activar",
-        18
-    );
-
+    sf::Text ayuda(fuente, "Usa ARRIBA/ABAJO para elegir  |  IZQ/DER para cambiar valores  |  ENTER para activar", 18);
     ayuda.setFillColor(sf::Color(185, 185, 210));
     ayuda.setOutlineColor(sf::Color(5, 5, 20));
     ayuda.setOutlineThickness(0.7f);
 
     sf::FloatRect ba = ayuda.getLocalBounds();
-
     ayuda.setPosition(sf::Vector2f(
         VENTANA_ANCHO / 2.f - ba.size.x / 2.f,
         py + 108.f
     ));
-
     ventana.draw(ayuda);
 
     float filaX = px + 70.f;
@@ -1014,7 +985,6 @@ void Menu::dibujarConfiguracion() {
         filaY + 0 * separacion,
         opcionConfiguracionSeleccionada == 0
     );
-
     dibujarBarraVolumen(
         volumenGeneral,
         filaX + 385.f,
@@ -1029,7 +999,6 @@ void Menu::dibujarConfiguracion() {
         filaY + 1 * separacion,
         opcionConfiguracionSeleccionada == 1
     );
-
     dibujarBarraVolumen(
         volumenMusica,
         filaX + 385.f,
@@ -1044,7 +1013,6 @@ void Menu::dibujarConfiguracion() {
         filaY + 2 * separacion,
         opcionConfiguracionSeleccionada == 2
     );
-
     dibujarBarraVolumen(
         volumenEfectos,
         filaX + 385.f,
@@ -1090,11 +1058,207 @@ void Menu::dibujarConfiguracion() {
     txtEsc.setOutlineThickness(0.8f);
 
     sf::FloatRect eb = txtEsc.getLocalBounds();
-
     txtEsc.setPosition(sf::Vector2f(
         VENTANA_ANCHO / 2.f - eb.size.x / 2.f,
         py + ph - 38.f
     ));
-
     ventana.draw(txtEsc);
+}
+
+// CONFIRMAR SALIDA
+
+EstadoJuego Menu::procesarEventoConfirmarSalida(const sf::Event& event) {
+    if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->code == sf::Keyboard::Key::Escape) {
+            return EstadoJuego::MENU;
+        }
+
+        if (key->code == sf::Keyboard::Key::Left ||
+            key->code == sf::Keyboard::Key::A ||
+            key->code == sf::Keyboard::Key::Right ||
+            key->code == sf::Keyboard::Key::D) {
+            opcionSalidaSeleccionada = 1 - opcionSalidaSeleccionada;
+        }
+
+        if (key->code == sf::Keyboard::Key::Enter ||
+            key->code == sf::Keyboard::Key::Space) {
+            if (opcionSalidaSeleccionada == 0) {
+                return EstadoJuego::SALIR;
+            }
+            else {
+                return EstadoJuego::MENU;
+            }
+        }
+    }
+
+    if (const auto* click = event.getIf<sf::Event::MouseButtonPressed>()) {
+        if (click->button == sf::Mouse::Button::Left) {
+            sf::Vector2f pos = ventana.mapPixelToCoords(
+                sf::Vector2i(click->position.x, click->position.y),
+                ventana.getView()
+            );
+
+            sf::FloatRect botonSi(
+                sf::Vector2f(VENTANA_ANCHO / 2.f - 250.f, 610.f),
+                sf::Vector2f(200.f, 60.f)
+            );
+
+            sf::FloatRect botonNo(
+                sf::Vector2f(VENTANA_ANCHO / 2.f + 50.f, 610.f),
+                sf::Vector2f(200.f, 60.f)
+            );
+
+            if (botonSi.contains(pos)) {
+                opcionSalidaSeleccionada = 0;
+                return EstadoJuego::SALIR;
+            }
+
+            if (botonNo.contains(pos)) {
+                opcionSalidaSeleccionada = 1;
+                return EstadoJuego::MENU;
+            }
+        }
+    }
+
+    return EstadoJuego::CONFIRMAR_SALIDA;
+}
+
+void Menu::dibujarConfirmarSalida() {
+    if (fondoCargado) {
+        ventana.draw(spriteFondo);
+    }
+    else {
+        ventana.clear(sf::Color(15, 15, 25));
+    }
+
+    sf::RectangleShape overlay(sf::Vector2f(VENTANA_ANCHO, VENTANA_ALTO));
+    overlay.setFillColor(sf::Color(0, 0, 0, 195));
+    ventana.draw(overlay);
+
+    float pw = 760.f;
+    float ph = 610.f;
+    float px = (VENTANA_ANCHO - pw) / 2.f;
+    float py = (VENTANA_ALTO - ph) / 2.f;
+
+    sf::RectangleShape sombra(sf::Vector2f(pw + 14.f, ph + 14.f));
+    sombra.setPosition(sf::Vector2f(px - 7.f, py + 7.f));
+    sombra.setFillColor(sf::Color(0, 0, 0, 170));
+    ventana.draw(sombra);
+
+    sf::RectangleShape panel(sf::Vector2f(pw, ph));
+    panel.setPosition(sf::Vector2f(px, py));
+    panel.setFillColor(sf::Color(18, 18, 34, 245));
+    panel.setOutlineColor(sf::Color(125, 125, 220));
+    panel.setOutlineThickness(3.f);
+    ventana.draw(panel);
+
+    sf::Text titulo(fuente, "QUIERES ABANDONAR EL JARDIN?", 38);
+    titulo.setFillColor(sf::Color(200, 215, 255));
+    titulo.setOutlineColor(sf::Color(10, 10, 25));
+    titulo.setOutlineThickness(1.5f);
+    titulo.setStyle(sf::Text::Bold);
+
+    sf::FloatRect bt = titulo.getLocalBounds();
+
+    titulo.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - bt.size.x / 2.f,
+        py + 40.f
+    ));
+
+    ventana.draw(titulo);
+
+    sf::RectangleShape sep(sf::Vector2f(pw - 90.f, 2.f));
+    sep.setPosition(sf::Vector2f(px + 45.f, py + 105.f));
+    sep.setFillColor(sf::Color(120, 120, 210, 200));
+    ventana.draw(sep);
+
+    sf::Text mensaje(fuente, "Los zombies seguiran avanzando si te vas...", 26);
+    mensaje.setFillColor(sf::Color(240, 240, 245));
+    mensaje.setOutlineColor(sf::Color(5, 5, 20));
+    mensaje.setOutlineThickness(1.f);
+
+    sf::FloatRect bm = mensaje.getLocalBounds();
+
+    mensaje.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - bm.size.x / 2.f,
+        py + 145.f
+    ));
+
+    ventana.draw(mensaje);
+
+    if (plantaTristeCargada) {
+        ventana.draw(spritePlantaTriste);
+    }
+    else {
+        sf::CircleShape cara(70.f);
+        cara.setFillColor(sf::Color(100, 200, 90));
+        cara.setOutlineColor(sf::Color(20, 80, 20));
+        cara.setOutlineThickness(4.f);
+        cara.setPosition(sf::Vector2f(
+            VENTANA_ANCHO / 2.f - 70.f,
+            py + 245.f
+        ));
+        ventana.draw(cara);
+    }
+
+    sf::Text ayuda(fuente, "Flechas para elegir  |  ENTER para confirmar  |  ESC para volver", 18);
+    ayuda.setFillColor(sf::Color(165, 165, 200));
+    ayuda.setOutlineColor(sf::Color(5, 5, 20));
+    ayuda.setOutlineThickness(0.8f);
+
+    sf::FloatRect bh = ayuda.getLocalBounds();
+
+    ayuda.setPosition(sf::Vector2f(
+        VENTANA_ANCHO / 2.f - bh.size.x / 2.f,
+        535.f
+    ));
+
+    ventana.draw(ayuda);
+
+    auto dibujarBotonSalida = [&](const std::string& textoBoton, float x, float y, bool seleccionado) {
+        sf::RectangleShape boton(sf::Vector2f(200.f, 60.f));
+        boton.setPosition(sf::Vector2f(x, y));
+
+        if (seleccionado) {
+            boton.setFillColor(sf::Color(80, 90, 150, 210));
+            boton.setOutlineColor(sf::Color(200, 255, 50, 240));
+            boton.setOutlineThickness(4.f);
+        }
+        else {
+            boton.setFillColor(sf::Color(25, 25, 45, 190));
+            boton.setOutlineColor(sf::Color(100, 100, 160, 160));
+            boton.setOutlineThickness(2.f);
+        }
+
+        ventana.draw(boton);
+
+        sf::Text txt(fuente, textoBoton, 28);
+        txt.setFillColor(seleccionado ? sf::Color(200, 255, 50) : sf::Color(230, 230, 240));
+        txt.setOutlineColor(sf::Color(5, 5, 20));
+        txt.setOutlineThickness(1.f);
+        txt.setStyle(sf::Text::Bold);
+
+        sf::FloatRect b = txt.getLocalBounds();
+
+        txt.setPosition(sf::Vector2f(
+            x + 100.f - b.size.x / 2.f,
+            y + 30.f - b.size.y / 2.f - 5.f
+        ));
+
+        ventana.draw(txt);
+        };
+
+    dibujarBotonSalida(
+        "SI, SALIR",
+        VENTANA_ANCHO / 2.f - 250.f,
+        610.f,
+        opcionSalidaSeleccionada == 0
+    );
+
+    dibujarBotonSalida(
+        "NO, SEGUIR",
+        VENTANA_ANCHO / 2.f + 50.f,
+        610.f,
+        opcionSalidaSeleccionada == 1
+    );
 }

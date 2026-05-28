@@ -13,7 +13,9 @@ enum class EstadoJuego {
     VICTORIA,
     PAUSA,
     COMO_JUGAR,
-    CONFIGURACION
+    CONFIGURACION,
+    CONFIRMAR_SALIDA,
+    SALIR
 };
 
 struct Boton {
@@ -43,6 +45,12 @@ private:
     sf::Sprite spriteConfiguracion;
     bool configuracionCargada;
     sf::RectangleShape zonaConfiguracion;
+
+    // Popup de confirmar salida
+    sf::Texture texPlantaTriste;
+    sf::Sprite spritePlantaTriste;
+    bool plantaTristeCargada;
+    int opcionSalidaSeleccionada; // 0 = SI, 1 = NO
 
     sf::Color colorBotonActivo;
     sf::Color colorBotonDeshabilitado;
@@ -102,6 +110,9 @@ public:
 
     EstadoJuego procesarEventoConfiguracion(const sf::Event& event);
     void dibujarConfiguracion();
+
+    EstadoJuego procesarEventoConfirmarSalida(const sf::Event& event);
+    void dibujarConfirmarSalida();
 
     // Volumen aplicado al AudioManager
     float getVolumenGeneral() const { return volumenGeneral; }

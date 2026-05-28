@@ -320,6 +320,27 @@ int main() {
             continue;
         }
 
+        // CONFIRMAR SALIDA
+        if (estadoJuego == EstadoJuego::CONFIRMAR_SALIDA) {
+            while (auto event = ventana.pollEvent()) {
+                eventosGlobalesVentana(*event);
+
+                EstadoJuego resultado = menu.procesarEventoConfirmarSalida(*event);
+
+                if (resultado == EstadoJuego::SALIR) {
+                    ventana.close();
+                }
+                else if (resultado == EstadoJuego::MENU) {
+                    estadoJuego = EstadoJuego::MENU;
+                }
+            }
+
+            ventana.clear(sf::Color(15, 15, 25));
+            menu.dibujarConfirmarSalida();
+            ventana.display();
+            continue;
+        }
+
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
@@ -335,6 +356,9 @@ int main() {
                 }
                 else if (resultado == EstadoJuego::CONFIGURACION) {
                     estadoJuego = EstadoJuego::CONFIGURACION;
+                }
+                else if (resultado == EstadoJuego::CONFIRMAR_SALIDA) {
+                    estadoJuego = EstadoJuego::CONFIRMAR_SALIDA;
                 }
                 else if (resultado == EstadoJuego::CARGANDO) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);
