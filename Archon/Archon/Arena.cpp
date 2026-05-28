@@ -1,5 +1,6 @@
 #include "Arena.h"
 #include "AudioManager.h"
+#include "PiezaMelee.h"
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
@@ -296,19 +297,26 @@ void Arena::update(float dt) {
         sf::Vector2f diff = luz.pos - oscuridad.pos;
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
 
-        if (dist > 150.f) {
-            //Lejos: avanzar hacia el enemigo
-            dirOsc = diff / dist;
+        bool esMelee = (dynamic_cast<PiezaMelee*>(oscuridad.pieza) != nullptr);
+        float distOptima = esMelee ? 40.f : 150.f;
+        float distMinima = esMelee ? 20.f : 100.f;
+
+        if (dist > distOptima) {
+            dirOsc = diff / dist; // Avanzar
         }
-        else if (dist < 80.f) {
-            //Muy cerca: alejarse
-            dirOsc = -diff / dist;
+        else if (dist < distMinima) {
+            dirOsc = -diff / dist; // Alejarse
         }
+
         moverCombatiente(oscuridad, dirOsc, dt);
 
         //Disparar cuando pueda
         if (oscuridad.tiempoRecarga <= 0.f) {
             crearProyectil(oscuridad, luz);
+            if (esMelee) {
+                oscuridad.tiempoRecarga = 1.2f;
+                oscuridad.tiempoRecargaMax = 1.2f;
+            }
         }
     }
     else {
