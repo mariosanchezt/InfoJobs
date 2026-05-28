@@ -16,6 +16,7 @@ Arena::Arena() {
     combatiente1.pieza = nullptr;
     combatiente2.pieza = nullptr;
     audio = nullptr;
+    modoIA = false;
 }
 
 void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
@@ -290,21 +291,43 @@ void Arena::update(float dt) {
     luz.teclaDsparoPulsada = spaceAhora;
 
     sf::Vector2f dirOsc(0.f, 0.f);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    dirOsc.y -= 1.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  dirOsc.y += 1.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  dirOsc.x -= 1.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) dirOsc.x += 1.f;
+    if (modoIA) {
+        //Moverse hacia el enemigo
+        sf::Vector2f diff = luz.pos - oscuridad.pos;
+        float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
 
-    float lenOsc = std::sqrt(dirOsc.x * dirOsc.x + dirOsc.y * dirOsc.y);
-    if (lenOsc > 0.f) dirOsc /= lenOsc;
-    moverCombatiente(oscuridad, dirOsc, dt);
+        if (dist > 150.f) {
+            //Lejos: avanzar hacia el enemigo
+            dirOsc = diff / dist;
+        }
+        else if (dist < 80.f) {
+            //Muy cerca: alejarse
+            dirOsc = -diff / dist;
+        }
+        moverCombatiente(oscuridad, dirOsc, dt);
 
-    bool enterAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
-    if (enterAhora && !oscuridad.teclaDsparoPulsada)
-        crearProyectil(oscuridad, luz);
-  
-       
-    oscuridad.teclaDsparoPulsada = enterAhora;
+        //Disparar cuando pueda
+        if (oscuridad.tiempoRecarga <= 0.f) {
+            crearProyectil(oscuridad, luz);
+        }
+    }
+    else {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    dirOsc.y -= 1.f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  dirOsc.y += 1.f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  dirOsc.x -= 1.f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) dirOsc.x += 1.f;
+
+        float lenOsc = std::sqrt(dirOsc.x * dirOsc.x + dirOsc.y * dirOsc.y);
+        if (lenOsc > 0.f) dirOsc /= lenOsc;
+        moverCombatiente(oscuridad, dirOsc, dt);
+
+        bool enterAhora = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
+        if (enterAhora && !oscuridad.teclaDsparoPulsada)
+            crearProyectil(oscuridad, luz);
+
+
+        oscuridad.teclaDsparoPulsada = enterAhora;
+    }
 
     // Timer de animacion de ambos combatientes
     for (CombatienteArena* c : { &combatiente1, &combatiente2 }) {

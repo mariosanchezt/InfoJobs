@@ -63,6 +63,7 @@ private:
     std::vector<Obstaculo>  obstaculos;
     std::vector<OndaMelee>  ondasMelee;
 
+    bool modoIA;
     bool   combateTerminado;
     Pieza* ganador;
 
@@ -88,6 +89,7 @@ public:
 
     bool   haTerminado() const { return combateTerminado; }
     Pieza* getGanador()  const { return ganador; }
+    void setModoIA(bool ia) { modoIA = ia; }
 
     void limpiar() {
         combatiente1.pieza = nullptr;

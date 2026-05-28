@@ -373,6 +373,7 @@ int main() {
                     renderer = new Renderer(ventana);
                     arena = new Arena();
                     arena->setAudio(&audio);
+                    arena->setModoIA(false);
 
                     arrastrando = false;
                     animando = false;
@@ -423,6 +424,7 @@ int main() {
                     renderer = new Renderer(ventana);
                     arena = new Arena();
                     arena->setAudio(&audio);
+                    arena->setModoIA(true);
 
                     arrastrando = false;
                     animando = false;
@@ -477,17 +479,14 @@ int main() {
 
             if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
                 if (juego->esModoIA()) {
-                    juego->iniciarCombate(p, ocupante, fOri, cOri, fDest, cDest);
-                    juego->cambiarTurno();
-
-                    if (juego->verificarVictoria()) {
-                        audio.stopMusic();
-                        if (juego->getBandoGanador() == LUZ)
-                            audio.playVictoria();
-                        else
-                            audio.playDerrota();
-                        estadoJuego = EstadoJuego::VICTORIA;
-                    }
+                    filaAtacante = fOri;
+                    colAtacante = cOri;
+                    filaDefensor = fDest;
+                    colDefensor = cDest;
+                    arena->iniciarCombate(p, ocupante);
+                    audio.playArenaMusic();
+                    enCombate = true;
+                    renderer->setEstado(ARENA);
                 }
                 else {
                     filaAtacante = fOri;
