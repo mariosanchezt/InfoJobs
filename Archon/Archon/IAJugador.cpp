@@ -114,6 +114,25 @@ float IAJugador::evaluarMovimiento(Tablero* tablero, int fOri, int cOri, int fDe
 		}
 	}
 
+	//6. Bonus por moverse a un punto de poder
+	if (tablero->esPuntoDePoder(fDest, cDest)) {
+		puntos += 40.f;
+
+		//Bonus extra si ya controlamos varios puntos de poder
+		int puntosControlados = 0;
+		for (int f = 0; f < 9; f++) {
+			for (int c = 0; c < 9; c++) {
+				if (tablero->esPuntoDePoder(f, c)) {
+					Pieza* p = tablero->getPieza(f, c);
+					if (p != nullptr && p->getBando() == bando) {
+						puntosControlados++;
+					}
+				}
+			}
+		}
+		puntos += puntosControlados * 15.f;
+	}
+
 	return puntos;
 }
 
