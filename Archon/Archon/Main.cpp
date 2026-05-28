@@ -457,6 +457,7 @@ int main() {
                     juego->cambiarTurno();
 
                     if (juego->verificarVictoria()) {
+                        audio.stopMusic();
                         if (juego->getBandoGanador() == LUZ)
                             audio.playVictoria();
                         else
@@ -491,6 +492,7 @@ int main() {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
 
                 if (juego->verificarVictoria()) {
+                    audio.stopMusic();
                     if (juego->getBandoGanador() == LUZ)
                         audio.playVictoria();
                     else
@@ -516,6 +518,7 @@ int main() {
             cancelarHechizo();
 
             if (juego->verificarVictoria()) {
+                audio.stopMusic();
                 if (juego->getBandoGanador() == LUZ)
                     audio.playVictoria();
                 else
@@ -592,6 +595,7 @@ int main() {
                 tiempoEsperaIA = 0.f;
 
                 if (juego->verificarVictoria()) {
+                    audio.stopMusic();
                     if (juego->getBandoGanador() == LUZ)
                         audio.playVictoria();
                     else
@@ -616,6 +620,7 @@ int main() {
 
             if (dist <= velAnimacion * dt) {
                 animando = false;
+                audio.stopMovimiento();
 
                 ejecutarMovimiento(
                     renderer->getFilaSeleccionada(),
@@ -643,6 +648,7 @@ int main() {
 
                     if (mov.fOrigen != -1) {
                         animando = true;
+                        audio.playMovimiento();
                         targetFila = mov.fDestino;
                         targetCol = mov.cDestino;
                         renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
@@ -688,6 +694,7 @@ int main() {
                                     renderer->deseleccionar();
 
                                     if (juego->verificarVictoria()) {
+                                        audio.stopMusic();
                                         if (juego->getBandoGanador() == LUZ)
                                             audio.playVictoria();
                                         else
@@ -704,6 +711,7 @@ int main() {
                                     renderer->deseleccionar();
 
                                     if (juego->verificarVictoria()) {
+                                        audio.stopMusic();
                                         if (juego->getBandoGanador() == LUZ)
                                             audio.playVictoria();
                                         else
@@ -737,6 +745,7 @@ int main() {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
                             if (p && p->getBando() == juego->getTurnoActual()) {
                                 renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                                audio.playSeleccion();
                                 arrastrando = true;
                                 moverConTeclado = false;
                                 posPixelMuneco = posMundo; // Usamos posMundo
@@ -751,6 +760,7 @@ int main() {
                             if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                                 moverConTeclado = false;
                                 animando = true;
+                                audio.playMovimiento();
                                 targetFila = fila;
                                 targetCol = col;
                                 posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
@@ -985,6 +995,7 @@ int main() {
                         }
 
                         if (juego->verificarVictoria()) {
+                            audio.stopMusic();
                             if (juego->getBandoGanador() == LUZ)
                                 audio.playVictoria();
                             else
@@ -1050,7 +1061,7 @@ int main() {
                                 col,
                                 juego->getTablero()
                             );
-
+                            audio.playSeleccion();
                             moverConTeclado = false;
 
                             posPixelMuneco = renderer->getCentroCasilla(fila, col);
@@ -1065,6 +1076,7 @@ int main() {
                         if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                             moverConTeclado = false;
                             animando = true;
+                            audio.playMovimiento();
 
                             targetFila = fila;
                             targetCol = col;

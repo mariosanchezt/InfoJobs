@@ -7,6 +7,8 @@ AudioManager::AudioManager()
 	, sonidoDisparo(nullptr)
 	, sonidoVictoria(nullptr)
 	, sonidoDerrota(nullptr)
+	, sonidoMovimiento(nullptr)
+	, sonidoSeleccion(nullptr)
 {
 	volumenMusica = 25.f;
 	volumenEfectos = 50.f;
@@ -42,35 +44,39 @@ void AudioManager::cargar() {
 
 	if (!bufferVictoria.loadFromFile("assets/sonido_victoria.wav"))
 		std::cout << "Error: no se pudo cargar sonido_victoria.wav" << std::endl;
+	
 	if (!bufferDerrota.loadFromFile("assets/sonido_derrota.wav"))
 		std::cout << "Error: no se pudo cargar sonido_derrota.wav" << std::endl;
+	
 	if (!musicaPausa.openFromFile("assets/sonido_pausa.wav"))
 		std::cout << "Error: no se pudo cargar sonido_pausa.wav" << std::endl;
 	musicaPausa.setLooping(true);
 	musicaPausa.setVolume(volumenMusica);
 	
+	if (!bufferMovimiento.loadFromFile("assets/sonido_movimiento.wav"))
+		std::cout << "Error: no se pudo cargar sonido_movimiento.wav" << std::endl;
+	
+	if (!bufferSeleccion.loadFromFile("assets/sonido_seleccion.wav"))
+		std::cout << "Error: no se pudo cargar sonido_seleccion.wav" << std::endl;
+
 	sonidoMuerte = new sf::Sound(bufferMuerte);
 	sonidoDisparo = new sf::Sound(bufferDisparo);
 	sonidoVictoria = new sf::Sound(bufferVictoria);
 	sonidoDerrota = new sf::Sound(bufferDerrota);
+	sonidoMovimiento = new sf::Sound(bufferMovimiento);
+	sonidoSeleccion = new sf::Sound(bufferSeleccion);
 
 	for (int i = 0; i < CANALES_GOLPE; i++)
 		sonidosGolpe[i].setVolume(volumenEfectos);
 	if (sonidoMuerte) sonidoMuerte->setVolume(volumenEfectos);
 	if (sonidoDisparo) sonidoDisparo->setVolume(volumenEfectos);
 
+	sonidoMovimiento->setLooping(true);
+
 	sonidoVictoria->setVolume(volumenEfectos);
 	sonidoDerrota->setVolume(volumenEfectos);
-	//sonidoPausa->setVolume(volumenEfectos);
-	//// Precargar sonidos para eliminar lag
-	//for (int i = 0; i < CANALES_GOLPE; i++){
-	//	sonidosGolpe[i].play();
-	//	sonidosGolpe[i].stop();
-	//}
-	//sonidoMuerte.play();
-	//sonidoMuerte.stop();
-	//sonidoDisparo.play();
-	//sonidoDisparo.stop();
+	sonidoMovimiento->setVolume(volumenEfectos);
+	sonidoSeleccion->setVolume(volumenEfectos);
 }
 
 void AudioManager::playMenuMusic() {
@@ -120,7 +126,8 @@ void AudioManager::setVolumenEfectos(float vol) {
 	if (sonidoDisparo) sonidoDisparo->setVolume(vol);
 	if (sonidoVictoria) sonidoVictoria->setVolume(vol);
 	if (sonidoDerrota) sonidoDerrota->setVolume(vol);
-	//if (sonidoPausa) sonidoPausa->setVolume(vol);
+	if (sonidoMovimiento) sonidoMovimiento->setVolume(vol);
+	if (sonidoSeleccion) sonidoSeleccion->setVolume(vol);
 }
 
 void AudioManager::playArenaMusic() {
@@ -142,9 +149,23 @@ void AudioManager::playPausa() {
 	musicaPausa.play();
 }
 
+void AudioManager::playMovimiento() {
+	if (sonidoMovimiento) sonidoMovimiento->play();
+}
+
+void AudioManager::stopMovimiento() {
+	if (sonidoMovimiento) sonidoMovimiento->stop();
+}
+
+void AudioManager::playSeleccion() {
+	if (sonidoSeleccion) sonidoSeleccion->play();
+}
+
 AudioManager::~AudioManager() {
 	delete sonidoMuerte;
 	delete sonidoDisparo;
 	delete sonidoVictoria;
 	delete sonidoDerrota;
+	delete sonidoMovimiento;
+	delete sonidoSeleccion;
 }
