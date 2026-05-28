@@ -247,6 +247,8 @@ public:
 
     void dibujarMenuPausa();
 
+    void dibujarSugerencia(int fOrigen, int cOrigen, int fDestino, int cDestino);
+
     void dibujarPanelHechizos(
         Bando turno,
         bool* hechizosUsadosLuz,

@@ -1628,3 +1628,27 @@ void Renderer::dibujarMenuPausa() {
         yBase += 70.f;
     }
 }
+
+void Renderer::dibujarSugerencia(int fOrigen, int cOrigen, int fDestino, int cDestino) {
+    if (fOrigen == -1) return;
+
+    float t = relojAnimacion.getElapsedTime().asSeconds();
+    float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
+    uint8_t alpha = static_cast<uint8_t>(150 + static_cast<int>(100 * pulso));
+
+    // Casilla original en azul
+    sf::RectangleShape origen(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
+    origen.setPosition(sf::Vector2f(OFFSET_X + cOrigen * TAM_CASILLA + 2.f, OFFSET_Y + fOrigen * TAM_CASILLA + 2.f));
+    origen.setFillColor(sf::Color::Transparent);
+    origen.setOutlineColor(sf::Color(50u, 150u, 255u, alpha));
+    origen.setOutlineThickness(4.f);
+    ventana.draw(origen);
+
+    // Casilla destino en azul mas claro
+    sf::RectangleShape destino(sf::Vector2f(TAM_CASILLA - 4.f, TAM_CASILLA - 4.f));
+    destino.setPosition(sf::Vector2f(OFFSET_X + cDestino * TAM_CASILLA + 2.f, OFFSET_Y + fDestino * TAM_CASILLA + 2.f));
+    destino.setFillColor(sf::Color(50u, 150u, 255u, 50u));
+    destino.setOutlineColor(sf::Color(50u, 150u, 255u, alpha));
+    destino.setOutlineThickness(4.f);
+    ventana.draw(destino);
+}

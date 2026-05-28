@@ -170,6 +170,10 @@ int main() {
     int teleportDestFila = -1;
     int teleportDestCol = -1;
 
+    //Sugerencia movimiento
+    MovimientoIA sugerencia = { -1, -1, -1, -1, 0.f };
+    bool mostrarSugerencia = false;
+
     bool teleportPiezaElegida = false;
 
     sf::Clock reloj;
@@ -855,6 +859,16 @@ int main() {
                     continue;
                 }
 
+                //I: enseña sugerencia IA
+                if (key->code == sf::Keyboard::Key::I) {
+                    mostrarSugerencia = !mostrarSugerencia;
+                    if (mostrarSugerencia)
+                        sugerencia = juego->obtenerSugerencia();
+                    else
+                        sugerencia = { -1, -1, -1, -1, 0.f };
+                    continue;
+                }
+
                 // H: mostrar/ocultar panel de hechizos
                 if (key->code == sf::Keyboard::Key::H) {
                     if (renderer->getModoHechizo() != SIN_HECHIZO) {
@@ -1151,7 +1165,9 @@ int main() {
                 );
             }
         }
-
+        if (mostrarSugerencia && sugerencia.fOrigen != -1) {
+            renderer->dibujarSugerencia(sugerencia.fOrigen, sugerencia.cOrigen, sugerencia.fDestino, sugerencia.cDestino);
+        }
         ventana.display();
     }
 

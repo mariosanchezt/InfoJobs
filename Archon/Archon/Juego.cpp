@@ -42,6 +42,9 @@ Juego::Juego() {
     ia = nullptr;
     modoIA = false;
 
+    iaSugerenciaLuz = new IAJugador(LUZ, MEDIO);
+    iaSugerenciaOscuridad = new IAJugador(OSCURIDAD, MEDIO);
+
     turnosJugados = 0;
 }
 
@@ -407,8 +410,17 @@ bool Juego::iaLanzarHechizo() {
     return true;
 }
 
+MovimientoIA Juego::obtenerSugerencia() {
+    if (turnoActual == LUZ)
+        return iaSugerenciaLuz->decidirMovimiento(tablero);
+    else
+        return iaSugerenciaOscuridad->decidirMovimiento(tablero);
+}
+
 Juego::~Juego() {
     delete tablero;
     delete arena;
     delete ia;
+    delete iaSugerenciaLuz;
+    delete iaSugerenciaOscuridad;
 }

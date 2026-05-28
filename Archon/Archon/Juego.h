@@ -2,7 +2,6 @@
 #include <vector>
 #include <map>
 #include <string>
-
 #include "Pieza.h"
 #include "IAJugador.h"
 
@@ -52,6 +51,9 @@ private:
     IAJugador* ia;
     bool modoIA;
 
+    IAJugador* iaSugerenciaLuz;
+    IAJugador* iaSugerenciaOscuridad;
+
     int turnosJugados;
 
     // Cementerio de piezas eliminadas
@@ -76,6 +78,8 @@ public:
     bool esModoIA() const { return modoIA; }
     MovimientoIA obtenerMovimientoIA();
     bool iaLanzarHechizo();
+
+    MovimientoIA obtenerSugerencia();
 
     void registrarMuerte(Pieza* pieza);
 
