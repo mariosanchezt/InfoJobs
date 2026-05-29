@@ -748,11 +748,11 @@ void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada, Tabl
         if (tablero != nullptr) {
             Pieza* bajoCursor = tablero->getPieza(cursorFila, cursorCol);
             if (bajoCursor != nullptr && bajoCursor->getBando() == turno)
-                textoInferior = bajoCursor->getNombre() + "  |  Space/Enter: seleccionar  |  H: hechizos";
+                textoInferior = bajoCursor->getNombre() + "  |  Space/Enter: seleccionar  |  H: hechizos  |  I: sugerencia";
             else if (bajoCursor != nullptr)
                 textoInferior = construirTextoPieza(bajoCursor);
             else
-                textoInferior = esLuz ? "TURNO: PLANTAS  |  H: abrir hechizos" : "TURNO: ZOMBIES  |  H: abrir hechizos";
+                textoInferior = esLuz ? "TURNO: PLANTAS  |  H: abrir hechizos  |  I: sugerencia" : "TURNO: ZOMBIES  |  H: abrir hechizos  |  I: sugerencia";
         }
         else {
             textoInferior = esLuz ? "TURNO: PLANTAS" : "TURNO: ZOMBIES";

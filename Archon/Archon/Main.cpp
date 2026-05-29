@@ -529,6 +529,8 @@ int main() {
             }
 
             renderer->deseleccionar();
+            mostrarSugerencia = false;
+            sugerencia = { -1, -1, -1, -1, 0.f };
             };
 
         // Actualizar animaciones cada frame
