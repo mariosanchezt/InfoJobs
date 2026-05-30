@@ -9,6 +9,7 @@ AudioManager::AudioManager()
     , sonidoDerrota(nullptr)
     , sonidoMovimiento(nullptr)
     , sonidoSeleccion(nullptr)
+    , sonidoMelee(nullptr)
 {
     volumenMusica = 25.f;
     volumenEfectos = 50.f;
@@ -72,12 +73,17 @@ void AudioManager::cargar() {
         std::cout << "Error: no se pudo cargar sonido_seleccion.wav" << std::endl;
     }
 
+    if (!bufferMelee.loadFromFile("assets/sonido_melee.wav")) {
+        std::cout << "Error: no se pudo cargar sonido_melee.wav" << std::endl;
+    }
+
     sonidoMuerte = new sf::Sound(bufferMuerte);
     sonidoDisparo = new sf::Sound(bufferDisparo);
     sonidoVictoria = new sf::Sound(bufferVictoria);
     sonidoDerrota = new sf::Sound(bufferDerrota);
     sonidoMovimiento = new sf::Sound(bufferMovimiento);
     sonidoSeleccion = new sf::Sound(bufferSeleccion);
+    sonidoMelee = new sf::Sound(bufferMelee);
 
     if (sonidoMovimiento) {
         sonidoMovimiento->setLooping(true);
@@ -191,6 +197,12 @@ void AudioManager::playSeleccion() {
     }
 }
 
+void AudioManager::playMelee() {
+    if (sonidoMelee) { 
+        sonidoMelee->play(); 
+    }
+}
+
 void AudioManager::setVolumenMusica(float vol) {
     volumenMusica = vol;
 
@@ -213,6 +225,7 @@ void AudioManager::setVolumenEfectos(float vol) {
     if (sonidoDerrota) sonidoDerrota->setVolume(vol);
     if (sonidoMovimiento) sonidoMovimiento->setVolume(vol);
     if (sonidoSeleccion) sonidoSeleccion->setVolume(vol);
+    if (sonidoMelee) sonidoMelee->setVolume(vol);
 }
 
 AudioManager::~AudioManager() {
@@ -222,4 +235,5 @@ AudioManager::~AudioManager() {
     delete sonidoDerrota;
     delete sonidoMovimiento;
     delete sonidoSeleccion;
+    delete sonidoMelee;
 }

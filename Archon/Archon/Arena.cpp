@@ -151,6 +151,7 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
         onda.tiempoVida = onda.duracionMax;
         onda.esDeLuz = (tirador.pieza->getBando() == LUZ);
         ondasMelee.push_back(onda);
+        if (audio != nullptr) audio->playMelee();
 
         // Comprobar si hay un enemigo dentro de la onda
         sf::Vector2f diff = objetivo.pos - tirador.pos;
@@ -159,6 +160,7 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
         if (dist <= rango) {
             objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f;
             if (objetivo.pieza->vida < 0.f) objetivo.pieza->vida = 0.f;
+            if (audio != nullptr)audio->playGolpe();
             std::cout << tirador.pieza->getNombre() << " Muerde a " << objetivo.pieza->getNombre() << "!" << std::endl;
         }
         return;
@@ -213,7 +215,7 @@ void Arena::comprobarColisiones() {
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
             if (dist < TAM_PIEZA * 1.5f) {
                 oscuridad.pieza->vida -= luz.pieza->fuerza * 0.3f;
-                if (audio != nullptr)audio->playGolpe();
+                if (audio != nullptr) audio->playGolpe();
                 if (oscuridad.pieza->vida < 0.f) oscuridad.pieza->vida = 0.f;
                 p.activo = false;
                 std::cout << oscuridad.pieza->getNombre() << " golpeado! Vida: "

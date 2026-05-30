@@ -17,6 +17,7 @@ private:
     sf::SoundBuffer bufferDerrota;
     sf::SoundBuffer bufferMovimiento;
     sf::SoundBuffer bufferSeleccion;
+    sf::SoundBuffer bufferMelee;
 
     static constexpr int CANALES_GOLPE = 4;
     std::vector<sf::Sound> sonidosGolpe;
@@ -28,6 +29,7 @@ private:
     sf::Sound* sonidoDerrota;
     sf::Sound* sonidoMovimiento;
     sf::Sound* sonidoSeleccion;
+    sf::Sound* sonidoMelee;
 
     float volumenMusica;
     float volumenEfectos;
@@ -52,6 +54,7 @@ public:
     void playMovimiento();
     void stopMovimiento();
     void playSeleccion();
+    void playMelee();
 
     void setVolumenMusica(float vol);
     void setVolumenEfectos(float vol);
