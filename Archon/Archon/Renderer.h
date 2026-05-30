@@ -167,6 +167,7 @@ private:
 
     std::string tipoMovimientoTexto(TipoMovimiento mov) const;
     std::string numeroTexto(float valor) const;
+    std::string formatearTiempo(float segundos) const;
     std::string construirTextoPieza(Pieza* pieza) const;
 
     void dibujarPuntosDePoder(Tablero* tablero);
@@ -189,6 +190,15 @@ private:
         float x,
         float y,
         sf::Color colorActivo
+    );
+
+    void dibujarPanelPuntuacionTiempoBando(
+        const std::string& titulo,
+        int puntuacion,
+        float tiempoBando,
+        float x,
+        float y,
+        sf::Color colorTitulo
     );
 
     void dibujarCementerio(
@@ -233,6 +243,8 @@ public:
         const std::map<std::string, int>& cementerioLuz,
         const std::map<std::string, int>& cementerioOscuridad
     );
+
+    void dibujarHUDTiempoPuntuacion(const Juego* juego);
 
     void dibujarEstadoArena(const Arena& arena);
 

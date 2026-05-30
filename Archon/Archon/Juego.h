@@ -13,7 +13,9 @@ class Pieza;
 enum TipoVictoria {
     SIN_VICTORIA,
     VICTORIA_ELIMINACION,
-    VICTORIA_PUNTOS_PODER
+    VICTORIA_PUNTOS_PODER,
+    VICTORIA_TIEMPO,
+    VICTORIA_PUNTUACION
 };
 
 class Juego {
@@ -60,6 +62,18 @@ private:
     std::map<std::string, int> cementerioLuz;
     std::map<std::string, int> cementerioOscuridad;
 
+    // Temporizadores y puntuacion
+    float tiempoGeneral;
+    float tiempoLuz;
+    float tiempoOscuridad;
+
+    static constexpr float TIEMPO_GENERAL_INICIAL = 600.f; // 10 minutos
+    static constexpr float TIEMPO_BANDO_INICIAL = 300.f;   // 5 minutos por bando
+
+    int contarPiezasVivas(Bando bando) const;
+    int contarPuntosPoder(Bando bando) const;
+    int calcularPuntuacionBando(Bando bando) const;
+    void resolverVictoriaPorPuntuacion();
 public:
     Juego();
     ~Juego();
@@ -82,6 +96,20 @@ public:
     MovimientoIA obtenerSugerencia();
 
     void registrarMuerte(Pieza* pieza);
+
+    // Temporizadores y puntuacion
+    void actualizarTemporizadores(float dt);
+    bool verificarVictoriaPorTiempo();
+
+    float getTiempoGeneral() const { return tiempoGeneral; }
+    float getTiempoLuz() const { return tiempoLuz; }
+    float getTiempoOscuridad() const { return tiempoOscuridad; }
+
+    int getPuntuacionLuz() const { return calcularPuntuacionBando(LUZ); }
+    int getPuntuacionOscuridad() const { return calcularPuntuacionBando(OSCURIDAD); }
+
+    int getPuntosPoderLuz() const { return contarPuntosPoder(LUZ); }
+    int getPuntosPoderOscuridad() const { return contarPuntosPoder(OSCURIDAD); }
 
     // Getters principales
     Tablero* getTablero() const { return tablero; }

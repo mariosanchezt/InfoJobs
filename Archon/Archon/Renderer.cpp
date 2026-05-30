@@ -719,7 +719,9 @@ void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada, Tabl
     if (modoHechizo == HECHIZO_ENEMIGO) colorFranja = sf::Color(160, 60, 20);
     if (modoHechizo == HECHIZO_CASILLA) colorFranja = sf::Color(100, 30, 130);
 
-    sf::RectangleShape franja(sf::Vector2f(760.f, 50.f));
+    float anchoZonaTablero = 9.f * TAM_CASILLA;
+
+    sf::RectangleShape franja(sf::Vector2f(anchoZonaTablero, 50.f));
     franja.setPosition(sf::Vector2f(OFFSET_X, yFranja));
     franja.setFillColor(colorFranja);
     ventana.draw(franja);
@@ -763,7 +765,10 @@ void Renderer::dibujarIndicadorTurno(Bando turno, Pieza* piezaSeleccionada, Tabl
     texto.setFillColor(sf::Color::White);
     texto.setStyle(sf::Text::Bold);
     sf::FloatRect b = texto.getLocalBounds();
-    texto.setPosition(sf::Vector2f(OFFSET_X + HUD_ANCHO / 2.f - b.size.x / 2.f, yFranja + 15.f));
+    texto.setPosition(sf::Vector2f(
+        OFFSET_X + anchoZonaTablero / 2.f - b.size.x / 2.f,
+        yFranja + 15.f
+    ));
     ventana.draw(texto);
 }
 
@@ -785,6 +790,23 @@ std::string Renderer::numeroTexto(float valor) const {
     return oss.str();
 }
 
+std::string Renderer::formatearTiempo(float segundos) const {
+    if (segundos < 0.f) {
+        segundos = 0.f;
+    }
+
+    int total = static_cast<int>(std::round(segundos));
+    int minutos = total / 60;
+    int seg = total % 60;
+
+    std::ostringstream oss;
+
+    oss << std::setw(2) << std::setfill('0') << minutos
+        << ":"
+        << std::setw(2) << std::setfill('0') << seg;
+
+    return oss.str();
+}
 std::string Renderer::construirTextoPieza(Pieza* pieza) const {
     if (pieza == nullptr) return "";
     std::ostringstream oss;
@@ -1519,11 +1541,24 @@ void Renderer::dibujarPantallaVictoria(
     textoC(esLuz ? "El jardin ha sido defendido" : "Los zombies han tomado el jardin",
         24, sf::Color(230u, 230u, 230u), panelY + 103.f);
 
-    std::string txtTipo = (tipoVictoria == VICTORIA_ELIMINACION)
-        ? "Victoria por eliminacion total"
-        : (tipoVictoria == VICTORIA_PUNTOS_PODER)
-        ? "Victoria por control de puntos de poder"
-        : "Partida finalizada";
+    std::string txtTipo;
+
+    if (tipoVictoria == VICTORIA_ELIMINACION) {
+        txtTipo = "Victoria por eliminacion total";
+    }
+    else if (tipoVictoria == VICTORIA_PUNTOS_PODER) {
+        txtTipo = "Victoria por control de puntos de poder";
+    }
+    else if (tipoVictoria == VICTORIA_TIEMPO) {
+        txtTipo = "Victoria por perdida de tiempo del rival";
+    }
+    else if (tipoVictoria == VICTORIA_PUNTUACION) {
+        txtTipo = "Victoria por mayor puntuacion";
+    }
+    else {
+        txtTipo = "Partida finalizada";
+    }
+
     textoC(txtTipo, 23, sf::Color::White, panelY + 158.f);
     textoC("Turnos jugados: " + std::to_string(turnosJugados), 21, sf::Color(220u, 220u, 220u), panelY + 205.f);
     textoC("Piezas eliminadas: " + std::to_string(bajasTotales), 21, sf::Color(220u, 220u, 220u), panelY + 235.f);
@@ -1543,7 +1578,8 @@ void Renderer::dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* 
 
     float yInicio = 820.f;
     float xInicio = OFFSET_X;
-    float anchoCasilla = HUD_ANCHO / 7.f;
+    float anchoZonaTablero = 9.f * TAM_CASILLA;
+    float anchoCasilla = anchoZonaTablero / 7.f;
     float altoCasilla = 50.f;
 
     for (int i = 0; i < 7; i++) {
@@ -1651,4 +1687,135 @@ void Renderer::dibujarSugerencia(int fOrigen, int cOrigen, int fDestino, int cDe
     destino.setOutlineColor(sf::Color(50u, 150u, 255u, alpha));
     destino.setOutlineThickness(4.f);
     ventana.draw(destino);
+}
+
+void Renderer::dibujarPanelPuntuacionTiempoBando(
+    const std::string& titulo,
+    int puntuacion,
+    float tiempoBando,
+    float x,
+    float y,
+    sf::Color colorTitulo
+) {
+    if (!fuenteCargada) {
+        return;
+    }
+
+    float ancho = CEMENTERIO_ANCHO;
+    float alto = 95.f;
+
+    sf::RectangleShape panel(sf::Vector2f(ancho, alto));
+    panel.setPosition(sf::Vector2f(x, y));
+    panel.setFillColor(sf::Color(20, 20, 20, 210));
+    panel.setOutlineColor(colorTitulo);
+    panel.setOutlineThickness(3.f);
+    ventana.draw(panel);
+
+    sf::Text tituloTxt(fuente, titulo, 13);
+    tituloTxt.setFillColor(colorTitulo);
+    tituloTxt.setStyle(sf::Text::Bold);
+
+    sf::FloatRect bt = tituloTxt.getLocalBounds();
+
+    tituloTxt.setPosition(sf::Vector2f(
+        x + ancho / 2.f - bt.size.x / 2.f,
+        y + 8.f
+    ));
+
+    ventana.draw(tituloTxt);
+
+    sf::Text puntuacionTxt(fuente, std::to_string(puntuacion), 25);
+    puntuacionTxt.setFillColor(sf::Color::White);
+    puntuacionTxt.setStyle(sf::Text::Bold);
+
+    sf::FloatRect bp = puntuacionTxt.getLocalBounds();
+
+    puntuacionTxt.setPosition(sf::Vector2f(
+        x + ancho / 2.f - bp.size.x / 2.f,
+        y + 28.f
+    ));
+
+    ventana.draw(puntuacionTxt);
+
+    sf::Color colorTiempo = tiempoBando <= 30.f
+        ? sf::Color(255, 80, 80)
+        : sf::Color(230, 230, 240);
+
+    sf::Text tiempoTxt(fuente, "TIEMPO " + formatearTiempo(tiempoBando), 17);
+    tiempoTxt.setFillColor(colorTiempo);
+    tiempoTxt.setStyle(sf::Text::Bold);
+
+    sf::FloatRect bti = tiempoTxt.getLocalBounds();
+
+    tiempoTxt.setPosition(sf::Vector2f(
+        x + ancho / 2.f - bti.size.x / 2.f,
+        y + 63.f
+    ));
+
+    ventana.draw(tiempoTxt);
+}
+
+void Renderer::dibujarHUDTiempoPuntuacion(const Juego* juego) {
+    if (juego == nullptr || !fuenteCargada) {
+        return;
+    }
+
+    // Paneles laterales nuevos debajo de los puntos de poder.
+    // No se toca el panel de poder antiguo, solo se añade informacion debajo.
+    float yPanelExtra = PODER_PANEL_Y + PODER_PANEL_ALTO + 12.f;
+
+    dibujarPanelPuntuacionTiempoBando(
+        "PUNTUACION PLANTAS",
+        juego->getPuntuacionLuz(),
+        juego->getTiempoLuz(),
+        CEMENTERIO_X_LUZ,
+        yPanelExtra,
+        sf::Color(80, 220, 120)
+    );
+
+    dibujarPanelPuntuacionTiempoBando(
+        "PUNTUACION ZOMBIES",
+        juego->getPuntuacionOscuridad(),
+        juego->getTiempoOscuridad(),
+        CEMENTERIO_X_OSCURIDAD,
+        yPanelExtra,
+        sf::Color(220, 80, 80)
+    );
+
+    // Tiempo general bajo el tablero.
+    // Usa HUD_ANCHO, que coincide con 9 casillas * 80 px = 720 px.
+    // Asi no invade los paneles laterales.
+    float x = OFFSET_X;
+    float y = HUD_Y + HUD_ALTO + 5.f;
+    float ancho = 9.f * TAM_CASILLA;
+    float alto = 24.f;
+
+    sf::RectangleShape panelTiempo(sf::Vector2f(ancho, alto));
+    panelTiempo.setPosition(sf::Vector2f(x, y));
+    panelTiempo.setFillColor(sf::Color(15, 15, 25, 220));
+    panelTiempo.setOutlineColor(sf::Color(180, 180, 230, 180));
+    panelTiempo.setOutlineThickness(2.f);
+    ventana.draw(panelTiempo);
+
+    sf::Color colorTiempoGeneral = juego->getTiempoGeneral() <= 60.f
+        ? sf::Color(255, 90, 90)
+        : sf::Color(230, 230, 240);
+
+    sf::Text textoTiempo(
+        fuente,
+        "TIEMPO GENERAL: " + formatearTiempo(juego->getTiempoGeneral()),
+        18
+    );
+
+    textoTiempo.setFillColor(colorTiempoGeneral);
+    textoTiempo.setStyle(sf::Text::Bold);
+
+    sf::FloatRect b = textoTiempo.getLocalBounds();
+
+    textoTiempo.setPosition(sf::Vector2f(
+        x + ancho / 2.f - b.size.x / 2.f,
+        y + 1.f
+    ));
+
+    ventana.draw(textoTiempo);
 }

@@ -194,6 +194,19 @@ int main() {
         }
         };
 
+    auto activarVictoriaActual = [&]() {
+        audio.stopMusic();
+
+        if (juego != nullptr && juego->getBandoGanador() == LUZ) {
+            audio.playVictoria();
+        }
+        else {
+            audio.playDerrota();
+        }
+
+        estadoJuego = EstadoJuego::VICTORIA;
+        };
+
     aplicarConfiguracion();
 
     while (ventana.isOpen()) {
@@ -283,6 +296,9 @@ int main() {
                 juego->getCementerioLuz(),
                 juego->getCementerioOscuridad()
             );
+
+            renderer->dibujarHUDTiempoPuntuacion(juego);
+
             renderer->dibujarMenuPausa();
             ventana.display();
             continue;
@@ -536,6 +552,23 @@ int main() {
         // Actualizar animaciones cada frame
         if (renderer != nullptr) {
             renderer->actualizarAnimaciones(dt);
+        }
+
+        // Actualizar temporizadores solo mientras se juega en tablero.
+// No cuenta en menu, pausa, configuracion, victoria, arena, animaciones ni teleport.
+        if (estadoJuego == EstadoJuego::JUGANDO_LOCAL &&
+            juego != nullptr &&
+            renderer != nullptr &&
+            !enCombate &&
+            !animando &&
+            !renderer->teleportEnCurso()) {
+
+            juego->actualizarTemporizadores(dt);
+
+            if (juego->verificarVictoriaPorTiempo()) {
+                activarVictoriaActual();
+                continue;
+            }
         }
 
         // Cuando termina la animacion de teleport, ejecutamos el hechizo
@@ -1149,6 +1182,8 @@ int main() {
             juego->getCementerioLuz(),
             juego->getCementerioOscuridad()
         );
+
+        renderer->dibujarHUDTiempoPuntuacion(juego);
 
         if ((arrastrando || animando || moverConTeclado) &&
             !renderer->teleportEnCurso() &&

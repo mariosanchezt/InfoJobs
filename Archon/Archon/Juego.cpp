@@ -46,9 +46,26 @@ Juego::Juego() {
     iaSugerenciaOscuridad = new IAJugador(OSCURIDAD, MEDIO);
 
     turnosJugados = 0;
+
+    // Temporizadores
+    tiempoGeneral = TIEMPO_GENERAL_INICIAL;
+    tiempoLuz = TIEMPO_BANDO_INICIAL;
+    tiempoOscuridad = TIEMPO_BANDO_INICIAL;
 }
 
 void Juego::inicializarPartida() {
+    // Reinicio de estado de partida
+    turnoActual = LUZ;
+    ganadorPartida = LUZ;
+    tipoVictoria = SIN_VICTORIA;
+    turnosJugados = 0;
+
+    tiempoGeneral = TIEMPO_GENERAL_INICIAL;
+    tiempoLuz = TIEMPO_BANDO_INICIAL;
+    tiempoOscuridad = TIEMPO_BANDO_INICIAL;
+
+    cementerioLuz.clear();
+    cementerioOscuridad.clear();
     // MELEE
     for (int i = 0; i < 9; i++) {
         tablero->colocarPieza(i, 1, new PiezaMelee("Carnivora", LUZ, i, 1, GROUND));
@@ -301,6 +318,11 @@ void Juego::dibujar() {
 }
 
 bool Juego::verificarVictoria() {
+    // Si ya se ha ganado por tiempo o puntuacion, no lo machacamos
+    if (tipoVictoria == VICTORIA_TIEMPO || tipoVictoria == VICTORIA_PUNTUACION) {
+        return true;
+    }
+
     int piezasLuz = 0;
     int piezasOscuridad = 0;
 
@@ -377,6 +399,181 @@ int Juego::getBajasOscuridad() const {
 
 int Juego::getBajasTotales() const {
     return getBajasLuz() + getBajasOscuridad();
+}
+
+void Juego::actualizarTemporizadores(float dt) {
+    if (dt <= 0.f) {
+        return;
+    }
+
+    if (tipoVictoria != SIN_VICTORIA) {
+        return;
+    }
+
+    tiempoGeneral -= dt;
+
+    if (turnoActual == LUZ) {
+        tiempoLuz -= dt;
+    }
+    else {
+        tiempoOscuridad -= dt;
+    }
+
+    if (tiempoGeneral < 0.f) {
+        tiempoGeneral = 0.f;
+    }
+
+    if (tiempoLuz < 0.f) {
+        tiempoLuz = 0.f;
+    }
+
+    if (tiempoOscuridad < 0.f) {
+        tiempoOscuridad = 0.f;
+    }
+}
+
+bool Juego::verificarVictoriaPorTiempo() {
+    if (tipoVictoria != SIN_VICTORIA) {
+        return true;
+    }
+
+    if (tiempoLuz <= 0.f) {
+        ganadorPartida = OSCURIDAD;
+        tipoVictoria = VICTORIA_TIEMPO;
+        return true;
+    }
+
+    if (tiempoOscuridad <= 0.f) {
+        ganadorPartida = LUZ;
+        tipoVictoria = VICTORIA_TIEMPO;
+        return true;
+    }
+
+    if (tiempoGeneral <= 0.f) {
+        resolverVictoriaPorPuntuacion();
+        tipoVictoria = VICTORIA_PUNTUACION;
+        return true;
+    }
+
+    return false;
+}
+
+int Juego::contarPiezasVivas(Bando bando) const {
+    int total = 0;
+
+    if (tablero == nullptr) {
+        return total;
+    }
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+
+            if (p != nullptr && p->getBando() == bando) {
+                total++;
+            }
+        }
+    }
+
+    return total;
+}
+
+int Juego::contarPuntosPoder(Bando bando) const {
+    int total = 0;
+
+    if (tablero == nullptr) {
+        return total;
+    }
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            if (!tablero->esPuntoDePoder(f, c)) {
+                continue;
+            }
+
+            Pieza* p = tablero->getPieza(f, c);
+
+            if (p != nullptr && p->getBando() == bando) {
+                total++;
+            }
+        }
+    }
+
+    return total;
+}
+
+int Juego::calcularPuntuacionBando(Bando bando) const {
+    int piezasVivas = contarPiezasVivas(bando);
+    int puntosPoder = contarPuntosPoder(bando);
+
+    int bajasPropias = (bando == LUZ)
+        ? getBajasLuz()
+        : getBajasOscuridad();
+
+    int bajasEnemigas = (bando == LUZ)
+        ? getBajasOscuridad()
+        : getBajasLuz();
+
+    int puntuacion =
+        puntosPoder * 100 +
+        bajasEnemigas * 200 +
+        piezasVivas * 10 -
+        bajasPropias * 75;
+
+    if (puntuacion < 0) {
+        puntuacion = 0;
+    }
+
+    return puntuacion;
+}
+
+void Juego::resolverVictoriaPorPuntuacion() {
+    int puntuacionLuz = calcularPuntuacionBando(LUZ);
+    int puntuacionOscuridad = calcularPuntuacionBando(OSCURIDAD);
+
+    if (puntuacionLuz > puntuacionOscuridad) {
+        ganadorPartida = LUZ;
+        return;
+    }
+
+    if (puntuacionOscuridad > puntuacionLuz) {
+        ganadorPartida = OSCURIDAD;
+        return;
+    }
+
+    int puntosLuz = contarPuntosPoder(LUZ);
+    int puntosOscuridad = contarPuntosPoder(OSCURIDAD);
+
+    if (puntosLuz > puntosOscuridad) {
+        ganadorPartida = LUZ;
+        return;
+    }
+
+    if (puntosOscuridad > puntosLuz) {
+        ganadorPartida = OSCURIDAD;
+        return;
+    }
+
+    int bajasLuz = getBajasLuz();
+    int bajasOscuridad = getBajasOscuridad();
+
+    if (bajasLuz < bajasOscuridad) {
+        ganadorPartida = LUZ;
+        return;
+    }
+
+    if (bajasOscuridad < bajasLuz) {
+        ganadorPartida = OSCURIDAD;
+        return;
+    }
+
+    // Si sigue todo empatado, gana quien conserve mas tiempo individual.
+    if (tiempoLuz >= tiempoOscuridad) {
+        ganadorPartida = LUZ;
+    }
+    else {
+        ganadorPartida = OSCURIDAD;
+    }
 }
 
 void Juego::activarIA(Dificultad d) {
