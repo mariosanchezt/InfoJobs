@@ -26,6 +26,7 @@ void mostrarPantallaCarga(sf::RenderWindow& ventana, sf::Font& fuente, float seg
             sf::Sprite sprite(texCarga);
             sf::Vector2u texSize = texCarga.getSize();
 
+            // Adaptado a la nueva ventana 1200x900
             sprite.setScale(sf::Vector2f(1200.f / texSize.x, 900.f / texSize.y));
             ventana.draw(sprite);
 
@@ -50,7 +51,7 @@ ModoHechizo modoParaHechizo(int indice) {
     switch (indice) {
     case 0: return HECHIZO_ALIADO;   // Curacion
     case 1: return HECHIZO_CASILLA;  // Teleport
-    case 2: return HECHIZO_ENEMIGO;  // Dano
+    case 2: return HECHIZO_ENEMIGO;  // Daño
     case 3: return HECHIZO_ENEMIGO;  // Ralentizar
     case 4: return HECHIZO_ALIADO;   // Fortalecer
     case 5: return HECHIZO_ALIADO;   // Escudo
@@ -72,6 +73,7 @@ TipoAnimHechizo animParaHechizo(int indice) {
 }
 
 int main() {
+    // Ventana ampliada para dejar espacio a cementerios laterales
     sf::RenderWindow ventana(sf::VideoMode({ 1200, 900 }), "Archon PvZ");
     ventana.setFramerateLimit(60);
 
@@ -81,16 +83,15 @@ int main() {
     auto manejarRedimension = [&](sf::Vector2u tam) {
         float windowRatio = (float)tam.x / (float)tam.y;
         float viewRatio = 1200.f / 900.f;
-        float sizeX = 1.f;
-        float sizeY = 1.f;
-        float posX = 0.f;
-        float posY = 0.f;
+        float sizeX = 1.f, sizeY = 1.f, posX = 0.f, posY = 0.f;
 
         if (windowRatio > viewRatio) {
+            // Monitor más ancho que el juego
             sizeX = viewRatio / windowRatio;
             posX = (1.f - sizeX) / 2.f;
         }
         else {
+            // Monitor más alto que el juego
             sizeY = windowRatio / viewRatio;
             posY = (1.f - sizeY) / 2.f;
         }
@@ -99,18 +100,17 @@ int main() {
         ventana.setView(vistaJuego);
         };
 
+    // Ajuste inicial de la vista
     manejarRedimension(ventana.getSize());
 
     auto alternarPantallaCompleta = [&]() {
         pantallaCompleta = !pantallaCompleta;
-
         if (pantallaCompleta) {
             ventana.create(sf::VideoMode::getDesktopMode(), "Archon PvZ", sf::State::Fullscreen);
         }
         else {
             ventana.create(sf::VideoMode({ 1200, 900 }), "Archon PvZ", sf::State::Windowed);
         }
-
         ventana.setFramerateLimit(60);
         manejarRedimension(ventana.getSize());
         };
@@ -170,6 +170,7 @@ int main() {
     int teleportDestFila = -1;
     int teleportDestCol = -1;
 
+    //Sugerencia movimiento
     MovimientoIA sugerencia = { -1, -1, -1, -1, 0.f };
     bool mostrarSugerencia = false;
 
@@ -177,6 +178,7 @@ int main() {
 
     sf::Clock reloj;
 
+    //AUDIO
     AudioManager audio;
     audio.cargar();
     audio.playMenuMusic();
@@ -190,25 +192,6 @@ int main() {
                 alternarPantallaCompleta();
             }
         }
-        };
-
-    auto activarPantallaVictoria = [&]() {
-        if (juego == nullptr) {
-            return;
-        }
-
-        juego->actualizarPuntuaciones();
-
-        audio.stopMusic();
-
-        if (juego->getBandoGanador() == LUZ) {
-            audio.playVictoria();
-        }
-        else {
-            audio.playDerrota();
-        }
-
-        estadoJuego = EstadoJuego::VICTORIA;
         };
 
     aplicarConfiguracion();
@@ -241,21 +224,14 @@ int main() {
 
             ventana.clear(sf::Color(10, 10, 20));
 
-            if (renderer != nullptr && juego != nullptr) {
-                renderer->dibujarPantallaVictoria(
-                    juego->getBandoGanador(),
-                    juego->getTipoVictoria(),
-                    juego->getBajasLuz(),
-                    juego->getBajasOscuridad(),
-                    juego->getBajasTotales(),
-                    juego->getTurnosJugados(),
-                    juego->getPuntuacionLuz(),
-                    juego->getPuntuacionOscuridad(),
-                    juego->getTiempoGeneral(),
-                    juego->getTiempoLuz(),
-                    juego->getTiempoOscuridad()
-                );
-            }
+            renderer->dibujarPantallaVictoria(
+                juego->getBandoGanador(),
+                juego->getTipoVictoria(),
+                juego->getBajasLuz(),
+                juego->getBajasOscuridad(),
+                juego->getBajasTotales(),
+                juego->getTurnosJugados()
+            );
 
             ventana.display();
             continue;
@@ -267,46 +243,28 @@ int main() {
                 eventosGlobalesVentana(*event);
 
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                    // Reanudar
                     if (key->code == sf::Keyboard::Key::P ||
                         key->code == sf::Keyboard::Key::Escape) {
                         audio.playGameMusic();
                         estadoJuego = EstadoJuego::JUGANDO_LOCAL;
                     }
-
+                    // Reiniciar
                     if (key->code == sf::Keyboard::Key::R) {
-                        delete juego;
-                        juego = new Juego();
-
-                        delete renderer;
-                        renderer = new Renderer(ventana);
-
-                        delete arena;
-                        arena = new Arena();
-
+                        delete juego;   juego = new Juego();
+                        delete renderer; renderer = new Renderer(ventana);
+                        delete arena;    arena = new Arena();
                         renderer->cargarFuente("assets/SamdanEvil.ttf");
                         renderer->cargarSprites("assets");
-
                         juego->inicializarPartida();
-
                         aplicarConfiguracion();
                         audio.playGameMusic();
-
-                        arrastrando = false;
-                        animando = false;
-                        moverConTeclado = false;
-                        enCombate = false;
-
+                        arrastrando = animando = moverConTeclado = enCombate = false;
                         hechizoSeleccionado = -1;
-
-                        piezaTeleport = nullptr;
-                        teleportPiezaElegida = false;
-
-                        mostrarSugerencia = false;
-                        sugerencia = { -1, -1, -1, -1, 0.f };
-
+                        piezaTeleport = nullptr; teleportPiezaElegida = false;
                         estadoJuego = EstadoJuego::JUGANDO_LOCAL;
                     }
-
+                    // Volver al menu
                     if (key->code == sf::Keyboard::Key::M) {
                         audio.playMenuMusic();
                         estadoJuego = EstadoJuego::MENU;
@@ -314,27 +272,18 @@ int main() {
                 }
             }
 
+            // Dibujamos el juego de fondo + overlay de pausa encima
             ventana.clear(sf::Color(20, 20, 20));
-
-            if (renderer != nullptr && juego != nullptr) {
-                renderer->dibujarEstadoTablero(
-                    juego->getTablero(),
-                    juego->getTurnoActual(),
-                    juego->getHechizosUsadosLuz(),
-                    juego->getHechizosUsadosOscuridad(),
-                    hechizoSeleccionado,
-                    juego->getCementerioLuz(),
-                    juego->getCementerioOscuridad(),
-                    juego->getPuntuacionLuz(),
-                    juego->getPuntuacionOscuridad(),
-                    juego->getTiempoGeneral(),
-                    juego->getTiempoLuz(),
-                    juego->getTiempoOscuridad()
-                );
-
-                renderer->dibujarMenuPausa();
-            }
-
+            renderer->dibujarEstadoTablero(
+                juego->getTablero(),
+                juego->getTurnoActual(),
+                juego->getHechizosUsadosLuz(),
+                juego->getHechizosUsadosOscuridad(),
+                hechizoSeleccionado,
+                juego->getCementerioLuz(),
+                juego->getCementerioOscuridad()
+            );
+            renderer->dibujarMenuPausa();
             ventana.display();
             continue;
         }
@@ -345,12 +294,8 @@ int main() {
                 eventosGlobalesVentana(*event);
 
                 EstadoJuego resultado = menu.procesarEventoComoJugar(*event);
-
-                if (resultado == EstadoJuego::MENU) {
-                    estadoJuego = EstadoJuego::MENU;
-                }
+                if (resultado == EstadoJuego::MENU) estadoJuego = EstadoJuego::MENU;
             }
-
             ventana.clear(sf::Color(15, 15, 25));
             menu.dibujarComoJugar();
             ventana.display();
@@ -399,6 +344,7 @@ int main() {
             ventana.display();
             continue;
         }
+
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
@@ -430,7 +376,6 @@ int main() {
                     juego = new Juego();
                     renderer = new Renderer(ventana);
                     arena = new Arena();
-
                     arena->setAudio(&audio);
                     arena->setModoIA(false);
 
@@ -445,14 +390,10 @@ int main() {
                     piezaTeleport = nullptr;
                     teleportPiezaElegida = false;
 
-                    mostrarSugerencia = false;
-                    sugerencia = { -1, -1, -1, -1, 0.f };
-
                     renderer->cargarFuente("assets/SamdanEvil.ttf");
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
-
                     aplicarConfiguracion();
                     audio.playGameMusic();
                 }
@@ -486,7 +427,6 @@ int main() {
 
                     renderer = new Renderer(ventana);
                     arena = new Arena();
-
                     arena->setAudio(&audio);
                     arena->setModoIA(true);
 
@@ -501,14 +441,10 @@ int main() {
                     piezaTeleport = nullptr;
                     teleportPiezaElegida = false;
 
-                    mostrarSugerencia = false;
-                    sugerencia = { -1, -1, -1, -1, 0.f };
-
                     renderer->cargarFuente("assets/SamdanEvil.ttf");
                     renderer->cargarSprites("assets");
 
                     juego->inicializarPartida();
-
                     aplicarConfiguracion();
                     audio.playGameMusic();
                 }
@@ -546,40 +482,53 @@ int main() {
             Pieza* ocupante = juego->getTablero()->getPieza(fDest, cDest);
 
             if (ocupante != nullptr && p != nullptr && ocupante->getBando() != p->getBando()) {
-                filaAtacante = fOri;
-                colAtacante = cOri;
-
-                filaDefensor = fDest;
-                colDefensor = cDest;
-
-                arena->iniciarCombate(p, ocupante);
-
-                if (juego->getPiezaCongelada() == p) {
-                    arena->setMultiplicadorVelocidad(p, 0.f);
+                if (juego->esModoIA()) {
+                    filaAtacante = fOri;
+                    colAtacante = cOri;
+                    filaDefensor = fDest;
+                    colDefensor = cDest;
+                    arena->iniciarCombate(p, ocupante);
+                    audio.playArenaMusic();
+                    enCombate = true;
+                    renderer->setEstado(ARENA);
                 }
-                else if (juego->getPiezaCongelada() == ocupante) {
-                    arena->setMultiplicadorVelocidad(ocupante, 0.f);
+                else {
+                    filaAtacante = fOri;
+                    colAtacante = cOri;
+
+                    filaDefensor = fDest;
+                    colDefensor = cDest;
+
+                    arena->iniciarCombate(p, ocupante);
+
+                    if (juego->getPiezaCongelada() == p) {
+                        arena->setMultiplicadorVelocidad(p, 0.f);
+                    }
+                    else if (juego->getPiezaCongelada() == ocupante) {
+                        arena->setMultiplicadorVelocidad(ocupante, 0.f);
+                    }
+
+                    aplicarConfiguracion();
+                    audio.playArenaMusic();
+                    enCombate = true;
+
+                    renderer->setEstado(ARENA);
                 }
-
-                aplicarConfiguracion();
-                audio.playArenaMusic();
-
-                enCombate = true;
-
-                renderer->setEstado(ARENA);
             }
             else {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
 
-                juego->actualizarPuntuaciones();
-
-                if (juego->verificarVictoria() || juego->verificarVictoriaPorTiempo()) {
-                    activarPantallaVictoria();
+                if (juego->verificarVictoria()) {
+                    audio.stopMusic();
+                    if (juego->getBandoGanador() == LUZ)
+                        audio.playVictoria();
+                    else
+                        audio.playDerrota();
+                    estadoJuego = EstadoJuego::VICTORIA;
                 }
             }
 
             renderer->deseleccionar();
-
             mostrarSugerencia = false;
             sugerencia = { -1, -1, -1, -1, 0.f };
             };
@@ -587,22 +536,6 @@ int main() {
         // Actualizar animaciones cada frame
         if (renderer != nullptr) {
             renderer->actualizarAnimaciones(dt);
-        }
-
-        // Actualizar temporizadores solo en tablero activo
-        if (estadoJuego == EstadoJuego::JUGANDO_LOCAL &&
-            juego != nullptr &&
-            !enCombate &&
-            !animando &&
-            renderer != nullptr &&
-            !renderer->teleportEnCurso()) {
-
-            juego->actualizarTemporizadores(dt);
-            juego->actualizarPuntuaciones();
-
-            if (juego->verificarVictoriaPorTiempo()) {
-                activarPantallaVictoria();
-            }
         }
 
         // Cuando termina la animacion de teleport, ejecutamos el hechizo
@@ -613,10 +546,13 @@ int main() {
 
             cancelarHechizo();
 
-            juego->actualizarPuntuaciones();
-
-            if (juego->verificarVictoria() || juego->verificarVictoriaPorTiempo()) {
-                activarPantallaVictoria();
+            if (juego->verificarVictoria()) {
+                audio.stopMusic();
+                if (juego->getBandoGanador() == LUZ)
+                    audio.playVictoria();
+                else
+                    audio.playDerrota();
+                estadoJuego = EstadoJuego::VICTORIA;
             }
         }
 
@@ -683,14 +619,17 @@ int main() {
 
                 aplicarConfiguracion();
                 audio.playGameMusic();
-
-                juego->actualizarPuntuaciones();
                 juego->cambiarTurno();
 
                 tiempoEsperaIA = 0.f;
 
-                if (juego->verificarVictoria() || juego->verificarVictoriaPorTiempo()) {
-                    activarPantallaVictoria();
+                if (juego->verificarVictoria()) {
+                    audio.stopMusic();
+                    if (juego->getBandoGanador() == LUZ)
+                        audio.playVictoria();
+                    else
+                        audio.playDerrota();
+                    estadoJuego = EstadoJuego::VICTORIA;
                 }
             }
             else {
@@ -726,12 +665,7 @@ int main() {
         }
 
         // TURNO DE LA IA
-        if (juego->esModoIA() &&
-            juego->getTurnoActual() == OSCURIDAD &&
-            !enCombate &&
-            !animando &&
-            renderer != nullptr &&
-            !renderer->teleportEnCurso()) {
+        if (juego->esModoIA() && juego->getTurnoActual() == OSCURIDAD && !enCombate && !animando) {
 
             tiempoEsperaIA += dt;
 
@@ -744,29 +678,16 @@ int main() {
                     if (mov.fOrigen != -1) {
                         animando = true;
                         audio.playMovimiento();
-
                         targetFila = mov.fDestino;
                         targetCol = mov.cDestino;
-
-                        renderer->seleccionarCasilla(
-                            mov.fOrigen,
-                            mov.cOrigen,
-                            juego->getTablero()
-                        );
-
+                        renderer->seleccionarCasilla(mov.fOrigen, mov.cOrigen, juego->getTablero());
                         posPixelMuneco = renderer->getCentroCasilla(mov.fOrigen, mov.cOrigen);
                         posPixelDestino = renderer->getCentroCasilla(mov.fDestino, mov.cDestino);
                     }
                 }
-                else {
-                    juego->actualizarPuntuaciones();
-
-                    if (juego->verificarVictoria() || juego->verificarVictoriaPorTiempo()) {
-                        activarPantallaVictoria();
-                    }
-                }
             }
         }
+
         // MODO TABLERO - EVENTOS
         while (auto event = ventana.pollEvent()) {
             eventosGlobalesVentana(*event);
@@ -777,18 +698,16 @@ int main() {
 
             // CLICS CON EL RATON
             if (const auto* click = event->getIf<sf::Event::MouseButtonPressed>()) {
-                sf::Vector2f posMundo = ventana.mapPixelToCoords(
-                    sf::Vector2i(click->position.x, click->position.y)
-                );
+                sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(click->position.x, click->position.y));
 
                 if (click->button == sf::Mouse::Button::Left) {
                     int fila;
                     int col;
 
+                    // Pasamos las coordenadas traducidas
                     if (renderer->pixelACasilla((int)posMundo.x, (int)posMundo.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
                         int cSel = renderer->getColSeleccionada();
-
                         ModoHechizo modo = renderer->getModoHechizo();
                         Bando turno = juego->getTurnoActual();
 
@@ -798,53 +717,35 @@ int main() {
 
                             if (modo == HECHIZO_ALIADO) {
                                 if (objetivo != nullptr && objetivo->getBando() == turno) {
-                                    juego->lanzarHechizo(
-                                        hechizoSeleccionado + 1,
-                                        objetivo,
-                                        fila,
-                                        col
-                                    );
-
-                                    renderer->lanzarAnimHechizo(
-                                        fila,
-                                        col,
-                                        animParaHechizo(hechizoSeleccionado)
-                                    );
-
+                                    juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                                    renderer->lanzarAnimHechizo(fila, col, animParaHechizo(hechizoSeleccionado));
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    juego->actualizarPuntuaciones();
-
-                                    if (juego->verificarVictoria() ||
-                                        juego->verificarVictoriaPorTiempo()) {
-                                        activarPantallaVictoria();
+                                    if (juego->verificarVictoria()) {
+                                        audio.stopMusic();
+                                        if (juego->getBandoGanador() == LUZ)
+                                            audio.playVictoria();
+                                        else
+                                            audio.playDerrota();
+                                        estadoJuego = EstadoJuego::VICTORIA;
                                     }
                                 }
                             }
                             else if (modo == HECHIZO_ENEMIGO) {
                                 if (objetivo != nullptr && objetivo->getBando() != turno) {
-                                    juego->lanzarHechizo(
-                                        hechizoSeleccionado + 1,
-                                        objetivo,
-                                        fila,
-                                        col
-                                    );
-
-                                    renderer->lanzarAnimHechizo(
-                                        fila,
-                                        col,
-                                        animParaHechizo(hechizoSeleccionado)
-                                    );
-
+                                    juego->lanzarHechizo(hechizoSeleccionado + 1, objetivo, fila, col);
+                                    renderer->lanzarAnimHechizo(fila, col, animParaHechizo(hechizoSeleccionado));
                                     cancelarHechizo();
                                     renderer->deseleccionar();
 
-                                    juego->actualizarPuntuaciones();
-
-                                    if (juego->verificarVictoria() ||
-                                        juego->verificarVictoriaPorTiempo()) {
-                                        activarPantallaVictoria();
+                                    if (juego->verificarVictoria()) {
+                                        audio.stopMusic();
+                                        if (juego->getBandoGanador() == LUZ)
+                                            audio.playVictoria();
+                                        else
+                                            audio.playDerrota();
+                                        estadoJuego = EstadoJuego::VICTORIA;
                                     }
                                 }
                             }
@@ -853,7 +754,6 @@ int main() {
                                     if (objetivo != nullptr && objetivo->getBando() == turno) {
                                         piezaTeleport = objetivo;
                                         teleportPiezaElegida = true;
-
                                         renderer->setNombrePiezaTeleport(objetivo->getNombre());
                                     }
                                 }
@@ -861,58 +761,37 @@ int main() {
                                     if (objetivo == nullptr) {
                                         teleportDestFila = fila;
                                         teleportDestCol = col;
-
-                                        renderer->iniciarAnimTeleport(
-                                            piezaTeleport,
-                                            piezaTeleport->filaInicial,
-                                            piezaTeleport->colInicial,
-                                            fila,
-                                            col
-                                        );
-
+                                        renderer->iniciarAnimTeleport(piezaTeleport, piezaTeleport->filaInicial, piezaTeleport->colInicial, fila, col);
                                         renderer->deseleccionar();
                                     }
                                 }
                             }
-
                             continue;
                         }
 
                         // MODO NORMAL
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
-
                             if (p && p->getBando() == juego->getTurnoActual()) {
-                                renderer->seleccionarCasilla(
-                                    fila,
-                                    col,
-                                    juego->getTablero()
-                                );
-
+                                renderer->seleccionarCasilla(fila, col, juego->getTablero());
                                 audio.playSeleccion();
-
                                 arrastrando = true;
                                 moverConTeclado = false;
-
-                                posPixelMuneco = posMundo;
+                                posPixelMuneco = posMundo; // Usamos posMundo
                             }
                         }
                         else if (fila == fSel && col == cSel) {
                             arrastrando = true;
                             moverConTeclado = false;
-
-                            posPixelMuneco = posMundo;
+                            posPixelMuneco = posMundo; // Usamos posMundo
                         }
                         else {
                             if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                                 moverConTeclado = false;
                                 animando = true;
-
                                 audio.playMovimiento();
-
                                 targetFila = fila;
                                 targetCol = col;
-
                                 posPixelMuneco = renderer->getCentroCasilla(fSel, cSel);
                                 posPixelDestino = renderer->getCentroCasilla(fila, col);
                             }
@@ -925,38 +804,26 @@ int main() {
                 }
 
                 if (click->button == sf::Mouse::Button::Right) {
-                    if (renderer->getModoHechizo() != SIN_HECHIZO) {
-                        cancelarHechizo();
-                    }
-                    else {
-                        renderer->deseleccionar();
-                        moverConTeclado = false;
-                    }
+                    if (renderer->getModoHechizo() != SIN_HECHIZO) cancelarHechizo();
+                    else { renderer->deseleccionar(); moverConTeclado = false; }
                 }
             }
-
-            // MOVER RATON ARRASTRANDO
+            // MOVER RATON (ARRASTRAR)
             else if (const auto* move = event->getIf<sf::Event::MouseMoved>()) {
                 if (arrastrando) {
-                    sf::Vector2f posMundo = ventana.mapPixelToCoords(
-                        sf::Vector2i(move->position.x, move->position.y)
-                    );
-
+                    // Traductor también al mover
+                    sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(move->position.x, move->position.y));
                     posPixelMuneco = posMundo;
                 }
             }
-
             // SOLTAR RATON
             else if (const auto* release = event->getIf<sf::Event::MouseButtonReleased>()) {
                 if (release->button == sf::Mouse::Button::Left && arrastrando) {
                     arrastrando = false;
+                    int fila, col;
 
-                    int fila;
-                    int col;
-
-                    sf::Vector2f posMundo = ventana.mapPixelToCoords(
-                        sf::Vector2i(release->position.x, release->position.y)
-                    );
+                    // Traductor también al soltar
+                    sf::Vector2f posMundo = ventana.mapPixelToCoords(sf::Vector2i(release->position.x, release->position.y));
 
                     if (renderer->pixelACasilla((int)posMundo.x, (int)posMundo.y, fila, col)) {
                         int fSel = renderer->getFilaSeleccionada();
@@ -970,14 +837,12 @@ int main() {
                     }
                 }
             }
-
             // TECLADO
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 // P: pausar
                 if (key->code == sf::Keyboard::Key::P) {
                     aplicarConfiguracion();
                     audio.playPausa();
-
                     estadoJuego = EstadoJuego::PAUSA;
                     continue;
                 }
@@ -989,23 +854,20 @@ int main() {
                     }
                     else {
                         renderer->deseleccionar();
+
                         moverConTeclado = false;
                     }
 
                     continue;
                 }
 
-                // I: mostrar sugerencia de IA
+                //I: enseña sugerencia IA
                 if (key->code == sf::Keyboard::Key::I) {
                     mostrarSugerencia = !mostrarSugerencia;
-
-                    if (mostrarSugerencia) {
+                    if (mostrarSugerencia)
                         sugerencia = juego->obtenerSugerencia();
-                    }
-                    else {
+                    else
                         sugerencia = { -1, -1, -1, -1, 0.f };
-                    }
-
                     continue;
                 }
 
@@ -1101,6 +963,7 @@ int main() {
                         int col = renderer->getCursorCol();
 
                         Pieza* objetivo = juego->getTablero()->getPieza(fila, col);
+
                         ModoHechizo modo = renderer->getModoHechizo();
 
                         if (modo == HECHIZO_ALIADO) {
@@ -1119,6 +982,7 @@ int main() {
                                 );
 
                                 cancelarHechizo();
+
                                 renderer->deseleccionar();
                             }
                         }
@@ -1138,6 +1002,7 @@ int main() {
                                 );
 
                                 cancelarHechizo();
+
                                 renderer->deseleccionar();
                             }
                         }
@@ -1168,11 +1033,13 @@ int main() {
                             }
                         }
 
-                        juego->actualizarPuntuaciones();
-
-                        if (juego->verificarVictoria() ||
-                            juego->verificarVictoriaPorTiempo()) {
-                            activarPantallaVictoria();
+                        if (juego->verificarVictoria()) {
+                            audio.stopMusic();
+                            if (juego->getBandoGanador() == LUZ)
+                                audio.playVictoria();
+                            else
+                                audio.playDerrota();
+                            estadoJuego = EstadoJuego::VICTORIA;
                         }
                     }
 
@@ -1233,9 +1100,7 @@ int main() {
                                 col,
                                 juego->getTablero()
                             );
-
                             audio.playSeleccion();
-
                             moverConTeclado = false;
 
                             posPixelMuneco = renderer->getCentroCasilla(fila, col);
@@ -1250,7 +1115,6 @@ int main() {
                         if (juego->getTablero()->esMovimientoValido(fSel, cSel, fila, col)) {
                             moverConTeclado = false;
                             animando = true;
-
                             audio.playMovimiento();
 
                             targetFila = fila;
@@ -1283,12 +1147,7 @@ int main() {
             juego->getHechizosUsadosOscuridad(),
             hechizoSeleccionado,
             juego->getCementerioLuz(),
-            juego->getCementerioOscuridad(),
-            juego->getPuntuacionLuz(),
-            juego->getPuntuacionOscuridad(),
-            juego->getTiempoGeneral(),
-            juego->getTiempoLuz(),
-            juego->getTiempoOscuridad()
+            juego->getCementerioOscuridad()
         );
 
         if ((arrastrando || animando || moverConTeclado) &&
@@ -1308,16 +1167,9 @@ int main() {
                 );
             }
         }
-
         if (mostrarSugerencia && sugerencia.fOrigen != -1) {
-            renderer->dibujarSugerencia(
-                sugerencia.fOrigen,
-                sugerencia.cOrigen,
-                sugerencia.fDestino,
-                sugerencia.cDestino
-            );
+            renderer->dibujarSugerencia(sugerencia.fOrigen, sugerencia.cOrigen, sugerencia.fDestino, sugerencia.cDestino);
         }
-
         ventana.display();
     }
 

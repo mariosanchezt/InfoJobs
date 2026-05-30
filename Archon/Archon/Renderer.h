@@ -55,14 +55,15 @@ struct AnimTeleport {
     float duracionFase = 0.3f;
 };
 
+// Info de un sprite sheet: textura + dimensiones de cada frame
 // Info de un sprite sheet de animacion
 struct InfoSheet {
     sf::Texture textura;
     int numFrames = 1;
-    int anchoFrame = 0;
+    int anchoFrame = 0; // ancho del frame mas grande (pa escalar)
     int altoFrame = 0;
     bool cargada = false;
-
+    // Offset X de cada frame dentro de la textura (pa frames de ancho variable)
     std::vector<int> offsetsX;
     std::vector<int> anchosFrame;
 };
@@ -87,7 +88,7 @@ private:
     static constexpr float CEMENTERIO_X_OSCURIDAD = 975.f;
     static constexpr float CEMENTERIO_Y = 20.f;
 
-    static constexpr float PODER_PANEL_ALTO = 210.f;
+    static constexpr float PODER_PANEL_ALTO = 125.f;
     static constexpr float PODER_PANEL_Y = CEMENTERIO_Y + CEMENTERIO_ALTO + 18.f;
 
     static constexpr float HUD_Y = OFFSET_Y + 9.f * TAM_CASILLA + 5.f;
@@ -168,26 +169,19 @@ private:
     std::string numeroTexto(float valor) const;
     std::string construirTextoPieza(Pieza* pieza) const;
 
-    std::string formatearTiempo(float segundos) const;
-
     void dibujarPuntosDePoder(Tablero* tablero);
 
     // Conteo de puntos de poder controlados por cada bando
     int contarPuntosPoder(Tablero* tablero, Bando bando) const;
 
-    // Tiempo general de la partida
-    void dibujarTiempoGeneral(float tiempoGeneral);
-
-    // Panel lateral de poder + puntuacion + tiempo
+    // Panel de puntos de poder lateral, debajo de cada cementerio
     void dibujarPanelPoderBando(
         Tablero* tablero,
         Bando bando,
         float x,
         float y,
         sf::Color colorTitulo,
-        const std::string& titulo,
-        int puntuacion,
-        float tiempoBando
+        const std::string& titulo
     );
 
     void dibujarCirculosPoder(
@@ -237,12 +231,7 @@ public:
         bool* hechizosUsadosOscuridad,
         int hechizoSeleccionado,
         const std::map<std::string, int>& cementerioLuz,
-        const std::map<std::string, int>& cementerioOscuridad,
-        int puntuacionLuz,
-        int puntuacionOscuridad,
-        float tiempoGeneral,
-        float tiempoLuz,
-        float tiempoOscuridad
+        const std::map<std::string, int>& cementerioOscuridad
     );
 
     void dibujarEstadoArena(const Arena& arena);
@@ -253,12 +242,7 @@ public:
         int bajasLuz,
         int bajasOscuridad,
         int bajasTotales,
-        int turnosJugados,
-        int puntuacionLuz,
-        int puntuacionOscuridad,
-        float tiempoGeneral,
-        float tiempoLuz,
-        float tiempoOscuridad
+        int turnosJugados
     );
 
     void dibujarMenuPausa();
@@ -281,12 +265,12 @@ public:
     void setEstado(EstadoPantalla e) { estado = e; }
 
     int getFilaSeleccionada() const { return filaSeleccionada; }
-    int getColSeleccionada() const { return colSeleccionada; }
+    int getColSeleccionada()  const { return colSeleccionada; }
 
     void moverCursor(int dFila, int dCol);
 
     int getCursorFila() const { return cursorFila; }
-    int getCursorCol() const { return cursorCol; }
+    int getCursorCol()  const { return cursorCol; }
 
     void setModoHechizo(ModoHechizo modo) { modoHechizo = modo; }
     ModoHechizo getModoHechizo() const { return modoHechizo; }
