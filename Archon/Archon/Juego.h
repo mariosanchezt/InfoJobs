@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <string>
+
 #include "Pieza.h"
 #include "IAJugador.h"
 
@@ -13,7 +14,9 @@ class Pieza;
 enum TipoVictoria {
     SIN_VICTORIA,
     VICTORIA_ELIMINACION,
-    VICTORIA_PUNTOS_PODER
+    VICTORIA_PUNTOS_PODER,
+    VICTORIA_TIEMPO,
+    VICTORIA_PUNTUACION
 };
 
 class Juego {
@@ -60,6 +63,27 @@ private:
     std::map<std::string, int> cementerioLuz;
     std::map<std::string, int> cementerioOscuridad;
 
+    // Temporizadores de partida
+    float tiempoGeneral;
+    float tiempoLuz;
+    float tiempoOscuridad;
+
+    // Puntuacion en directo
+    int puntuacionLuz;
+    int puntuacionOscuridad;
+
+    // Valores base de tiempo
+    static constexpr float TIEMPO_GENERAL_INICIAL = 600.f;   // 10 minutos
+    static constexpr float TIEMPO_BANDO_INICIAL = 300.f;     // 5 minutos por bando
+
+    // Helpers internos para puntuacion y temporizadores
+    int contarPiezasVivas(Bando bando) const;
+    int contarPuntosPoder(Bando bando) const;
+    float calcularVidaRestante(Bando bando) const;
+
+    int calcularPuntuacionBando(Bando bando) const;
+    void resolverVictoriaPorPuntuacion();
+
 public:
     Juego();
     ~Juego();
@@ -82,6 +106,11 @@ public:
     MovimientoIA obtenerSugerencia();
 
     void registrarMuerte(Pieza* pieza);
+
+    // Sistema de tiempo y puntuacion
+    void actualizarTemporizadores(float dt);
+    void actualizarPuntuaciones();
+    bool verificarVictoriaPorTiempo();
 
     // Getters principales
     Tablero* getTablero() const { return tablero; }
@@ -108,4 +137,17 @@ public:
     int getBajasOscuridad() const;
     int getBajasTotales() const;
     int getTurnosJugados() const { return turnosJugados; }
+
+    // Getters de temporizadores
+    float getTiempoGeneral() const { return tiempoGeneral; }
+    float getTiempoLuz() const { return tiempoLuz; }
+    float getTiempoOscuridad() const { return tiempoOscuridad; }
+
+    // Getters de puntuacion
+    int getPuntuacionLuz() const { return puntuacionLuz; }
+    int getPuntuacionOscuridad() const { return puntuacionOscuridad; }
+
+    // Getters utiles para el HUD
+    int getPuntosPoderLuz() const { return contarPuntosPoder(LUZ); }
+    int getPuntosPoderOscuridad() const { return contarPuntosPoder(OSCURIDAD); }
 };
