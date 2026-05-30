@@ -84,7 +84,8 @@ public:
     void moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino);
     void lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest = 0, int cDest = 0);
     void iniciarCombate(Pieza* atacante, Pieza* defensor, int fAtac, int cAtac, int fDef, int cDef);
-
+    bool liderVivo()const;
+    
     bool verificarVictoria();
     void dibujar();
 

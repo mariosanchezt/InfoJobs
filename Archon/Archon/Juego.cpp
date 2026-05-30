@@ -136,6 +136,21 @@ void Juego::moverPieza(int fOrigen, int cOrigen, int fDestino, int cDestino) {
 }
 
 void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) {
+    // Comprobar si el lider sigue vivo
+    bool liderVivo = false;
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p != nullptr && p->getBando() == turnoActual && dynamic_cast<PiezaLider*>(p) != nullptr) {
+                liderVivo = true;
+            }
+        }
+    }
+    if (!liderVivo) {
+    std::cout << "No puedes lanzar hechizos sin lider." << std::endl;
+        return;
+    }
+    
     bool* listaUsados = (turnoActual == LUZ) ? hechizosUsadosLuz : hechizosUsadosOscuridad;
 
     int indice = idHechizo - 1;
@@ -612,6 +627,17 @@ MovimientoIA Juego::obtenerSugerencia() {
         return iaSugerenciaLuz->decidirMovimiento(tablero);
     else
         return iaSugerenciaOscuridad->decidirMovimiento(tablero);
+}
+
+bool Juego::liderVivo() const {
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p != nullptr && p->getBando() == turnoActual && dynamic_cast<PiezaLider*>(p) != nullptr)
+                return true;
+        }
+    }
+    return false;
 }
 
 Juego::~Juego() {

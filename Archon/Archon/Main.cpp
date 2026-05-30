@@ -906,6 +906,10 @@ int main() {
 
                 // H: mostrar/ocultar panel de hechizos
                 if (key->code == sf::Keyboard::Key::H) {
+                    if (!juego->liderVivo()) {
+                        std::cout << "No puedes usar hechizos sin lider." << std::endl;
+                        continue;
+                    }
                     if (renderer->getModoHechizo() != SIN_HECHIZO) {
                         cancelarHechizo();
                     }
