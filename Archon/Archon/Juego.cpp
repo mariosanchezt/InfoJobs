@@ -74,13 +74,13 @@ void Juego::inicializarPartida() {
 
     // PLANTAS
     tablero->colocarPieza(0, 0, new PiezaTanque("Cactus", LUZ, 0, 0, GROUND));
-    tablero->colocarPieza(1, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 1, 0, GROUND));
+    tablero->colocarPieza(1, 0, new PiezaDistancia("LanzaLechugas", LUZ, 1, 0, GROUND));
     tablero->colocarPieza(2, 0, new PiezaVoladora("Frutaestrella", LUZ, 2, 0, FLYING));
-    tablero->colocarPieza(3, 0, new PiezaRapida("LanzaLechugas", LUZ, 3, 0, GROUND));
+    tablero->colocarPieza(3, 0, new PiezaRapida("Lanzaguisantes", LUZ, 3, 0, GROUND));
     tablero->colocarPieza(4, 0, new PiezaLider("Mazorca", LUZ, 4, 0, TELEPORT));
-    tablero->colocarPieza(5, 0, new PiezaRapida("LanzaLechugas", LUZ, 5, 0, GROUND));
+    tablero->colocarPieza(5, 0, new PiezaRapida("Lanzaguisantes", LUZ, 5, 0, GROUND));
     tablero->colocarPieza(6, 0, new PiezaVoladora("Frutaestrella", LUZ, 6, 0, FLYING));
-    tablero->colocarPieza(7, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 7, 0, GROUND));
+    tablero->colocarPieza(7, 0, new PiezaDistancia("LanzaLechugas", LUZ, 7, 0, GROUND));
     tablero->colocarPieza(8, 0, new PiezaTanque("Cactus", LUZ, 8, 0, GROUND));
 
     // ZOMBIES

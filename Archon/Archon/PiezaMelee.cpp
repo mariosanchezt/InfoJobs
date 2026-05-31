@@ -1,36 +1,22 @@
 #include "PiezaMelee.h"
 #include <iostream>
 
-
 PiezaMelee::PiezaMelee(std::string n, Bando b, int fIni, int cIni, TipoMovimiento t)
     : Pieza(
         n,                                      // nombre
         b,                                      // bando
-        (b == LUZ ? 150.0f : 130.0f),           // vida
-        (b == LUZ ? 45.0f : 50.0f),             // fuerza
-        (b == LUZ ? 1.2f : 1.0f),               // velAtaque
-        (b == LUZ ? 1.5f : 1.2f),               // intervaloAtaque
-        (b == LUZ ? 3 : 4),                     // radioMovimiento
-        fIni,                                   // fila inicial
-        cIni,                                   // columna inicial
-        GROUND                                  // tipo de movimiento
-    ) {
-    // Constructor PiezaMelee:
-    // Si es del bando LUZ, se crea como Carnivora.
-    // Si es del bando OSCURIDAD, se crea como Yeti.
-}
+        40.0f,                                  // vida
+        10.0f,                                  // fuerza 
+        1.0f,                                   // velAtaque 
+        0.4f,                                   // intervaloAtaque
+        3,                                      // radioMovimiento en el tablero
+        fIni, cIni, GROUND
+    ) {}
 
-//Atributo atacar de PiezaMelee
 void PiezaMelee::atacar(Pieza* enemigo) {
-   if (enemigo != nullptr) {
-   std::cout << nombre << " realiza un ataque cuerpo a cuerpo contra " << enemigo->getNombre() << std::endl;
-
-   // Lógica de daño real: restamos tu fuerza a su vida
-   enemigo->vida -= this->fuerza;
-     
-   if (enemigo->vida < 0) enemigo->vida = 0;//Evita que la vida sea negativa
-   std::cout << "Vida restante de " << enemigo->getNombre() << ": " << enemigo->vida << std::endl;
-   }
+    // Vaciamos esta función intencionadamente.
+    // El combate en tiempo real (ondas expansivas, cooldowns y daño) 
+    // ahora lo gestiona en exclusiva la clase Arena.
 }
 
 void PiezaMelee::dibujar() {

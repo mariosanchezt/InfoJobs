@@ -74,7 +74,7 @@ private:
     void crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo);
     void actualizarProyectiles(float dt);
     void comprobarColisiones();
-    bool colisionaConObstaculo(sf::Vector2f pos, float radio);
+    bool colisionaConObstaculo(sf::Vector2f pos, float radio, bool esVolador = false);
     bool dentroDeArena(sf::Vector2f pos);
 
 public:

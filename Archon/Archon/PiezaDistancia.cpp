@@ -5,33 +5,22 @@ PiezaDistancia::PiezaDistancia(std::string n, Bando b, int fIni, int cIni, TipoM
     : Pieza(
         n,                                      // nombre
         b,                                      // bando
-        100.0f,                                 // vida
-        (b == LUZ ? 25.0f : 22.0f),             // fuerza
-        (b == LUZ ? 0.8f : 0.9f),               // velAtaque
-        (b == LUZ ? 0.8f : 0.6f),               // intervaloAtaque
-        4,                                      // radioMovimiento
-        fIni,                                   // fila inicial
-        cIni,                                   // columna inicial
+        (b == LUZ ? 40.0f : 60.0f),             // vida
+        15.0f,                                  // fuerza
+        (b == LUZ ? 1.0f : 0.6f),               // velAtaque
+        1.8f,                                   // intervaloAtaque
+        3,                                      // radioMovimiento en el tablero
+        fIni,
+        cIni,
         GROUND                                  // tipo de movimiento
     )
 {
-    alcance = (b == LUZ ? 5.0f : 7.0f);
+    
+    alcance = (b == LUZ ? 6.0f : 5.0f);
 }
 
 void PiezaDistancia::atacar(Pieza* enemigo) {
-    if (enemigo != nullptr) {
-        std::cout << nombre << " dispara un proyectil de alcance " << alcance
-            << " contra " << enemigo->getNombre() << std::endl;
-
-        enemigo->vida -= this->fuerza;
-
-        if (enemigo->vida < 0) {
-            enemigo->vida = 0;
-        }
-
-        std::cout << "Vida restante de " << enemigo->getNombre()
-            << ": " << enemigo->vida << std::endl;
-    }
+   
 }
 
 void PiezaDistancia::dibujar() {

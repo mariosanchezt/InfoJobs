@@ -1629,7 +1629,7 @@ void Renderer::dibujarMenuPausa() {
     if (!fuenteCargada) return;
 
     // Titulo
-    sf::Text titulo(fuente, "PAUSA", 48);
+    sf::Text titulo(fuente, "MENU DE PAUSA", 48);
     titulo.setFillColor(sf::Color(180u, 180u, 255u));
     titulo.setStyle(sf::Text::Bold);
     sf::FloatRect tb = titulo.getLocalBounds();
@@ -1646,7 +1646,8 @@ void Renderer::dibujarMenuPausa() {
     Opcion opciones[] = {
         { "P / ESC", "Reanudar partida" },
         { "R",       "Reiniciar partida" },
-        { "M",       "Volver al menu principal" }
+        { "M",       "Volver al menu principal" },
+        {"C" ,     "COMO JUGAR"}
     };
 
     float yBase = panelY + 100.f;

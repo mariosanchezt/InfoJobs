@@ -136,6 +136,8 @@ int main() {
     }
 
     EstadoJuego estadoJuego = EstadoJuego::MENU;
+    EstadoJuego estadoAnteriorComoJugar = EstadoJuego::MENU;
+
     Menu menu(ventana, fuente);
 
     Juego* juego = nullptr;
@@ -259,11 +261,12 @@ int main() {
                 eventosGlobalesVentana(*event);
 
                 if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                    // Reanudar
-                    if (key->code == sf::Keyboard::Key::P ||
-                        key->code == sf::Keyboard::Key::Escape) {
-                        audio.playGameMusic();
-                        estadoJuego = EstadoJuego::JUGANDO_LOCAL;
+                    if (key->code == sf::Keyboard::Key::P || key->code == sf::Keyboard::Key::Escape) {
+                        // Reproducimos la música que toque
+                        if (enCombate) audio.playArenaMusic();
+                        else audio.playGameMusic();
+
+                        estadoJuego = juego->esModoIA() ? EstadoJuego::JUGANDO_IA : EstadoJuego::JUGANDO_LOCAL;
                     }
                     // Reiniciar
                     if (key->code == sf::Keyboard::Key::R) {
@@ -285,22 +288,31 @@ int main() {
                         audio.playMenuMusic();
                         estadoJuego = EstadoJuego::MENU;
                     }
+                 
+                    if (key->code == sf::Keyboard::Key::C) {
+                        estadoAnteriorComoJugar = EstadoJuego::PAUSA;
+                        estadoJuego = EstadoJuego::COMO_JUGAR;
+                    }
                 }
             }
 
             // Dibujamos el juego de fondo + overlay de pausa encima
             ventana.clear(sf::Color(20, 20, 20));
-            renderer->dibujarEstadoTablero(
-                juego->getTablero(),
-                juego->getTurnoActual(),
-                juego->getHechizosUsadosLuz(),
-                juego->getHechizosUsadosOscuridad(),
-                hechizoSeleccionado,
-                juego->getCementerioLuz(),
-                juego->getCementerioOscuridad()
-            );
-
-            renderer->dibujarHUDTiempoPuntuacion(juego);
+            if (enCombate) {
+                renderer->dibujarEstadoArena(*arena);
+            }
+            else {
+                renderer->dibujarEstadoTablero(
+                    juego->getTablero(),
+                    juego->getTurnoActual(),
+                    juego->getHechizosUsadosLuz(),
+                    juego->getHechizosUsadosOscuridad(),
+                    hechizoSeleccionado,
+                    juego->getCementerioLuz(),
+                    juego->getCementerioOscuridad()
+                );
+                renderer->dibujarHUDTiempoPuntuacion(juego);
+            }
 
             renderer->dibujarMenuPausa();
             ventana.display();
@@ -313,7 +325,10 @@ int main() {
                 eventosGlobalesVentana(*event);
 
                 EstadoJuego resultado = menu.procesarEventoComoJugar(*event);
-                if (resultado == EstadoJuego::MENU) estadoJuego = EstadoJuego::MENU;
+
+                if (resultado == EstadoJuego::MENU) {
+                    estadoJuego = estadoAnteriorComoJugar;
+                }
             }
             ventana.clear(sf::Color(15, 15, 25));
             menu.dibujarComoJugar();
@@ -375,6 +390,7 @@ int main() {
                     estadoJuego = EstadoJuego::SELECCION_DIFICULTAD;
                 }
                 else if (resultado == EstadoJuego::COMO_JUGAR) {
+                    estadoAnteriorComoJugar = EstadoJuego::MENU;
                     estadoJuego = EstadoJuego::COMO_JUGAR;
                 }
                 else if (resultado == EstadoJuego::CONFIGURACION) {
@@ -606,15 +622,26 @@ int main() {
         if (enCombate) {
             while (auto event = ventana.pollEvent()) {
                 eventosGlobalesVentana(*event);
+                if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                    if (key->code == sf::Keyboard::Key::P || key->code == sf::Keyboard::Key::Escape) {
+                        aplicarConfiguracion();
+                        audio.playPausa();
+                        estadoJuego = EstadoJuego::PAUSA;
+                    }
+                }
             }
+
+            if (estadoJuego == EstadoJuego::PAUSA) {
+                continue;
+            }
+
 
             arena->update(dt);
             ventana.clear(sf::Color(20, 20, 20));
 
-            if (arena->haTerminado()) {
-                sf::sleep(sf::milliseconds(500));
-
-                enCombate = false;
+        if (arena->haTerminado()) {
+            sf::sleep(sf::milliseconds(500));
+            enCombate = false;
 
                 renderer->setEstado(TABLERO);
 

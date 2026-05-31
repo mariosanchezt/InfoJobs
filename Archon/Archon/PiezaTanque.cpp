@@ -5,34 +5,16 @@ PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimie
     : Pieza(
         n,                                      // nombre
         b,                                      // bando
-        (b == LUZ ? 200.0f : 220.0f),           // vida
-        (b == LUZ ? 35.0f : 40.0f),             // fuerza
-        (b == LUZ ? 0.4f : 0.3f),               // velAtaque
-        (b == LUZ ? 2.0f : 2.5f),               // intervaloAtaque
-        2,                                      // radioMovimiento
-        fIni,                                   // fila inicial
-        cIni,                                   // columna inicial
-        GROUND                                  // tipo de movimiento
-    ) {
-    // Constructor de PiezaTanque:
-    // Si es del bando LUZ, se crea como Cactus.
-    // Si es del bando OSCURIDAD, se crea como All-Star.
-}
+        150.0f,                                 // vida 
+        40.0f,                                  // fuerza 
+        0.6f,                                   // velAtaque 
+        2.5f,                                   // intervaloAtaque 
+        2,                                      // radioMovimiento 
+        fIni, cIni, GROUND
+    ) {}
 
 void PiezaTanque::atacar(Pieza* enemigo) {
-    if (enemigo != nullptr) {
-        std::cout << nombre << " realiza un ataque pesado contra "
-            << enemigo->getNombre() << std::endl;
-
-        enemigo->vida -= this->fuerza;
-
-        if (enemigo->vida < 0) {
-            enemigo->vida = 0;
-        }
-
-        std::cout << "Vida restante de " << enemigo->getNombre()
-            << ": " << enemigo->vida << std::endl;
-    }
+    // Vaciado para usar la Arena manual
 }
 
 void PiezaTanque::dibujar() {

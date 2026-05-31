@@ -115,10 +115,17 @@ void Arena::generarObstaculos() {
 
 void Arena::moverCombatiente(CombatienteArena& c, sf::Vector2f dir, float dt) {
     if (c.pieza == nullptr) return;
+
     float velocidad = (160.f + c.pieza->velAtaque * 30.f) * c.multiplicadorVelocidad;
     sf::Vector2f nuevaPos = c.pos + dir * velocidad * dt;
-    if (dentroDeArena(nuevaPos) && !colisionaConObstaculo(nuevaPos, TAM_PIEZA))
+
+    // Comprobamos si la pieza tiene el atributo FLYING
+    bool esVolador = (c.pieza->getTipoMovimiento() == FLYING);
+
+    // Le pasamos ese booleano a la función de colisión
+    if (dentroDeArena(nuevaPos) && !colisionaConObstaculo(nuevaPos, TAM_PIEZA, esVolador)) {
         c.pos = nuevaPos;
+    }
 }
 
 void Arena::notificarDisparo(CombatienteArena& c) {
@@ -248,7 +255,10 @@ void Arena::comprobarColisiones() {
     }
 }
 
-bool Arena::colisionaConObstaculo(sf::Vector2f pos, float radio) {
+bool Arena::colisionaConObstaculo(sf::Vector2f pos, float radio, bool esVolador) {
+    
+    if (esVolador) return false;
+
     for (const auto& obs : obstaculos) {
         float dist = std::sqrt(std::pow(pos.x - obs.pos.x, 2) +
             std::pow(pos.y - obs.pos.y, 2));

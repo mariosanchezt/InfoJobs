@@ -45,6 +45,7 @@ public:
     //cuando usamos "new", esto es necesario
 
     Bando getBando() const { return bando; }
+    TipoMovimiento getTipoMovimiento() const { return mov; }
     std::string getNombre() const { return nombre; }
 
     virtual void atacar(Pieza* enemigo) = 0;
