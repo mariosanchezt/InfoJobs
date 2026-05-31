@@ -17,7 +17,7 @@ PiezaLider::PiezaLider(std::string n, Bando b, int fIni, int cIni, TipoMovimient
     hechizosDisponibles = 7;
 
     // Constructor de PiezaLider:
-    // Si es del bando LUZ, se crea como Dave el Loco.
+    // Si es del bando LUZ, se crea como Mazorca.
     // Si es del bando OSCURIDAD, se crea como Dr. Zomboss.
 }
 

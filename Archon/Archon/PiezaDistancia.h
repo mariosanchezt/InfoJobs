@@ -1,7 +1,7 @@
 #pragma once
 #include "Pieza.h"
 
-// Lanzaguisantes (P) o Soldado (Z)
+// Lanzaguisantes (P) o Minero (Z)
 class PiezaDistancia : public Pieza {
 public:
     float alcance;

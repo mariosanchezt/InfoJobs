@@ -15,7 +15,7 @@ PiezaTanque::PiezaTanque(std::string n, Bando b, int fIni, int cIni, TipoMovimie
         GROUND                                  // tipo de movimiento
     ) {
     // Constructor de PiezaTanque:
-    // Si es del bando LUZ, se crea como Pomelo.
+    // Si es del bando LUZ, se crea como Cactus.
     // Si es del bando OSCURIDAD, se crea como All-Star.
 }
 

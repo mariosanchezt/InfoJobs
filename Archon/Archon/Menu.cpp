@@ -521,10 +521,10 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
         "- Lider: puede teletransportarse.\n\n"
 
         "#PERSONAJES\n"
-        "Plantas: Pomelo, Carnivora, Lanzaguisantes,\n"
-        "Girasol, Mazorca y Dave el Loco.\n"
-        "Zombies: All-Star, Supercerebroz, Soldado,\n"
-        "Zombidito, Ingeniero y Dr. Zomboss.\n\n"
+        "Plantas: Cactus, Carnivora, Lanzaguisantes,\n"
+        "Girasol, LanzaLechugas y Mazorca.\n"
+        "Zombies: All-Star, Supercerebroz, Minero,\n"
+        "Balloon, Catapulta y Dr. Zomboss.\n\n"
 
         "#MOVIMIENTO\n"
         "Al seleccionar una pieza se muestran casillas validas.\n"

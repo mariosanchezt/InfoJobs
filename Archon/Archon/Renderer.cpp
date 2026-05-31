@@ -49,14 +49,14 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
     if (nombrePieza == "Carnivora")      return "Chomper.png";
     if (nombrePieza == "Lanzaguisantes") return "Peashooter.png";
     if (nombrePieza == "Frutaestrella")  return "Starfruit.png";
-    if (nombrePieza == "Pomelo")         return "Cactus.png";
-    if (nombrePieza == "Mazorca")        return "Cabbage.png";
+    if (nombrePieza == "Cactus")         return "Cactus.png";
+    if (nombrePieza == "LanzaLechugas")        return "Cabbage.png";
     if (nombrePieza == "Supercerebroz")  return "Yeti.png";
-    if (nombrePieza == "Soldado")        return "Balloon.png";
-    if (nombrePieza == "Zombidito")      return "Catapult.png";
+    if (nombrePieza == "Minero")        return "Balloon.png";
+    if (nombrePieza == "Balloon")      return "Catapult.png";
     if (nombrePieza == "All-Star")       return "Football.png";
-    if (nombrePieza == "Ingeniero")      return "Digger.png";
-    if (nombrePieza == "Dave el Loco")   return "Cob_Cannon.png";
+    if (nombrePieza == "Catapulta")      return "Digger.png";
+    if (nombrePieza == "Mazorca")   return "Cob_Cannon.png";
     if (nombrePieza == "Dr. Zomboss")    return "Dr. Zomboss.png";
     return "";
 }
@@ -65,14 +65,14 @@ std::string Renderer::claveAnimacion(const std::string& nombrePieza) const {
     if (nombrePieza == "Carnivora")      return "Chomper";
     if (nombrePieza == "Lanzaguisantes") return "Peashooter";
     if (nombrePieza == "Frutaestrella")  return "Starfruit";
-    if (nombrePieza == "Pomelo")         return "Cactus";
-    if (nombrePieza == "Mazorca")        return "Cabbage";
+    if (nombrePieza == "Cactus")         return "Cactus";
+    if (nombrePieza == "LanzaLechugas")        return "Cabbage";
     if (nombrePieza == "Supercerebroz")  return "Yeti";
-    if (nombrePieza == "Soldado")        return "Balloon";
-    if (nombrePieza == "Zombidito")      return "Catapult";
+    if (nombrePieza == "Minero")        return "Balloon";
+    if (nombrePieza == "Balloon")      return "Catapult";
     if (nombrePieza == "All-Star")       return "Football";
-    if (nombrePieza == "Ingeniero")      return "Digger";
-    if (nombrePieza == "Dave el Loco")   return "Cob_Cannon";
+    if (nombrePieza == "Catapulta")      return "Digger";
+    if (nombrePieza == "Mazorca")   return "Cob_Cannon";
     if (nombrePieza == "Dr. Zomboss")    return "Dr. Zomboss";
     return "";
 }
@@ -284,14 +284,14 @@ void Renderer::cargarSprites(const std::string& carpeta) {
     // Proyectiles personalizados por personaje
     std::vector<std::pair<std::string, std::string>> proyectiles = {
         { "Lanzaguisantes", "pea.png" },
-        { "Mazorca",        "Cabbage_proyectil.png" },
-        { "Pomelo",         "Cactus_proyectil.png" },
+        { "LanzaLechugas",        "Cabbage_proyectil.png" },
+        { "Cactus",         "Cactus_proyectil.png" },
         { "Frutaestrella",  "Starfruit_proyectil.png" },
-         { "Soldado",        "Balloon_proyectil.png" },      
-        { "Zombidito",      "Catapult_proyectil.png" },     
-        { "Ingeniero",      "Digger_proyectil.png" },       
+         { "Minero",        "Balloon_proyectil.png" },      
+        { "Balloon",      "Catapult_proyectil.png" },     
+        { "Catapulta",      "Digger_proyectil.png" },       
         { "All-Star",       "Football_proyectil.png" },
-        { "Dave el Loco",   "Cob_Cannon_proyectil.png" },
+        { "Mazorca",   "Cob_Cannon_proyectil.png" },
         {"Dr. Zomboss", "Dr. Zomboss_proyectil.png"}
     };
     for (auto& [nombre, archivo] : proyectiles) {
@@ -1179,7 +1179,7 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
             sp.setScale(sf::Vector2f(esc, esc));
             sp.setOrigin(sf::Vector2f(ts.x / 2.f, ts.y / 2.f));
             sp.setPosition(p.pos);
-            if (nombreTirador == "Ingeniero" || nombreTirador == "Dave el Loco") {
+            if (nombreTirador == "Catapulta" || nombreTirador == "Mazorca") {
                 float angulo = relojAnimacion.getElapsedTime().asSeconds() * 360.f;
                 sp.setRotation(sf::degrees(angulo));
             }

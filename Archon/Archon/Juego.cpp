@@ -73,25 +73,25 @@ void Juego::inicializarPartida() {
     }
 
     // PLANTAS
-    tablero->colocarPieza(0, 0, new PiezaTanque("Pomelo", LUZ, 0, 0, GROUND));
+    tablero->colocarPieza(0, 0, new PiezaTanque("Cactus", LUZ, 0, 0, GROUND));
     tablero->colocarPieza(1, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 1, 0, GROUND));
     tablero->colocarPieza(2, 0, new PiezaVoladora("Frutaestrella", LUZ, 2, 0, FLYING));
-    tablero->colocarPieza(3, 0, new PiezaRapida("Mazorca", LUZ, 3, 0, GROUND));
-    tablero->colocarPieza(4, 0, new PiezaLider("Dave el Loco", LUZ, 4, 0, TELEPORT));
-    tablero->colocarPieza(5, 0, new PiezaRapida("Mazorca", LUZ, 5, 0, GROUND));
+    tablero->colocarPieza(3, 0, new PiezaRapida("LanzaLechugas", LUZ, 3, 0, GROUND));
+    tablero->colocarPieza(4, 0, new PiezaLider("Mazorca", LUZ, 4, 0, TELEPORT));
+    tablero->colocarPieza(5, 0, new PiezaRapida("LanzaLechugas", LUZ, 5, 0, GROUND));
     tablero->colocarPieza(6, 0, new PiezaVoladora("Frutaestrella", LUZ, 6, 0, FLYING));
     tablero->colocarPieza(7, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 7, 0, GROUND));
-    tablero->colocarPieza(8, 0, new PiezaTanque("Pomelo", LUZ, 8, 0, GROUND));
+    tablero->colocarPieza(8, 0, new PiezaTanque("Cactus", LUZ, 8, 0, GROUND));
 
     // ZOMBIES
     tablero->colocarPieza(0, 8, new PiezaTanque("All-Star", OSCURIDAD, 0, 8, GROUND));
-    tablero->colocarPieza(1, 8, new PiezaDistancia("Soldado", OSCURIDAD, 1, 8, GROUND));
-    tablero->colocarPieza(2, 8, new PiezaVoladora("Zombidito", OSCURIDAD, 2, 8, FLYING));
-    tablero->colocarPieza(3, 8, new PiezaRapida("Ingeniero", OSCURIDAD, 3, 8, GROUND));
+    tablero->colocarPieza(1, 8, new PiezaDistancia("Minero", OSCURIDAD, 1, 8, GROUND));
+    tablero->colocarPieza(2, 8, new PiezaVoladora("Balloon", OSCURIDAD, 2, 8, FLYING));
+    tablero->colocarPieza(3, 8, new PiezaRapida("Catapulta", OSCURIDAD, 3, 8, GROUND));
     tablero->colocarPieza(4, 8, new PiezaLider("Dr. Zomboss", OSCURIDAD, 4, 8, TELEPORT));
-    tablero->colocarPieza(5, 8, new PiezaRapida("Ingeniero", OSCURIDAD, 5, 8, GROUND));
-    tablero->colocarPieza(6, 8, new PiezaVoladora("Zombidito", OSCURIDAD, 6, 8, FLYING));
-    tablero->colocarPieza(7, 8, new PiezaDistancia("Soldado", OSCURIDAD, 7, 8, GROUND));
+    tablero->colocarPieza(5, 8, new PiezaRapida("Catapulta", OSCURIDAD, 5, 8, GROUND));
+    tablero->colocarPieza(6, 8, new PiezaVoladora("Balloon", OSCURIDAD, 6, 8, FLYING));
+    tablero->colocarPieza(7, 8, new PiezaDistancia("Minero", OSCURIDAD, 7, 8, GROUND));
     tablero->colocarPieza(8, 8, new PiezaTanque("All-Star", OSCURIDAD, 8, 8, GROUND));
 
     std::cout << "Tablero inicializado correctamente" << std::endl;

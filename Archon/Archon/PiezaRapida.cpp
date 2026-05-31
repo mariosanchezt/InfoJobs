@@ -16,7 +16,7 @@ PiezaRapida::PiezaRapida(std::string n, Bando b, int fIni, int cIni, TipoMovimie
     ) {
     // Constructor de PiezaRapida:
     // Si es del bando LUZ, se crea como Girasol.
-    // Si es del bando OSCURIDAD, se crea como Zombidito.
+    // Si es del bando OSCURIDAD, se crea como Balloon.
 }
 
 void PiezaRapida::atacar(Pieza* enemigo) {
