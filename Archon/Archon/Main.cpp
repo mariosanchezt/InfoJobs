@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "Juego.h"
+#include "Tablero.h"
 #include "Renderer.h"
 #include "Arena.h"
 #include "Menu.h"
@@ -567,6 +568,7 @@ int main() {
                     filaDefensor = fDest;
                     colDefensor = cDest;
                     arena->iniciarCombate(p, ocupante);
+                    arena->setBonusCiclo(juego->getTablero()->getColorActual(fDest, cDest));
                     audio.playArenaMusic();
                     enCombate = true;
                     renderer->setEstado(ARENA);
@@ -579,6 +581,7 @@ int main() {
                     colDefensor = cDest;
 
                     arena->iniciarCombate(p, ocupante);
+                    arena->setBonusCiclo(juego->getTablero()->getColorActual(fDest, cDest));
 
                     if (juego->getPiezaCongelada() == p) {
                         arena->setMultiplicadorVelocidad(p, 0.f);

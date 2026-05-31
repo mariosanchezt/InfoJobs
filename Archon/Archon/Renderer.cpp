@@ -1226,9 +1226,7 @@ void Renderer::dibujarEstadoArena(const Arena& arena) {
     if (arena.getCombatiente2().pieza != nullptr)
         dibujarCombatienteArena(arena.getCombatiente2(), false);
 
-    if (arena.getCombatiente1().pieza != nullptr &&
-        arena.getCombatiente2().pieza != nullptr)
-        dibujarHUDArena(arena.getCombatiente1().pieza, arena.getCombatiente2().pieza);
+    dibujarPanelesStatsArena(arena);
 }
 
 void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
@@ -1305,38 +1303,229 @@ void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
         }
     }
 
+    // Solo barra de cooldown encima del sprite (la vida está en el panel lateral)
     float anchoVida = 60.f;
-    dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima,
-        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 14.f, anchoVida);
     dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax,
         c.pos.x - anchoVida / 2.f, c.pos.y - radio - 7.f, anchoVida);
 }
 
-void Renderer::dibujarHUDArena(Pieza* p1, Pieza* p2) {
-    float yHUD = Arena::getOffsetY() + 5.f;
-    float anchoHUD = 300.f;
+void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
+    if (!fuenteCargada) return;
 
-    if (fuenteCargada) {
-        sf::Text nom1(fuente, p1->getNombre() + "  WASD+Space", 13);
-        nom1.setFillColor(sf::Color(100, 230, 120));
-        nom1.setStyle(sf::Text::Bold);
-        nom1.setPosition(sf::Vector2f(Arena::getOffsetX() + 5.f, yHUD));
-        ventana.draw(nom1);
+    const CombatienteArena& c1 = arena.getCombatiente1(); // LUZ / plantas
+    const CombatienteArena& c2 = arena.getCombatiente2(); // OSCURIDAD / zombies
+    if (c1.pieza == nullptr || c2.pieza == nullptr) return;
 
-        sf::Text nomZombie(fuente, p2->getNombre() + "  Flechas+Enter", 13);
-        nomZombie.setFillColor(sf::Color(230, 100, 100));
-        nomZombie.setStyle(sf::Text::Bold);
-        sf::FloatRect b = nomZombie.getLocalBounds();
-        nomZombie.setPosition(sf::Vector2f(
-            Arena::getOffsetX() + Arena::getAncho() - b.size.x - 5.f,
-            yHUD
-        ));
-        ventana.draw(nomZombie);
-    }
+    int colorCasilla = arena.getColorCasilla(); // 0=LUZ, 1=OSC, 2=neutral
 
-    dibujarBarraVida(p1->vida, p1->vidaMaxima, Arena::getOffsetX() + 5.f, yHUD + 20.f, anchoHUD);
-    dibujarBarraVida(p2->vida, p2->vidaMaxima,
-        Arena::getOffsetX() + Arena::getAncho() - anchoHUD - 5.f, yHUD + 20.f, anchoHUD);
+    // Colores de estilo identicos al tablero
+    sf::Color colorLuz(80, 220, 120);
+    sf::Color colorOsc(220, 80, 80);
+    sf::Color colorFondo(20, 20, 20, 220);
+
+    float panelAncho = CEMENTERIO_ANCHO;   // 210
+    float panelAlto  = VENTANA_ALTO - 10.f;
+    float xLuz = 5.f;
+    float xOsc = VENTANA_ANCHO - panelAncho - 5.f;
+    float yPanel = 5.f;
+
+    float t = relojAnimacion.getElapsedTime().asSeconds();
+    float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
+    uint8_t alphaBonus = static_cast<uint8_t>(160 + static_cast<int>(95 * pulso));
+
+    auto dibujarPanel = [&](const CombatienteArena& c, float x, sf::Color color, bool esLuz,
+                            const std::string& controles, bool tieneBonus) {
+        // Fondo del panel
+        sf::RectangleShape fondo(sf::Vector2f(panelAncho, panelAlto));
+        fondo.setPosition(sf::Vector2f(x, yPanel));
+        fondo.setFillColor(colorFondo);
+        fondo.setOutlineColor(color);
+        fondo.setOutlineThickness(2.f);
+        ventana.draw(fondo);
+
+        float cy = yPanel + 10.f;
+        float cx = x + panelAncho / 2.f;
+
+        // --- Titulo bando ---
+        sf::Text titulo(fuente, esLuz ? "PLANTAS" : "ZOMBIES", 15);
+        titulo.setFillColor(color);
+        titulo.setStyle(sf::Text::Bold);
+        sf::FloatRect bt = titulo.getLocalBounds();
+        titulo.setPosition(sf::Vector2f(cx - bt.size.x / 2.f, cy));
+        ventana.draw(titulo);
+        cy += 22.f;
+
+        // Separador
+        sf::RectangleShape sep(sf::Vector2f(panelAncho - 20.f, 2.f));
+        sep.setPosition(sf::Vector2f(x + 10.f, cy));
+        sep.setFillColor(sf::Color(color.r, color.g, color.b, 160u));
+        ventana.draw(sep);
+        cy += 8.f;
+
+        // --- Sprite grande de la pieza ---
+        float spriteArea = 110.f;
+        bool spriteDibujado = false;
+        std::string clave = claveAnimacion(c.pieza->getNombre());
+        if (!clave.empty() && sheetsIdle.count(clave) > 0 && sheetsIdle.at(clave).cargada) {
+            const InfoSheet& sheet = sheetsIdle.at(clave);
+            float tAnim = relojAnimacion.getElapsedTime().asSeconds();
+            int frameIdx = (int)(tAnim / 0.15f) % sheet.numFrames;
+            int offX = sheet.offsetsX.empty() ? frameIdx * sheet.anchoFrame : sheet.offsetsX[frameIdx];
+            int anchof = sheet.anchosFrame.empty() ? sheet.anchoFrame : sheet.anchosFrame[frameIdx];
+            sf::Sprite sp(sheet.textura);
+            sp.setTextureRect(sf::IntRect(sf::Vector2i(offX, 0), sf::Vector2i(anchof, sheet.altoFrame)));
+            float esc = spriteArea / std::max((float)sheet.anchoFrame, (float)sheet.altoFrame);
+            float sw = anchof * esc, sh = sheet.altoFrame * esc;
+            // sprites de zombies miran a la izq por defecto, invertimos para que miren al centro
+            static const std::vector<std::string> miranaIzq = {
+                "Yeti", "Balloon", "Catapult", "Football", "Digger", "Dr. Zomboss"
+            };
+            bool yaIzq = std::find(miranaIzq.begin(), miranaIzq.end(), clave) != miranaIzq.end();
+            bool voltear = (!esLuz && !yaIzq) || (esLuz && yaIzq);
+            if (voltear) {
+                sp.setScale(sf::Vector2f(-esc, esc));
+                sp.setPosition(sf::Vector2f(cx + sw / 2.f, cy));
+            } else {
+                sp.setScale(sf::Vector2f(esc, esc));
+                sp.setPosition(sf::Vector2f(cx - sw / 2.f, cy));
+            }
+            ventana.draw(sp);
+            spriteDibujado = true;
+        }
+        if (!spriteDibujado) {
+            std::string arch = nombreArchivoSprite(c.pieza->getNombre());
+            if (!arch.empty() && texturas.count(arch) > 0) {
+                const sf::Texture& tex = texturas.at(arch);
+                sf::Sprite sp(tex);
+                sf::Vector2u ts = tex.getSize();
+                float esc = spriteArea / std::max((float)ts.x, (float)ts.y);
+                float sw = ts.x * esc, sh = ts.y * esc;
+                sp.setScale(sf::Vector2f(esc, esc));
+                sp.setPosition(sf::Vector2f(cx - sw / 2.f, cy));
+                ventana.draw(sp);
+                spriteDibujado = true;
+            }
+        }
+        if (!spriteDibujado) {
+            // fallback circulo
+            sf::CircleShape circ(spriteArea / 2.f);
+            circ.setFillColor(esLuz ? sf::Color(40, 100, 60) : sf::Color(100, 40, 40));
+            circ.setOutlineColor(color);
+            circ.setOutlineThickness(2.f);
+            circ.setPosition(sf::Vector2f(cx - spriteArea / 2.f, cy));
+            ventana.draw(circ);
+        }
+        cy += spriteArea + 8.f;
+
+        // --- Nombre ---
+        sf::Text nombre(fuente, c.pieza->getNombre(), 16);
+        nombre.setFillColor(sf::Color::White);
+        nombre.setStyle(sf::Text::Bold);
+        sf::FloatRect bn = nombre.getLocalBounds();
+        nombre.setPosition(sf::Vector2f(cx - bn.size.x / 2.f, cy));
+        ventana.draw(nombre);
+        cy += 22.f;
+
+        // --- Barra de vida con texto ---
+        float barraAncho = panelAncho - 24.f;
+        sf::Text vidaTxt(fuente, "HP: " + std::to_string((int)c.pieza->vida)
+            + " / " + std::to_string((int)c.pieza->vidaMaxima), 12);
+        vidaTxt.setFillColor(sf::Color(210, 210, 210));
+        sf::FloatRect bv = vidaTxt.getLocalBounds();
+        vidaTxt.setPosition(sf::Vector2f(cx - bv.size.x / 2.f, cy));
+        ventana.draw(vidaTxt);
+        cy += 16.f;
+        dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima, x + 12.f, cy, barraAncho);
+        cy += 18.f;
+
+        // --- Barra de cooldown de ataque ---
+        sf::Text cdTxt(fuente, "RECARGA", 11);
+        cdTxt.setFillColor(sf::Color(180, 180, 180));
+        sf::FloatRect bcd = cdTxt.getLocalBounds();
+        cdTxt.setPosition(sf::Vector2f(cx - bcd.size.x / 2.f, cy));
+        ventana.draw(cdTxt);
+        cy += 14.f;
+        dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax, x + 12.f, cy, barraAncho);
+        cy += 18.f;
+
+        // Separador fino
+        sf::RectangleShape sep2(sf::Vector2f(panelAncho - 20.f, 1.f));
+        sep2.setPosition(sf::Vector2f(x + 10.f, cy));
+        sep2.setFillColor(sf::Color(80, 80, 80));
+        ventana.draw(sep2);
+        cy += 8.f;
+
+        // --- Stats de la pieza ---
+        auto stat = [&](const std::string& etiqueta, const std::string& valor) {
+            sf::Text lbl(fuente, etiqueta, 12);
+            lbl.setFillColor(sf::Color(160, 160, 160));
+            lbl.setPosition(sf::Vector2f(x + 12.f, cy));
+            ventana.draw(lbl);
+            sf::Text val(fuente, valor, 12);
+            val.setFillColor(sf::Color::White);
+            val.setStyle(sf::Text::Bold);
+            sf::FloatRect bval = val.getLocalBounds();
+            val.setPosition(sf::Vector2f(x + panelAncho - bval.size.x - 12.f, cy));
+            ventana.draw(val);
+            cy += 18.f;
+        };
+
+        stat("Fuerza:", std::to_string((int)c.pieza->fuerza));
+        stat("Vel. ataque:", std::to_string((int)(c.pieza->velAtaque * 10.f) / 10.f).substr(0, 4));
+        stat("Radio mov.:", std::to_string(c.pieza->radioMovimiento));
+
+        std::string tipoMov;
+        switch (c.pieza->getTipoMovimiento()) {
+        case GROUND:   tipoMov = "TIERRA";   break;
+        case FLYING:   tipoMov = "VUELO";    break;
+        case TELEPORT: tipoMov = "TELEPORT"; break;
+        }
+        stat("Movimiento:", tipoMov);
+
+        cy += 4.f;
+        sf::RectangleShape sep3(sf::Vector2f(panelAncho - 20.f, 1.f));
+        sep3.setPosition(sf::Vector2f(x + 10.f, cy));
+        sep3.setFillColor(sf::Color(80, 80, 80));
+        ventana.draw(sep3);
+        cy += 8.f;
+
+        // --- Controles ---
+        sf::Text ctrl(fuente, controles, 11);
+        ctrl.setFillColor(sf::Color(130, 130, 130));
+        sf::FloatRect bc2 = ctrl.getLocalBounds();
+        ctrl.setPosition(sf::Vector2f(cx - bc2.size.x / 2.f, cy));
+        ventana.draw(ctrl);
+        cy += 22.f;
+
+        // --- Bonus del ciclo de oscilacion ---
+        if (tieneBonus) {
+            sf::RectangleShape fondoBonus(sf::Vector2f(panelAncho - 16.f, 36.f));
+            fondoBonus.setPosition(sf::Vector2f(x + 8.f, cy));
+            fondoBonus.setFillColor(sf::Color(180, 140, 0, static_cast<uint8_t>(60 + (int)(60 * pulso))));
+            fondoBonus.setOutlineColor(sf::Color(255, 200, 0, alphaBonus));
+            fondoBonus.setOutlineThickness(2.f);
+            ventana.draw(fondoBonus);
+
+            sf::Text bonus(fuente, "VENTAJA TERRENO", 13);
+            bonus.setFillColor(sf::Color(255, 215, 0, alphaBonus));
+            bonus.setStyle(sf::Text::Bold);
+            sf::FloatRect bb = bonus.getLocalBounds();
+            bonus.setPosition(sf::Vector2f(cx - bb.size.x / 2.f, cy + 4.f));
+            ventana.draw(bonus);
+
+            sf::Text pct(fuente, "+30% FUERZA", 11);
+            pct.setFillColor(sf::Color(255, 240, 120, alphaBonus));
+            sf::FloatRect bp = pct.getLocalBounds();
+            pct.setPosition(sf::Vector2f(cx - bp.size.x / 2.f, cy + 20.f));
+            ventana.draw(pct);
+        }
+    };
+
+    // Panel izquierdo: LUZ / Plantas
+    bool bonusLuz = (colorCasilla == 0);
+    bool bonusOsc = (colorCasilla == 1);
+    dibujarPanel(c1, xLuz, colorLuz, true, "WASD + Espacio", bonusLuz);
+    dibujarPanel(c2, xOsc, colorOsc, false, "Flechas + Enter", bonusOsc);
 }
 
 void Renderer::seleccionarCasilla(int fila, int col, Tablero* tablero) {

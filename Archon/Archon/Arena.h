@@ -27,6 +27,7 @@ struct CombatienteArena {
     bool teclaDsparoPulsada;
     Pieza* pieza;
     float multiplicadorVelocidad;
+    float multiplicadorFuerza;   // Bono por color de casilla (ciclo de oscilacion)
 
     // Campos de animacion por frames (inicializados en iniciarCombate)
     EstadoAnimArena estadoAnim = ANIM_IDLE;
@@ -66,6 +67,7 @@ private:
     bool modoIA;
     bool   combateTerminado;
     Pieza* ganador;
+    int    colorCasillaActual = 2; // 0=LUZ, 1=OSCURIDAD, 2=neutral
 
     AudioManager* audio;
 
@@ -83,12 +85,16 @@ public:
     void iniciarCombate(Pieza* p1, Pieza* p2);
     void update(float dt);
     void setMultiplicadorVelocidad(Pieza* p, float n);
+    // Aplica el bono del ciclo de oscilacion: el bando cuyo color es la casilla
+    // recibe +30% de fuerza en este combate. Pasar -1 para casilla neutral (sin bono).
+    void setBonusCiclo(int colorCasilla); // 0=LUZ, 1=OSCURIDAD, 2=neutral
 
     // Activa la anim de ataque en un combatiente (se llama al disparar)
     void notificarDisparo(CombatienteArena& c);
 
-    bool   haTerminado() const { return combateTerminado; }
-    Pieza* getGanador()  const { return ganador; }
+    bool   haTerminado()        const { return combateTerminado; }
+    Pieza* getGanador()         const { return ganador; }
+    int    getColorCasilla()    const { return colorCasillaActual; }
     void setModoIA(bool ia) { modoIA = ia; }
 
     void limpiar() {

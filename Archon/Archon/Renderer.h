@@ -217,7 +217,7 @@ private:
     );
 
     // Metodos internos arena
-    void dibujarHUDArena(Pieza* p1, Pieza* p2);
+    void dibujarPanelesStatsArena(const Arena& arena);
     void dibujarCombatienteArena(const CombatienteArena& c, bool esLuz);
 
     std::string nombreArchivoSprite(const std::string& nombrePieza) const;

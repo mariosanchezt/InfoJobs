@@ -41,6 +41,7 @@ void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
     combatiente1.tiempoRecarga = 0.f;
     combatiente1.teclaDsparoPulsada = false;
     combatiente1.multiplicadorVelocidad = 1.f;
+    combatiente1.multiplicadorFuerza = 1.f;
     combatiente1.estadoAnim = ANIM_IDLE;
     combatiente1.frameActual = 0;
     combatiente1.timerFrame = 0.f;
@@ -53,6 +54,7 @@ void Arena::iniciarCombate(Pieza* p1, Pieza* p2) {
     combatiente2.tiempoRecarga = 0.f;
     combatiente2.teclaDsparoPulsada = false;
     combatiente2.multiplicadorVelocidad = 1.f;
+    combatiente2.multiplicadorFuerza = 1.f;
     combatiente2.estadoAnim = ANIM_IDLE;
     combatiente2.frameActual = 0;
     combatiente2.timerFrame = 0.f;
@@ -165,7 +167,7 @@ void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
 
         if (dist <= rango) {
-            objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f;
+            objetivo.pieza->vida -= tirador.pieza->fuerza * 0.3f * tirador.multiplicadorFuerza;
             if (objetivo.pieza->vida < 0.f) objetivo.pieza->vida = 0.f;
             if (audio != nullptr)audio->playGolpe();
             std::cout << tirador.pieza->getNombre() << " Muerde a " << objetivo.pieza->getNombre() << "!" << std::endl;
@@ -221,7 +223,7 @@ void Arena::comprobarColisiones() {
             sf::Vector2f diff = p.pos - oscuridad.pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
             if (dist < TAM_PIEZA * 1.5f) {
-                oscuridad.pieza->vida -= luz.pieza->fuerza * 0.3f;
+                oscuridad.pieza->vida -= luz.pieza->fuerza * 0.3f * luz.multiplicadorFuerza;
                 if (audio != nullptr) audio->playGolpe();
                 if (oscuridad.pieza->vida < 0.f) oscuridad.pieza->vida = 0.f;
                 p.activo = false;
@@ -233,7 +235,7 @@ void Arena::comprobarColisiones() {
             sf::Vector2f diff = p.pos - luz.pos;
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
             if (dist < TAM_PIEZA * 1.5f) {
-                luz.pieza->vida -= oscuridad.pieza->fuerza * 0.3f;
+                luz.pieza->vida -= oscuridad.pieza->fuerza * 0.3f * oscuridad.multiplicadorFuerza;
                 if (audio != nullptr) audio->playGolpe();
                 if (luz.pieza->vida < 0.f) luz.pieza->vida = 0.f;
                 p.activo = false;
@@ -396,4 +398,24 @@ Pieza* Arena::iniciarCombateAutomatico(Pieza* p1, Pieza* p2) {
 void Arena::setMultiplicadorVelocidad(Pieza* pieza, float multiplicador) {
     if (combatiente1.pieza == pieza) combatiente1.multiplicadorVelocidad = multiplicador;
     if (combatiente2.pieza == pieza) combatiente2.multiplicadorVelocidad = multiplicador;
+}
+
+void Arena::setBonusCiclo(int colorCasilla) {
+    // combatiente1 = LUZ, combatiente2 = OSCURIDAD
+    // colorCasilla: 0 = LUZ gana ventaja, 1 = OSCURIDAD gana ventaja, 2 = neutral
+    colorCasillaActual = colorCasilla;
+    combatiente1.multiplicadorFuerza = 1.f;
+    combatiente2.multiplicadorFuerza = 1.f;
+
+    if (colorCasilla == 0) {
+        combatiente1.multiplicadorFuerza = 1.3f; // LUZ recibe +30% de fuerza
+        std::cout << "[Ciclo] Casilla de LUZ: Plantas con ventaja en combate (+30% fuerza)" << std::endl;
+    }
+    else if (colorCasilla == 1) {
+        combatiente2.multiplicadorFuerza = 1.3f; // OSCURIDAD recibe +30% de fuerza
+        std::cout << "[Ciclo] Casilla de OSCURIDAD: Zombies con ventaja en combate (+30% fuerza)" << std::endl;
+    }
+    else {
+        std::cout << "[Ciclo] Casilla neutral: combate sin ventajas" << std::endl;
+    }
 }

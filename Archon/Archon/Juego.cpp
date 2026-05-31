@@ -124,6 +124,9 @@ void Juego::cambiarTurno() {
 
     // El encarcelamiento es indefinido: no se decrementa aqui
 
+    // --- Avanzar el ciclo de oscilacion del tablero ---
+    tablero->avanzarCiclo();
+
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
 }
