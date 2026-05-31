@@ -2,6 +2,7 @@
 #include "Arena.h"
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 #include <cmath>
 #include <sstream>
 #include <iomanip>
@@ -1318,16 +1319,17 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
 
     int colorCasilla = arena.getColorCasilla(); // 0=LUZ, 1=OSC, 2=neutral
 
-    // Colores de estilo identicos al tablero
     sf::Color colorLuz(80, 220, 120);
     sf::Color colorOsc(220, 80, 80);
-    sf::Color colorFondo(20, 20, 20, 220);
+    sf::Color colorFondo(20, 20, 20, 230);
 
-    float panelAncho = CEMENTERIO_ANCHO;   // 210
-    float panelAlto  = VENTANA_ALTO - 10.f;
-    float xLuz = 5.f;
-    float xOsc = VENTANA_ANCHO - panelAncho - 5.f;
-    float yPanel = 5.f;
+    // Ancho responsivo: ocupa exactamente el hueco entre el borde y la arena
+    float margen = 5.f;
+    float panelAncho = Arena::getOffsetX() - margen * 2.f;  // ajusta solo si cambia el offset
+    float panelAlto  = VENTANA_ALTO - margen * 2.f;
+    float xLuz  = margen;
+    float xOsc  = Arena::getOffsetX() + Arena::getAncho() + margen;
+    float yPanel = margen;
 
     float t = relojAnimacion.getElapsedTime().asSeconds();
     float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
@@ -1347,13 +1349,13 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
         float cx = x + panelAncho / 2.f;
 
         // --- Titulo bando ---
-        sf::Text titulo(fuente, esLuz ? "PLANTAS" : "ZOMBIES", 15);
+        sf::Text titulo(fuente, esLuz ? "PLANTAS" : "ZOMBIES", 18);
         titulo.setFillColor(color);
         titulo.setStyle(sf::Text::Bold);
         sf::FloatRect bt = titulo.getLocalBounds();
         titulo.setPosition(sf::Vector2f(cx - bt.size.x / 2.f, cy));
         ventana.draw(titulo);
-        cy += 22.f;
+        cy += 26.f;
 
         // Separador
         sf::RectangleShape sep(sf::Vector2f(panelAncho - 20.f, 2.f));
@@ -1362,8 +1364,8 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
         ventana.draw(sep);
         cy += 8.f;
 
-        // --- Sprite grande de la pieza ---
-        float spriteArea = 110.f;
+        // --- Sprite grande: escala con el ancho del panel ---
+        float spriteArea = panelAncho * 0.72f;
         bool spriteDibujado = false;
         std::string clave = claveAnimacion(c.pieza->getNombre());
         if (!clave.empty() && sheetsIdle.count(clave) > 0 && sheetsIdle.at(clave).cargada) {
@@ -1418,35 +1420,44 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
         cy += spriteArea + 8.f;
 
         // --- Nombre ---
-        sf::Text nombre(fuente, c.pieza->getNombre(), 16);
+        sf::Text nombre(fuente, c.pieza->getNombre(), 17);
         nombre.setFillColor(sf::Color::White);
         nombre.setStyle(sf::Text::Bold);
-        sf::FloatRect bn = nombre.getLocalBounds();
-        nombre.setPosition(sf::Vector2f(cx - bn.size.x / 2.f, cy));
+        {
+            sf::FloatRect bn = nombre.getLocalBounds();
+            // Si el nombre no cabe, reducir fuente
+            if (bn.size.x > panelAncho - 10.f) nombre.setCharacterSize(14);
+            bn = nombre.getLocalBounds();
+            nombre.setPosition(sf::Vector2f(cx - bn.size.x / 2.f, cy));
+        }
         ventana.draw(nombre);
         cy += 22.f;
 
         // --- Barra de vida con texto ---
-        float barraAncho = panelAncho - 24.f;
+        float barraAncho = panelAncho - 16.f;
         sf::Text vidaTxt(fuente, "HP: " + std::to_string((int)c.pieza->vida)
-            + " / " + std::to_string((int)c.pieza->vidaMaxima), 12);
+            + " / " + std::to_string((int)c.pieza->vidaMaxima), 13);
         vidaTxt.setFillColor(sf::Color(210, 210, 210));
-        sf::FloatRect bv = vidaTxt.getLocalBounds();
-        vidaTxt.setPosition(sf::Vector2f(cx - bv.size.x / 2.f, cy));
+        {
+            sf::FloatRect bv = vidaTxt.getLocalBounds();
+            vidaTxt.setPosition(sf::Vector2f(cx - bv.size.x / 2.f, cy));
+        }
         ventana.draw(vidaTxt);
         cy += 16.f;
-        dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima, x + 12.f, cy, barraAncho);
-        cy += 18.f;
+        dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima, x + 8.f, cy, barraAncho);
+        cy += 16.f;
 
         // --- Barra de cooldown de ataque ---
-        sf::Text cdTxt(fuente, "RECARGA", 11);
+        sf::Text cdTxt(fuente, "RECARGA", 12);
         cdTxt.setFillColor(sf::Color(180, 180, 180));
-        sf::FloatRect bcd = cdTxt.getLocalBounds();
-        cdTxt.setPosition(sf::Vector2f(cx - bcd.size.x / 2.f, cy));
+        {
+            sf::FloatRect bcd = cdTxt.getLocalBounds();
+            cdTxt.setPosition(sf::Vector2f(cx - bcd.size.x / 2.f, cy));
+        }
         ventana.draw(cdTxt);
         cy += 14.f;
-        dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax, x + 12.f, cy, barraAncho);
-        cy += 18.f;
+        dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax, x + 8.f, cy, barraAncho);
+        cy += 16.f;
 
         // Separador fino
         sf::RectangleShape sep2(sf::Vector2f(panelAncho - 20.f, 1.f));
@@ -1457,21 +1468,24 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
 
         // --- Stats de la pieza ---
         auto stat = [&](const std::string& etiqueta, const std::string& valor) {
-            sf::Text lbl(fuente, etiqueta, 12);
+            sf::Text lbl(fuente, etiqueta, 13);
             lbl.setFillColor(sf::Color(160, 160, 160));
-            lbl.setPosition(sf::Vector2f(x + 12.f, cy));
+            lbl.setPosition(sf::Vector2f(x + 8.f, cy));
             ventana.draw(lbl);
-            sf::Text val(fuente, valor, 12);
+            sf::Text val(fuente, valor, 13);
             val.setFillColor(sf::Color::White);
             val.setStyle(sf::Text::Bold);
             sf::FloatRect bval = val.getLocalBounds();
-            val.setPosition(sf::Vector2f(x + panelAncho - bval.size.x - 12.f, cy));
+            val.setPosition(sf::Vector2f(x + panelAncho - bval.size.x - 8.f, cy));
             ventana.draw(val);
-            cy += 18.f;
+            cy += 19.f;
         };
 
+        char velBuf[8];
+        std::snprintf(velBuf, sizeof(velBuf), "%.1f", c.pieza->velAtaque);
+
         stat("Fuerza:", std::to_string((int)c.pieza->fuerza));
-        stat("Vel. ataque:", std::to_string((int)(c.pieza->velAtaque * 10.f) / 10.f).substr(0, 4));
+        stat("Vel. ataque:", std::string(velBuf));
         stat("Radio mov.:", std::to_string(c.pieza->radioMovimiento));
 
         std::string tipoMov;
@@ -1490,17 +1504,23 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
         cy += 8.f;
 
         // --- Controles ---
-        sf::Text ctrl(fuente, controles, 11);
+        sf::Text ctrl(fuente, controles, 12);
         ctrl.setFillColor(sf::Color(130, 130, 130));
-        sf::FloatRect bc2 = ctrl.getLocalBounds();
-        ctrl.setPosition(sf::Vector2f(cx - bc2.size.x / 2.f, cy));
+        {
+            sf::FloatRect bc2 = ctrl.getLocalBounds();
+            // Reducir si no cabe
+            if (bc2.size.x > panelAncho - 8.f) ctrl.setCharacterSize(10);
+            bc2 = ctrl.getLocalBounds();
+            ctrl.setPosition(sf::Vector2f(cx - bc2.size.x / 2.f, cy));
+        }
         ventana.draw(ctrl);
         cy += 22.f;
 
         // --- Bonus del ciclo de oscilacion ---
         if (tieneBonus) {
-            sf::RectangleShape fondoBonus(sf::Vector2f(panelAncho - 16.f, 36.f));
-            fondoBonus.setPosition(sf::Vector2f(x + 8.f, cy));
+            float bonusH = 38.f;
+            sf::RectangleShape fondoBonus(sf::Vector2f(panelAncho - 10.f, bonusH));
+            fondoBonus.setPosition(sf::Vector2f(x + 5.f, cy));
             fondoBonus.setFillColor(sf::Color(180, 140, 0, static_cast<uint8_t>(60 + (int)(60 * pulso))));
             fondoBonus.setOutlineColor(sf::Color(255, 200, 0, alphaBonus));
             fondoBonus.setOutlineThickness(2.f);
@@ -1509,14 +1529,20 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
             sf::Text bonus(fuente, "VENTAJA TERRENO", 13);
             bonus.setFillColor(sf::Color(255, 215, 0, alphaBonus));
             bonus.setStyle(sf::Text::Bold);
-            sf::FloatRect bb = bonus.getLocalBounds();
-            bonus.setPosition(sf::Vector2f(cx - bb.size.x / 2.f, cy + 4.f));
+            {
+                sf::FloatRect bb = bonus.getLocalBounds();
+                if (bb.size.x > panelAncho - 10.f) bonus.setCharacterSize(11);
+                bb = bonus.getLocalBounds();
+                bonus.setPosition(sf::Vector2f(cx - bb.size.x / 2.f, cy + 4.f));
+            }
             ventana.draw(bonus);
 
-            sf::Text pct(fuente, "+30% FUERZA", 11);
+            sf::Text pct(fuente, "+30% FUERZA", 12);
             pct.setFillColor(sf::Color(255, 240, 120, alphaBonus));
-            sf::FloatRect bp = pct.getLocalBounds();
-            pct.setPosition(sf::Vector2f(cx - bp.size.x / 2.f, cy + 20.f));
+            {
+                sf::FloatRect bp = pct.getLocalBounds();
+                pct.setPosition(sf::Vector2f(cx - bp.size.x / 2.f, cy + 21.f));
+            }
             ventana.draw(pct);
         }
     };
