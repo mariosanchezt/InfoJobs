@@ -5,6 +5,7 @@
 #include "Arena.h"
 #include "Menu.h"
 #include "AudioManager.h"
+#include "Ranking.h"
 #include <iostream>
 #include <cmath>
 
@@ -209,6 +210,31 @@ int main() {
             audio.playDerrota();
         }
 
+        // Guardar resultado en el historial de partidas
+        if (juego != nullptr) {
+            // Convertimos los enums a texto legible
+            std::string strGanador = (juego->getBandoGanador() == LUZ) ? "PLANTAS" : "ZOMBIES";
+
+            std::string strVictoria;
+            switch (juego->getTipoVictoria()) {
+            case VICTORIA_ELIMINACION:  strVictoria = "ELIMINACION";    break;
+            case VICTORIA_PUNTOS_PODER: strVictoria = "PUNTOS PODER";   break;
+            case VICTORIA_TIEMPO:       strVictoria = "TIEMPO";         break;
+            case VICTORIA_PUNTUACION:   strVictoria = "PUNTUACION";     break;
+            default:                    strVictoria = "DESCONOCIDA";    break;
+            }
+
+            Ranking::guardarPartida(
+                strGanador,
+                strVictoria,
+                juego->getTurnosJugados(),
+                juego->getBajasLuz(),
+                juego->getBajasOscuridad(),
+                juego->getPuntuacionLuz(),
+                juego->getPuntuacionOscuridad()
+            );
+        }
+
         estadoJuego = EstadoJuego::VICTORIA;
         };
 
@@ -379,6 +405,20 @@ int main() {
             continue;
         }
 
+        // HISTORIAL DE PARTIDAS
+        if (estadoJuego == EstadoJuego::RANKING) {
+            while (auto event = ventana.pollEvent()) {
+                eventosGlobalesVentana(*event);
+
+                EstadoJuego resultado = menu.procesarEventoRanking(*event);
+                if (resultado == EstadoJuego::MENU) estadoJuego = EstadoJuego::MENU;
+            }
+            ventana.clear(sf::Color(15, 15, 25));
+            menu.dibujarRanking();
+            ventana.display();
+            continue;
+        }
+
         // MODO MENU
         if (estadoJuego == EstadoJuego::MENU) {
             while (auto event = ventana.pollEvent()) {
@@ -398,6 +438,9 @@ int main() {
                 }
                 else if (resultado == EstadoJuego::CONFIRMAR_SALIDA) {
                     estadoJuego = EstadoJuego::CONFIRMAR_SALIDA;
+                }
+                else if (resultado == EstadoJuego::RANKING) {
+                    estadoJuego = EstadoJuego::RANKING;
                 }
                 else if (resultado == EstadoJuego::CARGANDO) {
                     mostrarPantallaCarga(ventana, fuente, 2.0f);

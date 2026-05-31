@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "IAJugador.h"
+#include "Ranking.h"
 
 enum class EstadoJuego {
     MENU,
@@ -15,6 +16,7 @@ enum class EstadoJuego {
     COMO_JUGAR,
     CONFIGURACION,
     CONFIRMAR_SALIDA,
+    RANKING,
     SALIR
 };
 
@@ -96,6 +98,9 @@ private:
 
     void restablecerConfiguracion();
 
+    // Historial de partidas (se carga al abrir la pantalla de ranking)
+    std::vector<EntradaRanking> entradasRanking;
+
 public:
     Menu(sf::RenderWindow& vent, sf::Font& f);
 
@@ -113,6 +118,9 @@ public:
 
     EstadoJuego procesarEventoConfirmarSalida(const sf::Event& event);
     void dibujarConfirmarSalida();
+
+    EstadoJuego procesarEventoRanking(const sf::Event& event);
+    void dibujarRanking();
 
     // Volumen aplicado al AudioManager
     float getVolumenGeneral() const { return volumenGeneral; }

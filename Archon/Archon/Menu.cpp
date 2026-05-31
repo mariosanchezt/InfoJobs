@@ -158,6 +158,15 @@ Menu::Menu(sf::RenderWindow& vent, sf::Font& f)
     b3.habilitado = true;
     botones.push_back(b3);
 
+    // Boton HISTORIAL
+    Boton b4;
+    b4.forma.setSize(sf::Vector2f(anchoBoton, altoBoton));
+    b4.forma.setPosition(sf::Vector2f(xBoton, 540.f));
+    b4.forma.setRotation(sf::degrees(2.0f));
+    b4.texto = "HISTORIAL";
+    b4.habilitado = true;
+    botones.push_back(b4);
+
     paginaComoJugar = 0;
 
     // Valores iniciales de configuracion
@@ -174,6 +183,7 @@ EstadoJuego Menu::confirmarBoton(int indice) {
     if (indice == 0) return EstadoJuego::CARGANDO;
     if (indice == 1) { botonSeleccionado = 1; return EstadoJuego::SELECCION_DIFICULTAD; }
     if (indice == 2) { paginaComoJugar = 0; return EstadoJuego::COMO_JUGAR; }
+    if (indice == 3) { entradasRanking = Ranking::cargarPartidas(10); return EstadoJuego::RANKING; }
     return EstadoJuego::MENU;
 }
 
@@ -1261,4 +1271,166 @@ void Menu::dibujarConfirmarSalida() {
         610.f,
         opcionSalidaSeleccionada == 1
     );
+}
+
+// ---------------------------------------------------------------------------
+// RANKING - Historial de partidas
+// ---------------------------------------------------------------------------
+
+EstadoJuego Menu::procesarEventoRanking(const sf::Event& event) {
+    if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+        if (key->code == sf::Keyboard::Key::Escape ||
+            key->code == sf::Keyboard::Key::Enter  ||
+            key->code == sf::Keyboard::Key::Space) {
+            return EstadoJuego::MENU;
+        }
+    }
+    if (event.is<sf::Event::MouseButtonPressed>()) {
+        return EstadoJuego::MENU;
+    }
+    return EstadoJuego::RANKING;
+}
+
+void Menu::dibujarRanking() {
+    // Fondo oscuro igual que el resto de pantallas secundarias
+    if (fondoCargado) {
+        ventana.draw(spriteFondo);
+    }
+    sf::RectangleShape overlay(sf::Vector2f(VENTANA_ANCHO, VENTANA_ALTO));
+    overlay.setFillColor(sf::Color(0, 0, 0, 190));
+    ventana.draw(overlay);
+
+    // Panel central
+    float panelX = 130.f;
+    float panelY = 90.f;
+    float panelW = 940.f;
+    float panelH = 660.f;
+
+    sf::RectangleShape panel(sf::Vector2f(panelW, panelH));
+    panel.setPosition(sf::Vector2f(panelX, panelY));
+    panel.setFillColor(sf::Color(15, 20, 35, 230));
+    panel.setOutlineColor(sf::Color(255, 200, 50, 180));
+    panel.setOutlineThickness(2.f);
+    ventana.draw(panel);
+
+    // Titulo
+    sf::Text titulo(fuente, "HISTORIAL DE PARTIDAS", 28);
+    titulo.setFillColor(sf::Color(255, 200, 50));
+    titulo.setStyle(sf::Text::Bold);
+    sf::FloatRect bTitulo = titulo.getLocalBounds();
+    titulo.setPosition(sf::Vector2f(
+        panelX + panelW / 2.f - bTitulo.size.x / 2.f,
+        panelY + 18.f
+    ));
+    ventana.draw(titulo);
+
+    // Separador bajo el titulo
+    sf::RectangleShape sep(sf::Vector2f(panelW - 40.f, 1.f));
+    sep.setPosition(sf::Vector2f(panelX + 20.f, panelY + 62.f));
+    sep.setFillColor(sf::Color(255, 200, 50, 100));
+    ventana.draw(sep);
+
+    // Cabeceras de columna
+    float colX[6] = { panelX + 22.f, panelX + 60.f, panelX + 230.f,
+                      panelX + 460.f, panelX + 560.f, panelX + 710.f };
+    const char* cabeceras[6] = { "#", "GANADOR", "VICTORIA", "TURNOS", "BAJAS P/Z", "FECHA" };
+    float yHeader = panelY + 74.f;
+
+    for (int i = 0; i < 6; i++) {
+        sf::Text h(fuente, cabeceras[i], 15);
+        h.setFillColor(sf::Color(180, 180, 180));
+        h.setStyle(sf::Text::Bold);
+        h.setPosition(sf::Vector2f(colX[i], yHeader));
+        ventana.draw(h);
+    }
+
+    // Separador bajo cabeceras
+    sf::RectangleShape sep2(sf::Vector2f(panelW - 40.f, 1.f));
+    sep2.setPosition(sf::Vector2f(panelX + 20.f, panelY + 97.f));
+    sep2.setFillColor(sf::Color(100, 100, 100, 150));
+    ventana.draw(sep2);
+
+    // Filas de datos
+    if (entradasRanking.empty()) {
+        sf::Text vacio(fuente, "No hay partidas guardadas todavia.", 20);
+        vacio.setFillColor(sf::Color(150, 150, 150));
+        sf::FloatRect bv = vacio.getLocalBounds();
+        vacio.setPosition(sf::Vector2f(
+            panelX + panelW / 2.f - bv.size.x / 2.f,
+            panelY + panelH / 2.f - bv.size.y / 2.f
+        ));
+        ventana.draw(vacio);
+    }
+    else {
+        float yFila = panelY + 108.f;
+        float altoFila = 48.f;
+
+        for (int i = 0; i < (int)entradasRanking.size(); i++) {
+            const EntradaRanking& e = entradasRanking[i];
+
+            // Fondo alternado de filas
+            if (i % 2 == 0) {
+                sf::RectangleShape fondoFila(sf::Vector2f(panelW - 40.f, altoFila - 4.f));
+                fondoFila.setPosition(sf::Vector2f(panelX + 20.f, yFila));
+                fondoFila.setFillColor(sf::Color(255, 255, 255, 12));
+                ventana.draw(fondoFila);
+            }
+
+            // Color segun ganador
+            bool plantasGanan = (e.ganador == "PLANTAS");
+            sf::Color colorGanador = plantasGanan
+                ? sf::Color(100, 230, 100)   // verde para plantas
+                : sf::Color(180, 100, 255);  // morado para zombies
+
+            // Numero de fila
+            sf::Text tNum(fuente, std::to_string(i + 1), 16);
+            tNum.setFillColor(sf::Color(180, 180, 180));
+            tNum.setPosition(sf::Vector2f(colX[0], yFila + 8.f));
+            ventana.draw(tNum);
+
+            // Ganador
+            sf::Text tGan(fuente, e.ganador, 17);
+            tGan.setFillColor(colorGanador);
+            tGan.setStyle(sf::Text::Bold);
+            tGan.setPosition(sf::Vector2f(colX[1], yFila + 8.f));
+            ventana.draw(tGan);
+
+            // Tipo de victoria
+            sf::Text tVic(fuente, e.tipoVictoria, 15);
+            tVic.setFillColor(sf::Color(220, 220, 220));
+            tVic.setPosition(sf::Vector2f(colX[2], yFila + 8.f));
+            ventana.draw(tVic);
+
+            // Turnos
+            sf::Text tTur(fuente, std::to_string(e.turnosJugados), 16);
+            tTur.setFillColor(sf::Color(220, 220, 220));
+            tTur.setPosition(sf::Vector2f(colX[3], yFila + 8.f));
+            ventana.draw(tTur);
+
+            // Bajas P / Z
+            std::string bajas = std::to_string(e.bajasLuz) + " / " + std::to_string(e.bajasOscuridad);
+            sf::Text tBaj(fuente, bajas, 15);
+            tBaj.setFillColor(sf::Color(220, 220, 220));
+            tBaj.setPosition(sf::Vector2f(colX[4], yFila + 8.f));
+            ventana.draw(tBaj);
+
+            // Fecha
+            sf::Text tFec(fuente, e.fecha, 14);
+            tFec.setFillColor(sf::Color(160, 160, 160));
+            tFec.setPosition(sf::Vector2f(colX[5], yFila + 8.f));
+            ventana.draw(tFec);
+
+            yFila += altoFila;
+        }
+    }
+
+    // Pie de pagina
+    sf::Text pie(fuente, "ESC / Enter / Clic -> Volver al menu", 15);
+    pie.setFillColor(sf::Color(120, 120, 120));
+    sf::FloatRect bPie = pie.getLocalBounds();
+    pie.setPosition(sf::Vector2f(
+        panelX + panelW / 2.f - bPie.size.x / 2.f,
+        panelY + panelH - 30.f
+    ));
+    ventana.draw(pie);
 }
