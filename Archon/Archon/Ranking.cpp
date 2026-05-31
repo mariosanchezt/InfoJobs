@@ -10,9 +10,10 @@ const std::string Ranking::ARCHIVO = "ranking.txt";
 // Devuelve la fecha y hora actual en formato "DD/MM/AAAA HH:MM"
 std::string Ranking::obtenerFechaHora() {
     std::time_t t = std::time(nullptr);
-    std::tm* tm_local = std::localtime(&t);
+    std::tm tm_local{};
+    localtime_s(&tm_local, &t);   // version segura que exige MSVC
     char buf[32];
-    std::strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M", tm_local);
+    std::strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M", &tm_local);
     return std::string(buf);
 }
 
