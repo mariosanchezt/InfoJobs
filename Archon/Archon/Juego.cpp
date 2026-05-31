@@ -122,18 +122,7 @@ void Juego::cambiarTurno() {
         }
     }
 
-    // --- Decrementar turnos de piezas encarceladas ---
-    for (int f = 0; f < 9; f++) {
-        for (int c = 0; c < 9; c++) {
-            Pieza* p = tablero->getPieza(f, c);
-            if (p != nullptr && p->turnosEncarcelado > 0) {
-                p->turnosEncarcelado--;
-                if (p->turnosEncarcelado == 0) {
-                    std::cout << p->getNombre() << " ha sido liberada del encierro." << std::endl;
-                }
-            }
-        }
-    }
+    // El encarcelamiento es indefinido: no se decrementa aqui
 
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
@@ -254,11 +243,16 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             std::cout << "Fortalecido: " << objetivo->getNombre() << std::endl;
         }
         break;
-    case 6: // ENCARCELAR: la pieza enemiga no puede moverse 3 turnos
+    case 6: // ENCARCELAR: la pieza enemiga queda encarcelada indefinidamente (no aplica a lideres)
         if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
-            objetivo->turnosEncarcelado = 3;
-            std::cout << "Encarcelada: " << objetivo->getNombre()
-                << " (no puede actuar 3 turnos)" << std::endl;
+            if (dynamic_cast<PiezaLider*>(objetivo) != nullptr) {
+                std::cout << "No se puede encarcelar al lider." << std::endl;
+            }
+            else {
+                objetivo->turnosEncarcelado = 1; // flag: 1 = encarcelado, 0 = libre
+                std::cout << "Encarcelada: " << objetivo->getNombre()
+                    << " (indefinidamente)" << std::endl;
+            }
         }
         break;
 

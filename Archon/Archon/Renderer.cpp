@@ -631,13 +631,13 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
         overlay.setOutlineThickness(3.f);
         ventana.draw(overlay);
 
-        // Numero de turnos restantes en la esquina superior derecha
+        // Icono de candado (simbolo de encarcelamiento indefinido)
         if (fuenteCargada) {
-            sf::Text txtTurnos(fuente, std::to_string(p->turnosEncarcelado), 14);
-            txtTurnos.setFillColor(sf::Color::White);
-            txtTurnos.setStyle(sf::Text::Bold);
-            txtTurnos.setPosition(sf::Vector2f(px + TAM_CASILLA - 16.f, py + 2.f));
-            ventana.draw(txtTurnos);
+            sf::Text txtCandado(fuente, "X", 16);
+            txtCandado.setFillColor(sf::Color(255u, 80u, 80u));
+            txtCandado.setStyle(sf::Text::Bold);
+            txtCandado.setPosition(sf::Vector2f(px + TAM_CASILLA - 18.f, py + 2.f));
+            ventana.draw(txtCandado);
         }
     }
 

@@ -857,8 +857,7 @@ int main() {
                             if (p && p->getBando() == juego->getTurnoActual()) {
                                 if (p->turnosEncarcelado > 0) {
                                     // Pieza encarcelada: mostrar aviso
-                                    mensajeHUD = "Esta pieza esta encarcelada ("
-                                        + std::to_string(p->turnosEncarcelado) + " turnos restantes)";
+                                    mensajeHUD = "Esta pieza esta encarcelada indefinidamente";
                                     tiempoMensajeHUD = 2.f;
                                 }
                                 else {
@@ -1187,8 +1186,7 @@ int main() {
 
                         if (p && p->getBando() == turno) {
                             if (p->turnosEncarcelado > 0) {
-                                mensajeHUD = "Esta pieza esta encarcelada ("
-                                    + std::to_string(p->turnosEncarcelado) + " turnos restantes)";
+                                mensajeHUD = "Esta pieza esta encarcelada indefinidamente";
                                 tiempoMensajeHUD = 2.f;
                             }
                             else {
