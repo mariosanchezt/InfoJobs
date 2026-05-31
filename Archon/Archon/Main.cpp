@@ -55,7 +55,7 @@ ModoHechizo modoParaHechizo(int indice) {
     case 2: return HECHIZO_ENEMIGO;  // Daño
     case 3: return HECHIZO_ENEMIGO;  // Ralentizar
     case 4: return HECHIZO_ALIADO;   // Fortalecer
-    case 5: return HECHIZO_ALIADO;   // Escudo
+    case 5: return HECHIZO_ENEMIGO;  // Encarcelar
     case 6: return HECHIZO_ENEMIGO;  // Congelar
     default: return SIN_HECHIZO;
     }
@@ -67,7 +67,7 @@ TipoAnimHechizo animParaHechizo(int indice) {
     case 2: return ANIM_DANO;
     case 3: return ANIM_RALENTIZAR;
     case 4: return ANIM_FORTALECER;
-    case 5: return ANIM_ESCUDO;
+    case 5: return ANIM_NINGUNA;  // Encarcelar (sin animacion especial)
     case 6: return ANIM_CONGELAR;
     default: return ANIM_NINGUNA;
     }
@@ -220,8 +220,9 @@ int main() {
             case VICTORIA_ELIMINACION:  strVictoria = "ELIMINACION";    break;
             case VICTORIA_PUNTOS_PODER: strVictoria = "PUNTOS PODER";   break;
             case VICTORIA_TIEMPO:       strVictoria = "TIEMPO";         break;
-            case VICTORIA_PUNTUACION:   strVictoria = "PUNTUACION";     break;
-            default:                    strVictoria = "DESCONOCIDA";    break;
+            case VICTORIA_PUNTUACION:     strVictoria = "PUNTUACION";     break;
+            case VICTORIA_ENCARCELAMIENTO: strVictoria = "ENCARCELAMIENTO"; break;
+            default:                      strVictoria = "DESCONOCIDA";    break;
             }
 
             Ranking::guardarPartida(
@@ -597,12 +598,7 @@ int main() {
                 juego->moverPieza(fOri, cOri, fDest, cDest);
 
                 if (juego->verificarVictoria()) {
-                    audio.stopMusic();
-                    if (juego->getBandoGanador() == LUZ)
-                        audio.playVictoria();
-                    else
-                        audio.playDerrota();
-                    estadoJuego = EstadoJuego::VICTORIA;
+                    activarVictoriaActual();
                 }
             }
 
@@ -642,12 +638,7 @@ int main() {
             cancelarHechizo();
 
             if (juego->verificarVictoria()) {
-                audio.stopMusic();
-                if (juego->getBandoGanador() == LUZ)
-                    audio.playVictoria();
-                else
-                    audio.playDerrota();
-                estadoJuego = EstadoJuego::VICTORIA;
+                activarVictoriaActual();
             }
         }
 
@@ -730,12 +721,7 @@ int main() {
                 tiempoEsperaIA = 0.f;
 
                 if (juego->verificarVictoria()) {
-                    audio.stopMusic();
-                    if (juego->getBandoGanador() == LUZ)
-                        audio.playVictoria();
-                    else
-                        audio.playDerrota();
-                    estadoJuego = EstadoJuego::VICTORIA;
+                    activarVictoriaActual();
                 }
             }
             else {
@@ -829,12 +815,7 @@ int main() {
                                     renderer->deseleccionar();
 
                                     if (juego->verificarVictoria()) {
-                                        audio.stopMusic();
-                                        if (juego->getBandoGanador() == LUZ)
-                                            audio.playVictoria();
-                                        else
-                                            audio.playDerrota();
-                                        estadoJuego = EstadoJuego::VICTORIA;
+                                        activarVictoriaActual();
                                     }
                                 }
                             }
@@ -846,12 +827,7 @@ int main() {
                                     renderer->deseleccionar();
 
                                     if (juego->verificarVictoria()) {
-                                        audio.stopMusic();
-                                        if (juego->getBandoGanador() == LUZ)
-                                            audio.playVictoria();
-                                        else
-                                            audio.playDerrota();
-                                        estadoJuego = EstadoJuego::VICTORIA;
+                                        activarVictoriaActual();
                                     }
                                 }
                             }
@@ -879,11 +855,19 @@ int main() {
                         if (fSel == -1) {
                             Pieza* p = juego->getTablero()->getPieza(fila, col);
                             if (p && p->getBando() == juego->getTurnoActual()) {
-                                renderer->seleccionarCasilla(fila, col, juego->getTablero());
-                                audio.playSeleccion();
-                                arrastrando = true;
-                                moverConTeclado = false;
-                                posPixelMuneco = posMundo; // Usamos posMundo
+                                if (p->turnosEncarcelado > 0) {
+                                    // Pieza encarcelada: mostrar aviso
+                                    mensajeHUD = "Esta pieza esta encarcelada ("
+                                        + std::to_string(p->turnosEncarcelado) + " turnos restantes)";
+                                    tiempoMensajeHUD = 2.f;
+                                }
+                                else {
+                                    renderer->seleccionarCasilla(fila, col, juego->getTablero());
+                                    audio.playSeleccion();
+                                    arrastrando = true;
+                                    moverConTeclado = false;
+                                    posPixelMuneco = posMundo;
+                                }
                             }
                         }
                         else if (fila == fSel && col == cSel) {
@@ -1146,12 +1130,7 @@ int main() {
                         }
 
                         if (juego->verificarVictoria()) {
-                            audio.stopMusic();
-                            if (juego->getBandoGanador() == LUZ)
-                                audio.playVictoria();
-                            else
-                                audio.playDerrota();
-                            estadoJuego = EstadoJuego::VICTORIA;
+                            activarVictoriaActual();
                         }
                     }
 
@@ -1207,15 +1186,22 @@ int main() {
                         Pieza* p = juego->getTablero()->getPieza(fila, col);
 
                         if (p && p->getBando() == turno) {
-                            renderer->seleccionarCasilla(
-                                fila,
-                                col,
-                                juego->getTablero()
-                            );
-                            audio.playSeleccion();
-                            moverConTeclado = false;
+                            if (p->turnosEncarcelado > 0) {
+                                mensajeHUD = "Esta pieza esta encarcelada ("
+                                    + std::to_string(p->turnosEncarcelado) + " turnos restantes)";
+                                tiempoMensajeHUD = 2.f;
+                            }
+                            else {
+                                renderer->seleccionarCasilla(
+                                    fila,
+                                    col,
+                                    juego->getTablero()
+                                );
+                                audio.playSeleccion();
+                                moverConTeclado = false;
 
-                            posPixelMuneco = renderer->getCentroCasilla(fila, col);
+                                posPixelMuneco = renderer->getCentroCasilla(fila, col);
+                            }
                         }
                     }
                     else if (fila == fSel && col == cSel) {

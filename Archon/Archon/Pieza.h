@@ -26,6 +26,9 @@ public:
 
     TipoMovimiento mov; // Tierra, vuelo o teleport
 
+    // Turnos que le quedan encarcelada (0 = libre)
+    int turnosEncarcelado = 0;
+
     // Constructor: aquí "rellenas" la ficha con sus estadísticas
     Pieza(std::string n, Bando b, float v, float f, float va, float intA, int rm, int fIni, int cIni, TipoMovimiento t) {
         nombre = n;

@@ -621,6 +621,26 @@ void Renderer::dibujarPieza(Pieza* p, int fila, int col) {
         }
     }
 
+    // Indicador visual para piezas encarceladas: overlay semitransparente + icono de candado
+    if (p->turnosEncarcelado > 0) {
+        // Overlay azul oscuro semitransparente sobre toda la casilla
+        sf::RectangleShape overlay(sf::Vector2f(TAM_CASILLA, TAM_CASILLA));
+        overlay.setPosition(sf::Vector2f(px, py));
+        overlay.setFillColor(sf::Color(0u, 0u, 180u, 100u));
+        overlay.setOutlineColor(sf::Color(50u, 50u, 255u, 200u));
+        overlay.setOutlineThickness(3.f);
+        ventana.draw(overlay);
+
+        // Numero de turnos restantes en la esquina superior derecha
+        if (fuenteCargada) {
+            sf::Text txtTurnos(fuente, std::to_string(p->turnosEncarcelado), 14);
+            txtTurnos.setFillColor(sf::Color::White);
+            txtTurnos.setStyle(sf::Text::Bold);
+            txtTurnos.setPosition(sf::Vector2f(px + TAM_CASILLA - 16.f, py + 2.f));
+            ventana.draw(txtTurnos);
+        }
+    }
+
     dibujarBarraVida(p->vida, p->vidaMaxima, px + 5.f, py + 4.f, TAM_CASILLA - 10.f);
 }
 
@@ -1556,6 +1576,9 @@ void Renderer::dibujarPantallaVictoria(
     else if (tipoVictoria == VICTORIA_PUNTUACION) {
         txtTipo = "Victoria por mayor puntuacion";
     }
+    else if (tipoVictoria == VICTORIA_ENCARCELAMIENTO) {
+        txtTipo = "Victoria por encarcelamiento total del rival";
+    }
     else {
         txtTipo = "Partida finalizada";
     }
@@ -1574,7 +1597,7 @@ void Renderer::dibujarPanelHechizos(Bando turno, bool* hechizosUsadosLuz, bool* 
 
     std::vector<std::string> nombres = {
         "1. Curacion", "2. Teleport", "3. Daño",
-        "4. Ralentizar", "5. Fortalecer", "6. Escudo", "7. Congelar"
+        "4. Ralentizar", "5. Fortalecer", "6. Encarcelar", "7. Congelar"
     };
 
     float yInicio = 820.f;

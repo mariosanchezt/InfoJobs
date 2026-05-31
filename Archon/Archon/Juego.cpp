@@ -98,8 +98,42 @@ void Juego::inicializarPartida() {
 }
 
 void Juego::cambiarTurno() {
+    // Bando que acaba de jugar (antes de cambiar)
+    Bando bandoQueAcaba = turnoActual;
+
     turnoActual = (turnoActual == LUZ) ? OSCURIDAD : LUZ;
     turnosJugados++;
+
+    // --- Curación por terreno ---
+    // Las piezas del bando que acaba de jugar se curan si están
+    // en casillas de "su color" (patrón ajedrez: LUZ en casillas par, OSCURIDAD en impar)
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p == nullptr || p->getBando() != bandoQueAcaba) continue;
+            if (p->vida >= p->vidaMaxima) continue;
+
+            bool casillaPropia = ((f + c) % 2 == 0) ? (bandoQueAcaba == LUZ)
+                                                     : (bandoQueAcaba == OSCURIDAD);
+            if (!casillaPropia) continue;
+
+            float curacion = tablero->esPuntoDePoder(f, c) ? 8.f : 5.f;
+            p->vida = std::min(p->vida + curacion, p->vidaMaxima);
+        }
+    }
+
+    // --- Decrementar turnos de piezas encarceladas ---
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p != nullptr && p->turnosEncarcelado > 0) {
+                p->turnosEncarcelado--;
+                if (p->turnosEncarcelado == 0) {
+                    std::cout << p->getNombre() << " ha sido liberada del encierro." << std::endl;
+                }
+            }
+        }
+    }
 
     std::cout << "Cambio de turno. Ahora le toca a: "
         << (turnoActual == LUZ ? "Luz" : "Oscuridad") << std::endl;
@@ -220,12 +254,11 @@ void Juego::lanzarHechizo(int idHechizo, Pieza* objetivo, int fDest, int cDest) 
             std::cout << "Fortalecido: " << objetivo->getNombre() << std::endl;
         }
         break;
-    case 6: // ESCUDO
-        if (objetivo != nullptr && objetivo->getBando() == turnoActual) {
-            piezaEscudo = objetivo;
-            velAtaqueOriginalEscudo = objetivo->velAtaque;
-
-            std::cout << "Escudo aplicado a: " << objetivo->getNombre() << std::endl;
+    case 6: // ENCARCELAR: la pieza enemiga no puede moverse 3 turnos
+        if (objetivo != nullptr && objetivo->getBando() != turnoActual) {
+            objetivo->turnosEncarcelado = 3;
+            std::cout << "Encarcelada: " << objetivo->getNombre()
+                << " (no puede actuar 3 turnos)" << std::endl;
         }
         break;
 
@@ -387,6 +420,36 @@ bool Juego::verificarVictoria() {
     if (puntosPoderOscuridad == 5) {
         ganadorPartida = OSCURIDAD;
         tipoVictoria = VICTORIA_PUNTOS_PODER;
+        return true;
+    }
+
+    // Victoria por encarcelamiento: el rival solo tiene 1 pieza y esta encarcelada
+    int piezasLibresLuz = 0, piezasEncarcLuz = 0;
+    int piezasLibresOsc = 0, piezasEncarcOsc = 0;
+
+    for (int f = 0; f < 9; f++) {
+        for (int c = 0; c < 9; c++) {
+            Pieza* p = tablero->getPieza(f, c);
+            if (p == nullptr) continue;
+            if (p->getBando() == LUZ) {
+                if (p->turnosEncarcelado > 0) piezasEncarcLuz++;
+                else piezasLibresLuz++;
+            } else {
+                if (p->turnosEncarcelado > 0) piezasEncarcOsc++;
+                else piezasLibresOsc++;
+            }
+        }
+    }
+
+    if (piezasLibresOsc == 0 && piezasEncarcOsc == 1) {
+        ganadorPartida = LUZ;
+        tipoVictoria = VICTORIA_ENCARCELAMIENTO;
+        return true;
+    }
+
+    if (piezasLibresLuz == 0 && piezasEncarcLuz == 1) {
+        ganadorPartida = OSCURIDAD;
+        tipoVictoria = VICTORIA_ENCARCELAMIENTO;
         return true;
     }
 
