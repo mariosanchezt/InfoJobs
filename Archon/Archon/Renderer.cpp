@@ -1304,10 +1304,12 @@ void Renderer::dibujarCombatienteArena(const CombatienteArena& c, bool esLuz) {
         }
     }
 
-    // Solo barra de cooldown encima del sprite (la vida está en el panel lateral)
+    // Barras encima del sprite: vida + cooldown apiladas
     float anchoVida = 60.f;
+    dibujarBarraVida(c.pieza->vida, c.pieza->vidaMaxima,
+        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 14.f, anchoVida);
     dibujarBarraCooldown(c.tiempoRecarga, c.tiempoRecargaMax,
-        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 7.f, anchoVida);
+        c.pos.x - anchoVida / 2.f, c.pos.y - radio - 6.f, anchoVida);
 }
 
 void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
@@ -1323,13 +1325,13 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
     sf::Color colorOsc(220, 80, 80);
     sf::Color colorFondo(20, 20, 20, 230);
 
-    // Ancho responsivo: ocupa exactamente el hueco entre el borde y la arena
-    float margen = 5.f;
-    float panelAncho = Arena::getOffsetX() - margen * 2.f;  // ajusta solo si cambia el offset
-    float panelAlto  = VENTANA_ALTO - margen * 2.f;
-    float xLuz  = margen;
-    float xOsc  = Arena::getOffsetX() + Arena::getAncho() + margen;
-    float yPanel = margen;
+    // Paneles pegados al borde de la arena, ancho total disponible sin margen
+    float panelAncho = Arena::getOffsetX();                         // 170px: hueco izq completo
+    float panelAnchoOsc = VENTANA_ANCHO - (Arena::getOffsetX() + Arena::getAncho()); // hueco dch
+    float panelAlto  = VENTANA_ALTO;
+    float xLuz  = 0.f;
+    float xOsc  = Arena::getOffsetX() + Arena::getAncho();
+    float yPanel = 0.f;
 
     float t = relojAnimacion.getElapsedTime().asSeconds();
     float pulso = 0.5f + 0.5f * std::sin(t * 3.f);
@@ -1547,10 +1549,11 @@ void Renderer::dibujarPanelesStatsArena(const Arena& arena) {
         }
     };
 
-    // Panel izquierdo: LUZ / Plantas
     bool bonusLuz = (colorCasilla == 0);
     bool bonusOsc = (colorCasilla == 1);
-    dibujarPanel(c1, xLuz, colorLuz, true, "WASD + Espacio", bonusLuz);
+    dibujarPanel(c1, xLuz,  colorLuz, true,  "WASD + Espacio",  bonusLuz);
+    // Panel derecho usa su propio ancho (puede diferir si la arena no es centrada)
+    panelAncho = panelAnchoOsc;
     dibujarPanel(c2, xOsc, colorOsc, false, "Flechas + Enter", bonusOsc);
 }
 
