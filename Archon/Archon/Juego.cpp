@@ -75,22 +75,22 @@ void Juego::inicializarPartida() {
     // PLANTAS
     tablero->colocarPieza(0, 0, new PiezaTanque("Pomelo", LUZ, 0, 0, GROUND));
     tablero->colocarPieza(1, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 1, 0, GROUND));
-    tablero->colocarPieza(2, 0, new PiezaVoladora("Mazorca", LUZ, 2, 0, FLYING));
-    tablero->colocarPieza(3, 0, new PiezaRapida("Frutaestrella", LUZ, 3, 0, GROUND));
+    tablero->colocarPieza(2, 0, new PiezaVoladora("Frutaestrella", LUZ, 2, 0, FLYING));
+    tablero->colocarPieza(3, 0, new PiezaRapida("Mazorca", LUZ, 3, 0, GROUND));
     tablero->colocarPieza(4, 0, new PiezaLider("Dave el Loco", LUZ, 4, 0, TELEPORT));
-    tablero->colocarPieza(5, 0, new PiezaRapida("Frutaestrella", LUZ, 5, 0, GROUND));
-    tablero->colocarPieza(6, 0, new PiezaVoladora("Mazorca", LUZ, 6, 0, FLYING));
+    tablero->colocarPieza(5, 0, new PiezaRapida("Mazorca", LUZ, 5, 0, GROUND));
+    tablero->colocarPieza(6, 0, new PiezaVoladora("Frutaestrella", LUZ, 6, 0, FLYING));
     tablero->colocarPieza(7, 0, new PiezaDistancia("Lanzaguisantes", LUZ, 7, 0, GROUND));
     tablero->colocarPieza(8, 0, new PiezaTanque("Pomelo", LUZ, 8, 0, GROUND));
 
     // ZOMBIES
     tablero->colocarPieza(0, 8, new PiezaTanque("All-Star", OSCURIDAD, 0, 8, GROUND));
     tablero->colocarPieza(1, 8, new PiezaDistancia("Soldado", OSCURIDAD, 1, 8, GROUND));
-    tablero->colocarPieza(2, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 2, 8, FLYING));
-    tablero->colocarPieza(3, 8, new PiezaRapida("Zombidito", OSCURIDAD, 3, 8, GROUND));
+    tablero->colocarPieza(2, 8, new PiezaVoladora("Zombidito", OSCURIDAD, 2, 8, FLYING));
+    tablero->colocarPieza(3, 8, new PiezaRapida("Ingeniero", OSCURIDAD, 3, 8, GROUND));
     tablero->colocarPieza(4, 8, new PiezaLider("Dr. Zomboss", OSCURIDAD, 4, 8, TELEPORT));
-    tablero->colocarPieza(5, 8, new PiezaRapida("Zombidito", OSCURIDAD, 5, 8, GROUND));
-    tablero->colocarPieza(6, 8, new PiezaVoladora("Ingeniero", OSCURIDAD, 6, 8, FLYING));
+    tablero->colocarPieza(5, 8, new PiezaRapida("Ingeniero", OSCURIDAD, 5, 8, GROUND));
+    tablero->colocarPieza(6, 8, new PiezaVoladora("Zombidito", OSCURIDAD, 6, 8, FLYING));
     tablero->colocarPieza(7, 8, new PiezaDistancia("Soldado", OSCURIDAD, 7, 8, GROUND));
     tablero->colocarPieza(8, 8, new PiezaTanque("All-Star", OSCURIDAD, 8, 8, GROUND));
 
