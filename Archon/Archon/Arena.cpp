@@ -129,7 +129,7 @@ void Arena::notificarDisparo(CombatienteArena& c) {
 }
 
 static bool esMelee(const std::string& nombre) {
-    return nombre == "Carnivora" || nombre == "Supercerebroz";
+    return nombre == "Carnivora" || nombre == "Yeti";
 }
 
 void Arena::crearProyectil(CombatienteArena& tirador, CombatienteArena& objetivo) {

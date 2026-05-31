@@ -17,7 +17,7 @@ PiezaMelee::PiezaMelee(std::string n, Bando b, int fIni, int cIni, TipoMovimient
     ) {
     // Constructor PiezaMelee:
     // Si es del bando LUZ, se crea como Carnivora.
-    // Si es del bando OSCURIDAD, se crea como Supercerebroz.
+    // Si es del bando OSCURIDAD, se crea como Yeti.
 }
 
 //Atributo atacar de PiezaMelee

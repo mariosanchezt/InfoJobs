@@ -69,7 +69,7 @@ void Juego::inicializarPartida() {
     // MELEE
     for (int i = 0; i < 9; i++) {
         tablero->colocarPieza(i, 1, new PiezaMelee("Carnivora", LUZ, i, 1, GROUND));
-        tablero->colocarPieza(i, 7, new PiezaMelee("Supercerebroz", OSCURIDAD, i, 7, GROUND));
+        tablero->colocarPieza(i, 7, new PiezaMelee("Yeti", OSCURIDAD, i, 7, GROUND));
     }
 
     // PLANTAS

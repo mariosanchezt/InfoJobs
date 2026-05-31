@@ -523,7 +523,7 @@ void Menu::dibujarPaginaComoJugar(int pagina) {
         "#PERSONAJES\n"
         "Plantas: Cactus, Carnivora, Lanzaguisantes,\n"
         "Girasol, LanzaLechugas y Mazorca.\n"
-        "Zombies: All-Star, Supercerebroz, Minero,\n"
+        "Zombies: All-Star, Yeti, Minero,\n"
         "Balloon, Catapulta y Dr. Zomboss.\n\n"
 
         "#MOVIMIENTO\n"

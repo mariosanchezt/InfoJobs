@@ -51,9 +51,9 @@ std::string Renderer::nombreArchivoSprite(const std::string& nombrePieza) const 
     if (nombrePieza == "Frutaestrella")  return "Starfruit.png";
     if (nombrePieza == "Cactus")         return "Cactus.png";
     if (nombrePieza == "LanzaLechugas")        return "Cabbage.png";
-    if (nombrePieza == "Supercerebroz")  return "Yeti.png";
-    if (nombrePieza == "Minero")        return "Balloon.png";
-    if (nombrePieza == "Balloon")      return "Catapult.png";
+    if (nombrePieza == "Yeti")  return "Yeti.png";
+    if (nombrePieza == "Balloon")        return "Balloon.png";
+    if (nombrePieza == "Minero")      return "Catapult.png";
     if (nombrePieza == "All-Star")       return "Football.png";
     if (nombrePieza == "Catapulta")      return "Digger.png";
     if (nombrePieza == "Mazorca")   return "Cob_Cannon.png";
@@ -67,9 +67,9 @@ std::string Renderer::claveAnimacion(const std::string& nombrePieza) const {
     if (nombrePieza == "Frutaestrella")  return "Starfruit";
     if (nombrePieza == "Cactus")         return "Cactus";
     if (nombrePieza == "LanzaLechugas")        return "Cabbage";
-    if (nombrePieza == "Supercerebroz")  return "Yeti";
-    if (nombrePieza == "Minero")        return "Balloon";
-    if (nombrePieza == "Balloon")      return "Catapult";
+    if (nombrePieza == "Yeti")  return "Yeti";
+    if (nombrePieza == "Balloon")        return "Balloon";
+    if (nombrePieza == "Minero")      return "Catapult";
     if (nombrePieza == "All-Star")       return "Football";
     if (nombrePieza == "Catapulta")      return "Digger";
     if (nombrePieza == "Mazorca")   return "Cob_Cannon";
@@ -288,8 +288,8 @@ void Renderer::cargarSprites(const std::string& carpeta) {
         { "LanzaLechugas",        "Cabbage_proyectil.png" },
         { "Cactus",         "Cactus_proyectil.png" },
         { "Frutaestrella",  "Starfruit_proyectil.png" },
-         { "Minero",        "Balloon_proyectil.png" },      
-        { "Balloon",      "Catapult_proyectil.png" },     
+         { "Balloon",        "Balloon_proyectil.png" },      
+        { "Minero",      "Catapult_proyectil.png" },     
         { "Catapulta",      "Digger_proyectil.png" },       
         { "All-Star",       "Football_proyectil.png" },
         { "Mazorca",   "Cob_Cannon_proyectil.png" },
