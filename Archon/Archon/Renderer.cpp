@@ -175,7 +175,7 @@ void Renderer::cargarSheetSiNecesario(const std::string& clave, const std::strin
         if (!img.loadFromFile(ruta)) { mapa[clave] = std::move(info); return; }
 
         // Quitar fondo por color del primer pixel
-        if (clave == "Starfruit" || clave == "Chomper") {
+        if (clave == "Starfruit" || clave == "Chomper" || clave == "Cabbage" || clave == "Catapult") {
             img.createMaskFromColor(img.getPixel(sf::Vector2u(0, 0)));
         }
 
@@ -240,7 +240,8 @@ void Renderer::cargarSprites(const std::string& carpeta) {
 
         sf::Image img;
         if (img.loadFromFile(ruta)) {
-            if (archivo == "Starfruit_idle.png" || archivo == "Chomper.png") {
+            if (archivo == "Starfruit_idle.png" || archivo == "Chomper.png" ||
+                archivo == "Cabbage.png" || archivo == "Catapult.png") {
                 img.createMaskFromColor(img.getPixel(sf::Vector2u(0, 0)));
 
                 if (archivo == "Chomper.png") {
