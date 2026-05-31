@@ -246,6 +246,8 @@ public:
 
     void dibujarHUDTiempoPuntuacion(const Juego* juego);
 
+    void dibujarMensajeHUD(const std::string& mensaje, float tiempoRestante);
+
     void dibujarEstadoArena(const Arena& arena);
 
     void dibujarPantallaVictoria(

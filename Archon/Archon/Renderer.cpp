@@ -1819,3 +1819,18 @@ void Renderer::dibujarHUDTiempoPuntuacion(const Juego* juego) {
 
     ventana.draw(textoTiempo);
 }
+
+void Renderer::dibujarMensajeHUD(const std::string& mensaje, float tiempoRestante) {
+    if (!fuenteCargada || mensaje.empty())return;
+
+    uint8_t alpha = 255;
+    if (tiempoRestante < 1.f) {
+        alpha = static_cast<uint8_t>(255 * tiempoRestante);
+    }
+    sf::Text texto(fuente, mensaje, 22);
+    texto.setFillColor(sf::Color(255, 80, 80, alpha));
+    texto.setStyle(sf::Text::Bold);
+    sf::FloatRect b = texto.getLocalBounds();
+    texto.setPosition(sf::Vector2f(600.f - b.size.x / 2.f, 400.f));
+    ventana.draw(texto);
+}

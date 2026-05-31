@@ -150,6 +150,9 @@ int main() {
     int filaDefensor = -1;
     int colDefensor = -1;
 
+    sf::String mensajeHUD = "";
+    float tiempoMensajeHUD = 0.f;
+
     bool arrastrando = false;
     bool animando = false;
     bool moverConTeclado = false;
@@ -907,7 +910,9 @@ int main() {
                 // H: mostrar/ocultar panel de hechizos
                 if (key->code == sf::Keyboard::Key::H) {
                     if (!juego->liderVivo()) {
-                        std::cout << "No puedes usar hechizos sin lider." << std::endl;
+                        //std::cout << "No puedes usar hechizos sin lider." << std::endl;
+                        mensajeHUD = "Tu lider ha muerto. No puedes usar hechizos.";
+                        tiempoMensajeHUD = 2.f;
                         continue;
                     }
                     if (renderer->getModoHechizo() != SIN_HECHIZO) {
@@ -1170,6 +1175,10 @@ int main() {
             }
         }
 
+        if (tiempoMensajeHUD > 0.f) {
+            tiempoMensajeHUD -= dt;
+        }
+
         // DIBUJADO FINAL
         ventana.clear(sf::Color(20, 20, 20));
 
@@ -1208,6 +1217,10 @@ int main() {
         }
         if (mostrarSugerencia && sugerencia.fOrigen != -1) {
             renderer->dibujarSugerencia(sugerencia.fOrigen, sugerencia.cOrigen, sugerencia.fDestino, sugerencia.cDestino);
+        }
+        
+        if (tiempoMensajeHUD > 0.f) {
+            renderer->dibujarMensajeHUD(mensajeHUD, tiempoMensajeHUD);
         }
         ventana.display();
     }
